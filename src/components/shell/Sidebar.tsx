@@ -1,33 +1,65 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-
-type NavItem = {
-  label: string
-  href: string
-  icon: string
-}
-
-const navItems: NavItem[] = [
-  { label: 'Eventos', href: '/eventos', icon: '◈' },
-  { label: 'Clientes', href: '/clientes', icon: '◎' },
-  { label: 'Fornecedores', href: '/fornecedores', icon: '◉' },
-  { label: 'Playbook', href: '/playbook', icon: '◧' },
-]
-
-const operacaoItems: NavItem[] = [
-  { label: 'Todas as tarefas', href: '/operacao/tarefas', icon: '▣' },
-  { label: 'Minha semana', href: '/operacao/semana', icon: '▤' },
-  { label: 'Atrasadas', href: '/operacao/atrasadas', icon: '▥' },
-]
+import { NAV, type NavSpace, type NavFolder } from '@/lib/nav'
 
 export function Sidebar() {
   const pathname = usePathname()
   const router = useRouter()
-  const [operacaoAberta, setOperacaoAberta] = useState(true)
+
+  const initialOpenSpaces = useMemo(() => {
+    const set = new Set<string>()
+    for (const space of NAV) {
+      for (const folder of space.folders) {
+        for (const list of folder.lists) {
+          if (pathname.startsWith(list.href)) {
+            set.add(space.slug)
+          }
+        }
+      }
+    }
+    if (set.size === 0) set.add('entregas')
+    return set
+  }, [pathname])
+
+  const initialOpenFolders = useMemo(() => {
+    const set = new Set<string>()
+    for (const space of NAV) {
+      for (const folder of space.folders) {
+        for (const list of folder.lists) {
+          if (pathname.startsWith(list.href)) {
+            set.add(`${space.slug}/${folder.slug}`)
+          }
+        }
+      }
+    }
+    if (set.size === 0) set.add('entregas/base-de-dados')
+    return set
+  }, [pathname])
+
+  const [openSpaces, setOpenSpaces] = useState<Set<string>>(initialOpenSpaces)
+  const [openFolders, setOpenFolders] = useState<Set<string>>(initialOpenFolders)
+
+  function toggleSpace(slug: string) {
+    setOpenSpaces((prev) => {
+      const next = new Set(prev)
+      if (next.has(slug)) next.delete(slug)
+      else next.add(slug)
+      return next
+    })
+  }
+
+  function toggleFolder(key: string) {
+    setOpenFolders((prev) => {
+      const next = new Set(prev)
+      if (next.has(key)) next.delete(key)
+      else next.add(key)
+      return next
+    })
+  }
 
   async function handleLogout() {
     const supabase = createClient()
@@ -35,9 +67,6 @@ export function Sidebar() {
     router.push('/login')
     router.refresh()
   }
-
-  const isActive = (href: string) =>
-    pathname === href || (href !== '/' && pathname.startsWith(href))
 
   return (
     <aside
@@ -55,13 +84,8 @@ export function Sidebar() {
       }}
     >
       {/* Workspace header */}
-      <div
-        style={{
-          padding: '14px 12px 10px',
-          borderBottom: '1px solid var(--fe-border)',
-        }}
-      >
-        <button
+      <div style={{ padding: '14px 12px 10px', borderBottom: '1px solid var(--fe-border)', flexShrink: 0 }}>
+        <div
           style={{
             display: 'flex',
             alignItems: 'center',
@@ -69,12 +93,7 @@ export function Sidebar() {
             width: '100%',
             padding: '6px 8px',
             borderRadius: 'var(--fe-radius-md)',
-            border: 'none',
-            background: 'transparent',
-            cursor: 'pointer',
           }}
-          onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.background = 'var(--fe-hover)')}
-          onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.background = 'transparent')}
         >
           <div
             style={{
@@ -92,17 +111,14 @@ export function Sidebar() {
               FE
             </span>
           </div>
-          <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--fe-text-strong)', flex: 1, textAlign: 'left' }}>
+          <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--fe-text-strong)', flex: 1 }}>
             Future Events
           </span>
-          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ opacity: 0.4 }}>
-            <path d="M3.5 5.5L7 9L10.5 5.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-        </button>
+        </div>
       </div>
 
       {/* Busca */}
-      <div style={{ padding: '8px 12px' }}>
+      <div style={{ padding: '8px 12px', flexShrink: 0 }}>
         <button
           style={{
             display: 'flex',
@@ -126,63 +142,23 @@ export function Sidebar() {
         </button>
       </div>
 
-      {/* Nav principal */}
-      <nav style={{ padding: '4px 8px', flex: 1, overflowY: 'auto' }}>
-        {/* Seção principal */}
-        {navItems.map((item) => (
-          <NavLink key={item.href} item={item} active={isActive(item.href)} />
+      {/* Nav: Spaces */}
+      <nav style={{ flex: 1, overflowY: 'auto', padding: '4px 0 16px' }}>
+        {NAV.map((space) => (
+          <SpaceSection
+            key={space.slug}
+            space={space}
+            isOpen={openSpaces.has(space.slug)}
+            onToggle={() => toggleSpace(space.slug)}
+            openFolders={openFolders}
+            onToggleFolder={toggleFolder}
+            pathname={pathname}
+          />
         ))}
-
-        {/* Divisória */}
-        <div style={{ height: 1, background: 'var(--fe-divider)', margin: '8px 4px' }} />
-
-        {/* Operação */}
-        <button
-          onClick={() => setOperacaoAberta(!operacaoAberta)}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 5,
-            width: '100%',
-            padding: '4px 8px',
-            fontSize: 10.5,
-            fontWeight: 600,
-            letterSpacing: '0.06em',
-            textTransform: 'uppercase',
-            color: 'var(--fe-text-muted)',
-            background: 'transparent',
-            border: 'none',
-            cursor: 'pointer',
-            borderRadius: 'var(--fe-radius-md)',
-          }}
-          onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.background = 'var(--fe-hover)')}
-          onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.background = 'transparent')}
-        >
-          <svg
-            width="10" height="10" viewBox="0 0 10 10" fill="none"
-            style={{ transform: operacaoAberta ? 'rotate(90deg)' : 'rotate(0deg)', transition: 'transform var(--fe-dur-fast) var(--fe-ease)' }}
-          >
-            <path d="M3.5 2L6.5 5L3.5 8" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-          Operação
-        </button>
-
-        {operacaoAberta && (
-          <div style={{ marginTop: 2 }}>
-            {operacaoItems.map((item) => (
-              <NavLink key={item.href} item={item} active={isActive(item.href)} indent />
-            ))}
-          </div>
-        )}
       </nav>
 
       {/* Rodapé */}
-      <div
-        style={{
-          borderTop: '1px solid var(--fe-border)',
-          padding: '8px 12px',
-        }}
-      >
+      <div style={{ borderTop: '1px solid var(--fe-border)', padding: '8px 12px', flexShrink: 0 }}>
         <button
           onClick={handleLogout}
           style={{
@@ -228,31 +204,174 @@ export function Sidebar() {
   )
 }
 
-function NavLink({ item, active, indent = false }: { item: NavItem; active: boolean; indent?: boolean }) {
+function SpaceSection({
+  space,
+  isOpen,
+  onToggle,
+  openFolders,
+  onToggleFolder,
+  pathname,
+}: {
+  space: NavSpace
+  isOpen: boolean
+  onToggle: () => void
+  openFolders: Set<string>
+  onToggleFolder: (key: string) => void
+  pathname: string
+}) {
   return (
-    <Link
-      href={item.href}
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: 7,
-        height: 30,
-        padding: `0 8px 0 ${indent ? 22 : 8}px`,
-        borderRadius: 'var(--fe-radius-md)',
-        fontSize: 13,
-        fontWeight: active ? 600 : 500,
-        color: active ? 'var(--fe-black)' : 'var(--fe-text-soft)',
-        background: active ? 'var(--fe-accent-dim)' : 'transparent',
-        boxShadow: active ? 'inset 2px 0 0 var(--fe-accent)' : 'none',
-        textDecoration: 'none',
-        transition: 'background var(--fe-dur-fast)',
-        marginBottom: 1,
-      }}
-      onMouseEnter={(e) => !active && ((e.currentTarget as HTMLElement).style.background = 'var(--fe-hover)')}
-      onMouseLeave={(e) => !active && ((e.currentTarget as HTMLElement).style.background = 'transparent')}
-    >
-      <span style={{ fontSize: 12, opacity: active ? 0.8 : 0.45, width: 14, textAlign: 'center' }}>{item.icon}</span>
-      {item.label}
-    </Link>
+    <div style={{ marginBottom: 2 }}>
+      {/* Space header */}
+      <button
+        onClick={onToggle}
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 6,
+          width: '100%',
+          padding: '5px 16px',
+          border: 'none',
+          background: 'transparent',
+          cursor: 'pointer',
+          borderRadius: 0,
+        }}
+        onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.background = 'var(--fe-hover)')}
+        onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.background = 'transparent')}
+      >
+        <svg
+          width="9" height="9" viewBox="0 0 9 9" fill="none"
+          style={{
+            transform: isOpen ? 'rotate(90deg)' : 'rotate(0deg)',
+            transition: 'transform var(--fe-dur-fast) var(--fe-ease)',
+            color: 'var(--fe-text-faint)',
+            flexShrink: 0,
+          }}
+        >
+          <path d="M3 1.5L6 4.5L3 7.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+        <div style={{ width: 7, height: 7, borderRadius: '50%', background: space.color, flexShrink: 0 }} />
+        <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.055em', textTransform: 'uppercase', color: 'var(--fe-text-muted)' }}>
+          {space.label}
+        </span>
+      </button>
+
+      {/* Folders */}
+      {isOpen && (
+        <div>
+          {space.folders.map((folder) => {
+            const folderKey = `${space.slug}/${folder.slug}`
+            const isFolderOpen = openFolders.has(folderKey)
+            return (
+              <FolderSection
+                key={folder.slug}
+                folder={folder}
+                folderKey={folderKey}
+                isOpen={isFolderOpen}
+                onToggle={() => onToggleFolder(folderKey)}
+                pathname={pathname}
+              />
+            )
+          })}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function FolderSection({
+  folder,
+  isOpen,
+  onToggle,
+  pathname,
+}: {
+  folder: NavFolder
+  folderKey: string
+  isOpen: boolean
+  onToggle: () => void
+  pathname: string
+}) {
+  return (
+    <div>
+      {/* Folder row */}
+      <button
+        onClick={onToggle}
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 5,
+          width: '100%',
+          height: 28,
+          padding: '0 8px 0 28px',
+          border: 'none',
+          background: 'transparent',
+          cursor: 'pointer',
+          borderRadius: 0,
+        }}
+        onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.background = 'var(--fe-hover)')}
+        onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.background = 'transparent')}
+      >
+        <svg
+          width="9" height="9" viewBox="0 0 9 9" fill="none"
+          style={{
+            transform: isOpen ? 'rotate(90deg)' : 'rotate(0deg)',
+            transition: 'transform var(--fe-dur-fast) var(--fe-ease)',
+            color: 'var(--fe-text-faint)',
+            flexShrink: 0,
+          }}
+        >
+          <path d="M3 1.5L6 4.5L3 7.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+        {/* Folder icon */}
+        <svg width="13" height="13" viewBox="0 0 13 13" fill="none" style={{ opacity: 0.4, flexShrink: 0 }}>
+          <path d="M1.5 3.5C1.5 2.95 1.95 2.5 2.5 2.5H5L6.5 4H10.5C11.05 4 11.5 4.45 11.5 5V10C11.5 10.55 11.05 11 10.5 11H2.5C1.95 11 1.5 10.55 1.5 10V3.5Z" stroke="currentColor" strokeWidth="1.2" />
+        </svg>
+        <span style={{ fontSize: 12.5, fontWeight: 500, color: 'var(--fe-text-soft)', textAlign: 'left', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          {folder.label}
+        </span>
+      </button>
+
+      {/* Lists */}
+      {isOpen && (
+        <div>
+          {folder.lists.map((list) => {
+            const isActive = pathname === list.href || pathname.startsWith(list.href + '/')
+            return (
+              <Link
+                key={list.slug}
+                href={list.href}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  height: 28,
+                  padding: '0 8px 0 46px',
+                  fontSize: 12.5,
+                  fontWeight: isActive ? 600 : 400,
+                  color: isActive ? 'var(--fe-black)' : 'var(--fe-text-soft)',
+                  background: isActive ? 'var(--fe-accent-dim)' : 'transparent',
+                  boxShadow: isActive ? 'inset 2px 0 0 var(--fe-accent)' : 'none',
+                  textDecoration: 'none',
+                  transition: 'background var(--fe-dur-fast)',
+                  borderRadius: 0,
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                }}
+                onMouseEnter={(e) => !isActive && ((e.currentTarget as HTMLElement).style.background = 'var(--fe-hover)')}
+                onMouseLeave={(e) => !isActive && ((e.currentTarget as HTMLElement).style.background = 'transparent')}
+              >
+                {/* List icon */}
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none" style={{ opacity: 0.35, flexShrink: 0 }}>
+                  <path d="M2 3.5H10M2 6H10M2 8.5H7" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
+                </svg>
+                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {list.label}
+                </span>
+              </Link>
+            )
+          })}
+        </div>
+      )}
+    </div>
   )
 }

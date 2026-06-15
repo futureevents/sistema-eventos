@@ -33,7 +33,7 @@ export async function proxy(request: NextRequest) {
   }
 
   if (user && isAuthPage) {
-    return NextResponse.redirect(new URL('/eventos', request.url))
+    return NextResponse.redirect(new URL('/entregas/base-de-dados/eventos', request.url))
   }
 
   return supabaseResponse
