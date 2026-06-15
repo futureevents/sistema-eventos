@@ -250,7 +250,7 @@ function SpaceSection({
           <path d="M3 1.5L6 4.5L3 7.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
         <div style={{ width: 7, height: 7, borderRadius: '50%', background: space.color, flexShrink: 0 }} />
-        <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.055em', textTransform: 'uppercase', color: 'var(--fe-text-muted)' }}>
+        <span style={{ fontSize: 13, fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase', color: 'var(--fe-text-muted)' }}>
           {space.label}
         </span>
       </button>
@@ -300,7 +300,7 @@ function FolderSection({
           alignItems: 'center',
           gap: 5,
           width: '100%',
-          height: 28,
+          height: 32,
           padding: '0 8px 0 28px',
           border: 'none',
           background: 'transparent',
@@ -325,7 +325,7 @@ function FolderSection({
         <svg width="13" height="13" viewBox="0 0 13 13" fill="none" style={{ opacity: 0.4, flexShrink: 0 }}>
           <path d="M1.5 3.5C1.5 2.95 1.95 2.5 2.5 2.5H5L6.5 4H10.5C11.05 4 11.5 4.45 11.5 5V10C11.5 10.55 11.05 11 10.5 11H2.5C1.95 11 1.5 10.55 1.5 10V3.5Z" stroke="currentColor" strokeWidth="1.2" />
         </svg>
-        <span style={{ fontSize: 12.5, fontWeight: 500, color: 'var(--fe-text-soft)', textAlign: 'left', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+        <span style={{ fontSize: 14, fontWeight: 500, color: 'var(--fe-text-soft)', textAlign: 'left', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
           {folder.label}
         </span>
       </button>
@@ -343,9 +343,9 @@ function FolderSection({
                   display: 'flex',
                   alignItems: 'center',
                   gap: 6,
-                  height: 28,
+                  height: 32,
                   padding: '0 8px 0 46px',
-                  fontSize: 12.5,
+                  fontSize: 13.5,
                   fontWeight: isActive ? 600 : 400,
                   color: isActive ? 'var(--fe-black)' : 'var(--fe-text-soft)',
                   background: isActive ? 'var(--fe-accent-dim)' : 'transparent',
