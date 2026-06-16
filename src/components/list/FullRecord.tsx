@@ -14,6 +14,7 @@ import { TaskComments } from './TaskComments'
 import { TaskChecklists } from './TaskChecklists'
 import { TaskActivity } from './TaskActivity'
 import { TaskAttachments } from './TaskAttachments'
+import { TaskRelationships } from './TaskRelationships'
 
 export function FullRecord({ config, row: rowProp, options, embeds }: {
   config: ListConfig; row: Row; options: OptionsMap; embeds: EmbedMap
@@ -109,6 +110,8 @@ export function FullRecord({ config, row: rowProp, options, embeds }: {
               style={{ width: '100%', resize: 'none', border: 'none', outline: 'none', background: 'transparent', fontFamily: "'Bricolage Grotesque', sans-serif", fontWeight: 700, fontSize: 30, lineHeight: 1.14, letterSpacing: '-0.03em', color: 'var(--fe-text-strong)', margin: '0 0 24px', padding: 0, overflow: 'hidden' }} />
 
             {descField ? <RichTextEditor key={row.id} value={(row[config.descriptionField!] as string) ?? null} onChange={onDesc} minHeight={200} /> : null}
+
+            <TaskRelationships config={config} rowId={String(row.id)} />
 
             <TaskChecklists taskId={String(row.id)} taskTable={config.table} />
 
