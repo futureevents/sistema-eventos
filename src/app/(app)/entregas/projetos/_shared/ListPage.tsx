@@ -16,6 +16,11 @@ export async function ListPage({ tipo }: { tipo: TipoTask }) {
     supabase.from('membros').select('id, nome, email'),
   ])
 
+  const taskList = (tasks ?? []).map((t) => ({
+    ...t,
+    evento: Array.isArray(t.evento) ? (t.evento[0] ?? null) : t.evento,
+  }))
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 44, padding: '0 20px', borderBottom: '1px solid var(--fe-border-soft)', background: 'var(--fe-surface)', flexShrink: 0 }}>
@@ -44,7 +49,7 @@ export async function ListPage({ tipo }: { tipo: TipoTask }) {
       </div>
 
       <div style={{ flex: 1, overflowY: 'auto', background: 'var(--fe-surface)' }}>
-        <TasksLista tasks={tasks ?? []} tipo={tipo} membros={membros ?? []} />
+        <TasksLista tasks={taskList} tipo={tipo} membros={membros ?? []} />
       </div>
     </div>
   )

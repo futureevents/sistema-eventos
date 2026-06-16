@@ -17,5 +17,10 @@ export async function DetalhePage({ id }: { id: string }) {
 
   if (!task) notFound()
 
-  return <TaskDetalhe task={task as any} eventos={eventos ?? []} membros={membros ?? []} />
+  const taskNorm = {
+    ...task,
+    evento: Array.isArray(task.evento) ? (task.evento[0] ?? null) : task.evento,
+  }
+
+  return <TaskDetalhe task={taskNorm as any} eventos={eventos ?? []} membros={membros ?? []} />
 }
