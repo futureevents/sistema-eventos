@@ -50,3 +50,25 @@ export const STATUS_STYLE: Record<StatusTask, { bg: string; color: string }> = {
   concluida:    { bg: 'var(--fe-status-done-tint)',   color: 'var(--fe-status-done-text)' },
   cancelada:    { bg: 'rgba(239,68,68,0.10)',         color: '#DC2626' },
 }
+
+// Ordem canônica dos grupos na view Lista (agrupar por status)
+export const STATUS_ORDER: StatusTask[] = ['a_fazer', 'em_andamento', 'concluida', 'cancelada']
+
+// Pill de status no padrão ClickUp: dot sólido + tint de fundo + texto escurecido
+export const STATUS_PILL: Record<StatusTask, { dot: string; bg: string; text: string }> = {
+  a_fazer:      { dot: '#8A8783', bg: 'var(--fe-status-todo-tint)',   text: 'var(--fe-status-todo-text)' },
+  em_andamento: { dot: '#3B82F6', bg: 'var(--fe-status-prog-tint)',   text: 'var(--fe-status-prog-text)' },
+  concluida:    { dot: '#00C47A', bg: 'var(--fe-status-done-tint)',   text: 'var(--fe-status-done-text)' },
+  cancelada:    { dot: '#EF4444', bg: 'rgba(239,68,68,0.10)',         text: '#DC2626' },
+}
+
+// Cor da bandeira de prioridade
+export const PRIORIDADE_FLAG: Record<PrioridadeTask, string> = {
+  urgente: 'var(--fe-prio-urgent)',
+  alta:    'var(--fe-prio-high)',
+  media:   'var(--fe-prio-normal)',
+  baixa:   'var(--fe-prio-low)',
+}
+
+// Paleta de cores de avatar (iniciais sobre cor sólida)
+export const AVATAR_PALETTE = ['#6E56CF', '#00A368', '#3B82F6', '#E8833A', '#D6457D', '#0EA5A4']
