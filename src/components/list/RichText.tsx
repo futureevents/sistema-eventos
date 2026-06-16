@@ -111,24 +111,38 @@ export function RichTextEditor({
     }
 
     // ── Markdown inline ──────────────────────────────────────────────────────
-    const sel = window.getSelection()
-    if (sel && sel.rangeCount > 0) {
-      const node = sel.getRangeAt(0).startContainer
-      if (node.nodeType === Node.TEXT_NODE) {
-        const full = node.textContent || ''
-        if (full === '- ' || full === '– ') {
-          node.textContent = ''
-          execCmd('insertUnorderedList')
-          emitir()
-          return
-        }
-        if (/^\d+\. $/.test(full)) {
-          node.textContent = ''
-          execCmd('insertOrderedList')
-          emitir()
-          return
+    // Usa prefix (texto antes do cursor) para detectar trigger e apaga apenas ele
+    if (prefix === '- ' || prefix === '– ') {
+      const sel2 = window.getSelection()
+      if (sel2 && sel2.rangeCount > 0) {
+        const range2 = sel2.getRangeAt(0)
+        const node = range2.startContainer
+        if (node.nodeType === Node.TEXT_NODE) {
+          const r = document.createRange()
+          r.setStart(node, 0)
+          r.setEnd(node, prefix.length)
+          r.deleteContents()
         }
       }
+      execCmd('insertUnorderedList')
+      emitir()
+      return
+    }
+    if (/^\d+\. $/.test(prefix)) {
+      const sel2 = window.getSelection()
+      if (sel2 && sel2.rangeCount > 0) {
+        const range2 = sel2.getRangeAt(0)
+        const node = range2.startContainer
+        if (node.nodeType === Node.TEXT_NODE) {
+          const r = document.createRange()
+          r.setStart(node, 0)
+          r.setEnd(node, prefix.length)
+          r.deleteContents()
+        }
+      }
+      execCmd('insertOrderedList')
+      emitir()
+      return
     }
 
     emitir()

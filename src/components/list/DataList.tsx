@@ -1,7 +1,8 @@
 'use client'
 
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import {
   type ListConfig, type FieldDef, type Row, type OptionsMap, type SelectOption, parseISO,
@@ -18,8 +19,15 @@ export function DataList({ config, rows: rowsProp, options, embeds }: {
   config: ListConfig; rows: Row[]; options: OptionsMap; embeds: EmbedMap
 }) {
   const supabase = useMemo(() => createClient(), [])
+  const router = useRouter()
   const [rows, setRows] = useState<Row[]>(rowsProp)
   const [sel, setSel] = useState<string | null>(null)
+
+  // Abre SlideOver se ?sel=id estiver na URL (vindo do FullRecord "Recolher")
+  useEffect(() => {
+    const p = new URLSearchParams(window.location.search).get('sel')
+    if (p) { setSel(p); router.replace(window.location.pathname, { scroll: false }) }
+  }, []) // eslint-disable-line
   const [busca, setBusca] = useState('')
   const [groupBy, setGroupBy] = useState<string | null>(config.defaultGroupBy ?? config.statusField ?? null)
   const [filtros, setFiltros] = useState<FilterState>({})
