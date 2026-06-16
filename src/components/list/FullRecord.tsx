@@ -13,6 +13,7 @@ import { RichTextEditor } from './RichText'
 import { TaskComments } from './TaskComments'
 import { TaskChecklists } from './TaskChecklists'
 import { TaskActivity } from './TaskActivity'
+import { TaskAttachments } from './TaskAttachments'
 
 export function FullRecord({ config, row: rowProp, options, embeds }: {
   config: ListConfig; row: Row; options: OptionsMap; embeds: EmbedMap
@@ -110,6 +111,8 @@ export function FullRecord({ config, row: rowProp, options, embeds }: {
             {descField ? <RichTextEditor key={row.id} value={(row[config.descriptionField!] as string) ?? null} onChange={onDesc} minHeight={200} /> : null}
 
             <TaskChecklists taskId={String(row.id)} taskTable={config.table} />
+
+            <TaskAttachments taskId={String(row.id)} taskTable={config.table} />
 
             <TaskActivity taskId={String(row.id)} taskTable={config.table} config={config} />
 
