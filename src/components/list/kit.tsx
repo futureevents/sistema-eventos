@@ -371,30 +371,10 @@ export function useHiddenFields(table: string) {
     })
   }
 
-  return { hidden, toggle }
-}
+  function reset() {
+    setHidden(new Set())
+    try { localStorage.removeItem(lsKey) } catch {}
+  }
 
-export function FieldToggleRow({ label, visible, onChange }: { label: string; visible: boolean; onChange: () => void }) {
-  return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '5px 0', gap: 8 }}>
-      <span style={{ fontSize: 12.5, color: 'var(--fe-text)', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{label}</span>
-      <button
-        type="button"
-        onClick={onChange}
-        style={{
-          width: 30, height: 17, borderRadius: 9, border: 'none', cursor: 'pointer', flexShrink: 0,
-          background: visible ? 'var(--fe-accent)' : 'var(--fe-border)',
-          position: 'relative', transition: 'background 150ms',
-        }}
-      >
-        <span style={{
-          position: 'absolute', top: 2, width: 13, height: 13,
-          left: visible ? 15 : 2,
-          borderRadius: '50%', background: '#fff',
-          transition: 'left 150ms',
-          boxShadow: '0 1px 2px rgba(0,0,0,0.18)',
-        }} />
-      </button>
-    </div>
-  )
+  return { hidden, toggle, reset }
 }

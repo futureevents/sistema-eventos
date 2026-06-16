@@ -6,7 +6,7 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { type ListConfig, type Row, type OptionsMap } from './types'
 import { type EmbedMap } from './load'
-import { SpaceBadge, dataLonga, useHiddenFields, FieldToggleRow } from './kit'
+import { SpaceBadge, dataLonga, useHiddenFields } from './kit'
 import { SelectMenu, OptionPill } from './inline'
 import { InlineField, optionOf } from './cells'
 import { RichTextEditor } from './RichText'
@@ -25,8 +25,8 @@ export function FullRecord({ config, row: rowProp, options, embeds }: {
   const detailFields = config.fields.filter((f) => (f.inPanel ?? (!f.column?.primary && f.type !== 'richtext')) && f.key !== config.titleField && f.key !== config.descriptionField)
   const descField = config.descriptionField ? config.fields.find((f) => f.key === config.descriptionField) : null
 
-  const { hidden, toggle: toggleField } = useHiddenFields(config.table)
-  const [showFieldConfig, setShowFieldConfig] = useState(false)
+  const { hidden, toggle: toggleField, reset: showAllFields } = useHiddenFields(config.table)
+  const [hoveredField, setHoveredField] = useState<string | null>(null)
   const visibleFields = detailFields.filter((f) => !hidden.has(f.key))
 
   function marcarSalvo() { setSalvando('saved'); if (savedTimer.current) clearTimeout(savedTimer.current); savedTimer.current = setTimeout(() => setSalvando('idle'), 1600) }
@@ -115,44 +115,41 @@ export function FullRecord({ config, row: rowProp, options, embeds }: {
 
           <aside style={{ position: 'sticky', top: 0, background: 'var(--fe-surface)', border: '1px solid var(--fe-border-soft)', borderRadius: 'var(--fe-radius-lg)', boxShadow: 'var(--fe-shadow-card)', overflow: 'hidden' }}>
             {/* Header */}
-            <div style={{ padding: '10px 18px', borderBottom: '1px solid var(--fe-divider)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div style={{ padding: '10px 18px', borderBottom: '1px solid var(--fe-divider)' }}>
               <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--fe-text-faint)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Detalhes</span>
-              <button
-                type="button"
-                onClick={() => setShowFieldConfig((p) => !p)}
-                title={showFieldConfig ? 'Fechar configuração' : 'Mostrar/ocultar campos'}
-                style={{ display: 'inline-flex', alignItems: 'center', gap: 5, height: 24, padding: '0 8px', borderRadius: 'var(--fe-radius-sm)', border: 'none', background: showFieldConfig ? 'var(--fe-hover)' : 'transparent', color: 'var(--fe-text-muted)', fontSize: 11.5, fontWeight: 500, cursor: 'pointer' }}
-              >
-                <svg width="12" height="12" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="2.2" stroke="currentColor" strokeWidth="1.3" /><path d="M7 1.5C4 1.5 1.5 4 1.5 7C1.5 10 4 12.5 7 12.5C10 12.5 12.5 10 12.5 7C12.5 4 10 1.5 7 1.5Z" stroke="currentColor" strokeWidth="1.3" /><path d="M1.5 7H3M11 7H12.5M7 1.5V3M7 11V12.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" /></svg>
-                Campos
-                {hidden.size > 0 && (
-                  <span style={{ background: 'var(--fe-accent)', color: 'var(--fe-accent-dark)', borderRadius: 10, fontSize: 10, fontWeight: 700, padding: '1px 5px', lineHeight: 1.4 }}>{hidden.size}</span>
-                )}
-              </button>
             </div>
-
-            {/* Painel de toggles */}
-            {showFieldConfig && (
-              <div style={{ padding: '4px 18px 8px', borderBottom: '1px solid var(--fe-divider)', background: 'var(--fe-warm-white)' }}>
-                {detailFields.map((f) => (
-                  <FieldToggleRow key={f.key} label={f.label} visible={!hidden.has(f.key)} onChange={() => toggleField(f.key)} />
-                ))}
-              </div>
-            )}
 
             {/* Campos visíveis */}
             <div style={{ padding: '4px 18px 14px' }}>
-              {visibleFields.length === 0 && (
-                <div style={{ padding: '16px 0', fontSize: 12.5, color: 'var(--fe-text-faint)', textAlign: 'center' }}>
-                  Todos os campos estão ocultos
-                </div>
-              )}
               {visibleFields.map((f, i) => (
-                <div key={f.key} style={{ display: 'grid', gridTemplateColumns: '104px 1fr', alignItems: 'center', minHeight: 40, borderBottom: i === visibleFields.length - 1 ? 'none' : '1px solid var(--fe-divider)' }}>
+                <div
+                  key={f.key}
+                  onMouseEnter={() => setHoveredField(f.key)}
+                  onMouseLeave={() => setHoveredField(null)}
+                  style={{ display: 'grid', gridTemplateColumns: '104px 1fr 20px', alignItems: 'center', minHeight: 40, borderBottom: i === visibleFields.length - 1 ? 'none' : '1px solid var(--fe-divider)' }}
+                >
                   <span style={{ fontSize: 12.5, color: 'var(--fe-text-muted)' }}>{f.label}</span>
                   <span style={{ minWidth: 0 }}><InlineField field={f} row={row} options={options} patch={patch} variant="panel" /></span>
+                  <button
+                    onClick={() => toggleField(f.key)}
+                    title="Ocultar campo"
+                    style={{ width: 18, height: 18, borderRadius: 4, border: 'none', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: hoveredField === f.key ? 0.45 : 0, color: 'var(--fe-text-muted)', transition: 'opacity 100ms', padding: 0 }}
+                  >
+                    <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 2L8 8M8 2L2 8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /></svg>
+                  </button>
                 </div>
               ))}
+              {hidden.size > 0 && (
+                <button
+                  onClick={showAllFields}
+                  style={{ marginTop: 6, fontSize: 12, color: 'var(--fe-text-faint)', background: 'transparent', border: 'none', cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center', gap: 5 }}
+                  onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--fe-text-muted)')}
+                  onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--fe-text-faint)')}
+                >
+                  <svg width="11" height="11" viewBox="0 0 12 12" fill="none"><path d="M1.5 6C1.5 6 3 2.5 6 2.5C9 2.5 10.5 6 10.5 6C10.5 6 9 9.5 6 9.5C3 9.5 1.5 6 1.5 6Z" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round" /><circle cx="6" cy="6" r="1.5" stroke="currentColor" strokeWidth="1.2" /></svg>
+                  Mostrar {hidden.size} campo{hidden.size > 1 ? 's' : ''} oculto{hidden.size > 1 ? 's' : ''}
+                </button>
+              )}
             </div>
             <div style={{ padding: '10px 18px', borderTop: '1px solid var(--fe-divider)' }}><span style={{ fontSize: 11.5, color: 'var(--fe-text-faint)' }}>Criado em {dataLonga(String(row.criado_em).slice(0, 10))}</span></div>
           </aside>
