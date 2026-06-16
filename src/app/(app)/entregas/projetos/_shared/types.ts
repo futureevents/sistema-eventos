@@ -4,16 +4,22 @@ export type StatusTask = 'a_fazer' | 'em_andamento' | 'concluida' | 'cancelada'
 
 export type Membro = { id: string; nome: string; email: string }
 
+export type EventoRef = { nome: string; cliente_id: string | null; cliente: { nome: string } | null } | null
+
+export type EventoOpcao = { id: string; nome: string; cliente_id: string | null; cliente_nome: string | null }
+export type ClienteOpcao = { id: string; nome: string }
+
 export type TaskProjeto = {
   id: string
   nome: string
   tipo: TipoTask
   evento_id: string | null
-  evento: { nome: string } | null
+  evento: EventoRef
   responsavel_id: string | null
   data_fim: string | null
   prioridade: PrioridadeTask
   status: StatusTask
+  descricao: string | null
   criado_em: string
 }
 
@@ -72,3 +78,20 @@ export const PRIORIDADE_FLAG: Record<PrioridadeTask, string> = {
 
 // Paleta de cores de avatar (iniciais sobre cor sólida)
 export const AVATAR_PALETTE = ['#6E56CF', '#00A368', '#3B82F6', '#E8833A', '#D6457D', '#0EA5A4']
+
+// Listas canônicas para selects/dropdowns
+export const PRIORIDADE_ORDER: PrioridadeTask[] = ['urgente', 'alta', 'media', 'baixa']
+
+// ─── Agrupamento ────────────────────────────────────────────────────────────
+export type CampoGrupo = 'status' | 'prioridade' | 'evento' | 'cliente' | 'prazo' | 'responsavel'
+
+export const GRUPO_LABEL: Record<CampoGrupo, string> = {
+  status:      'Status',
+  prioridade:  'Prioridade',
+  evento:      'Evento',
+  cliente:     'Cliente',
+  prazo:       'Prazo final',
+  responsavel: 'Responsável',
+}
+
+export const GRUPO_ORDER: CampoGrupo[] = ['status', 'prioridade', 'evento', 'cliente', 'prazo', 'responsavel']
