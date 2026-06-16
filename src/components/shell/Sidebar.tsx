@@ -290,45 +290,100 @@ function FolderSection({
   onToggle: () => void
   pathname: string
 }) {
+  const isFolderActive = folder.href ? (pathname === folder.href) : false
   return (
     <div>
-      {/* Folder row */}
-      <button
-        onClick={onToggle}
+      {/* Folder row: chevron toggles lista, nome navega */}
+      <div
         style={{
           display: 'flex',
           alignItems: 'center',
-          gap: 5,
           width: '100%',
           height: 32,
-          padding: '0 8px 0 28px',
-          border: 'none',
-          background: 'transparent',
-          cursor: 'pointer',
-          borderRadius: 0,
+          background: isFolderActive ? 'var(--fe-accent-dim)' : 'transparent',
+          boxShadow: isFolderActive ? 'inset 2px 0 0 var(--fe-accent)' : 'none',
         }}
-        onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.background = 'var(--fe-hover)')}
-        onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.background = 'transparent')}
       >
-        <svg
-          width="9" height="9" viewBox="0 0 9 9" fill="none"
+        {/* Chevron: só toggle */}
+        <button
+          onClick={onToggle}
           style={{
-            transform: isOpen ? 'rotate(90deg)' : 'rotate(0deg)',
-            transition: 'transform var(--fe-dur-fast) var(--fe-ease)',
-            color: 'var(--fe-text-faint)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: 28,
+            height: 32,
             flexShrink: 0,
+            border: 'none',
+            background: 'transparent',
+            cursor: 'pointer',
+            paddingLeft: 28,
+            color: 'var(--fe-text-faint)',
           }}
         >
-          <path d="M3 1.5L6 4.5L3 7.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-        {/* Folder icon */}
-        <svg width="14" height="14" viewBox="0 0 13 13" fill="none" style={{ opacity: 0.85, flexShrink: 0 }}>
-          <path d="M1.5 3.5C1.5 2.95 1.95 2.5 2.5 2.5H5L6.5 4H10.5C11.05 4 11.5 4.45 11.5 5V10C11.5 10.55 11.05 11 10.5 11H2.5C1.95 11 1.5 10.55 1.5 10V3.5Z" stroke="currentColor" strokeWidth="1.2" />
-        </svg>
-        <span style={{ fontSize: 15, fontWeight: 500, color: 'var(--fe-text)', textAlign: 'left', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-          {folder.label}
-        </span>
-      </button>
+          <svg
+            width="9" height="9" viewBox="0 0 9 9" fill="none"
+            style={{
+              transform: isOpen ? 'rotate(90deg)' : 'rotate(0deg)',
+              transition: 'transform var(--fe-dur-fast) var(--fe-ease)',
+              flexShrink: 0,
+            }}
+          >
+            <path d="M3 1.5L6 4.5L3 7.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </button>
+
+        {/* Nome + ícone: navega se tiver href, senão toggle */}
+        {folder.href ? (
+          <Link
+            href={folder.href}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 5,
+              flex: 1,
+              height: 32,
+              padding: '0 8px 0 2px',
+              textDecoration: 'none',
+              overflow: 'hidden',
+            }}
+            onMouseEnter={(e) => !isFolderActive && ((e.currentTarget as HTMLElement).style.background = 'var(--fe-hover)')}
+            onMouseLeave={(e) => !isFolderActive && ((e.currentTarget as HTMLElement).style.background = 'transparent')}
+          >
+            <svg width="14" height="14" viewBox="0 0 13 13" fill="none" style={{ opacity: 0.85, flexShrink: 0 }}>
+              <path d="M1.5 3.5C1.5 2.95 1.95 2.5 2.5 2.5H5L6.5 4H10.5C11.05 4 11.5 4.45 11.5 5V10C11.5 10.55 11.05 11 10.5 11H2.5C1.95 11 1.5 10.55 1.5 10V3.5Z" stroke="currentColor" strokeWidth="1.2" />
+            </svg>
+            <span style={{ fontSize: 15, fontWeight: isFolderActive ? 600 : 500, color: isFolderActive ? 'var(--fe-black)' : 'var(--fe-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {folder.label}
+            </span>
+          </Link>
+        ) : (
+          <button
+            onClick={onToggle}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 5,
+              flex: 1,
+              height: 32,
+              padding: '0 8px 0 2px',
+              border: 'none',
+              background: 'transparent',
+              cursor: 'pointer',
+              overflow: 'hidden',
+            }}
+            onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.background = 'var(--fe-hover)')}
+            onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.background = 'transparent')}
+          >
+            <svg width="14" height="14" viewBox="0 0 13 13" fill="none" style={{ opacity: 0.85, flexShrink: 0 }}>
+              <path d="M1.5 3.5C1.5 2.95 1.95 2.5 2.5 2.5H5L6.5 4H10.5C11.05 4 11.5 4.45 11.5 5V10C11.5 10.55 11.05 11 10.5 11H2.5C1.95 11 1.5 10.55 1.5 10V3.5Z" stroke="currentColor" strokeWidth="1.2" />
+            </svg>
+            <span style={{ fontSize: 15, fontWeight: 500, color: 'var(--fe-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {folder.label}
+            </span>
+          </button>
+        )}
+      </div>
 
       {/* Lists */}
       {isOpen && (

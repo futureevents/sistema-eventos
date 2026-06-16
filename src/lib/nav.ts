@@ -7,6 +7,7 @@ export type NavList = {
 export type NavFolder = {
   label: string
   slug: string
+  href?: string   // se definido, clicar no nome do folder navega para essa URL
   lists: NavList[]
 }
 
@@ -48,6 +49,7 @@ export const NAV: NavSpace[] = [
       {
         label: 'Projetos',
         slug: 'projetos',
+        href: '/entregas/projetos',
         lists: [
           { label: 'Pré-evento', slug: 'pre-evento', href: '/entregas/projetos/pre-evento' },
           { label: 'Intra-evento', slug: 'intra-evento', href: '/entregas/projetos/intra-evento' },
@@ -75,6 +77,7 @@ export const NAV: NavSpace[] = [
       {
         label: 'Entrada de clientes',
         slug: 'entrada-de-clientes',
+        href: '/entregas/entrada-de-clientes',
         lists: [
           { label: 'Tarefas de onboarding', slug: 'onboarding', href: '/entregas/entrada-de-clientes/onboarding' },
           { label: 'Gestão de entregas', slug: 'gestao', href: '/entregas/entrada-de-clientes/gestao' },

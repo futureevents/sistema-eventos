@@ -78,6 +78,7 @@ export async function loadListData(config: ListConfig): Promise<{ rows: Row[]; o
   const supabase = await createClient()
   let q = supabase.from(config.table).select(buildSelect(config))
   if (config.baseFilter) q = q.eq(config.baseFilter.col, config.baseFilter.value)
+  if (config.baseFilterIn) q = q.in(config.baseFilterIn.col, config.baseFilterIn.values)
   q = config.orderBy ? q.order(config.orderBy.col, { ascending: config.orderBy.ascending }) : q.order('criado_em', { ascending: false })
   const { data } = await q
   const rows = ((data ?? []) as unknown as Record<string, unknown>[]).map((r) => normalizeRow(config, r))

@@ -84,7 +84,7 @@ export function DataList({ config, rows: rowsProp, options, embeds }: {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: 'var(--fe-surface)' }}>
-      <Breadcrumb space={config.space} segments={config.breadcrumb} />
+      {!config.hideBreadcrumb && <Breadcrumb space={config.space} segments={config.breadcrumb} />}
       <Toolbar
         config={config} busca={busca} onBusca={setBusca}
         groupable={groupable} groupBy={groupBy} onGroupBy={setGroupBy}
@@ -483,7 +483,7 @@ function SlideOver({ row, config, options, patch, remove, onFechar }: {
             <span style={{ color: 'var(--fe-text-soft)', fontWeight: 500 }}>{config.breadcrumb[config.breadcrumb.length - 1]}</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            <Link href={`${config.basePath}/${row.id}`} title="Expandir" style={iconBtn}><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M8.5 2H12V5.5M12 2L8 6M5.5 12H2V8.5M2 12L6 8" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" /></svg></Link>
+            <Link href={`${config.rowBasePath?.(row) ?? config.basePath}/${row.id}`} title="Expandir" style={iconBtn}><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M8.5 2H12V5.5M12 2L8 6M5.5 12H2V8.5M2 12L6 8" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" /></svg></Link>
             <Dropdown align="right" width={160} trigger={({ toggle }) => <button onClick={toggle} title="Mais" style={iconBtn as React.CSSProperties}>⋯</button>}>
               {(close) => (
                 <button onClick={() => { close(); if (confirm(`Excluir "${String(row[config.titleField] ?? '')}"?`)) remove(row.id) }} style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '7px 8px', border: 'none', background: 'transparent', borderRadius: 6, cursor: 'pointer', fontSize: 13, color: 'var(--fe-prio-urgent)' }}

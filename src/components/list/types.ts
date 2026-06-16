@@ -66,6 +66,8 @@ export type ListConfig = {
   space: Space
   breadcrumb: string[]               // ex.: ['Entregas','Base de dados','Eventos']
   basePath: string                   // ex.: '/entregas/base-de-dados/eventos'
+  // para views de folder onde cada row pode ter um basePath diferente
+  rowBasePath?: (row: Row) => string
   singular: string
   plural: string
   titleField: string
@@ -77,9 +79,12 @@ export type ListConfig = {
   defaultGroupBy?: string | null
   // filtro-base da List (ex.: tasks compartilham a tabela por `tipo`)
   baseFilter?: { col: string; value: string | number }
+  // filtro-base com múltiplos valores (ex.: tipo IN ['pre_evento','intra_evento','pos_evento'])
+  baseFilterIn?: { col: string; values: string[] }
   orderBy?: { col: string; ascending: boolean }
   emptyIcon?: ReactNode
   addLabel?: string
+  hideBreadcrumb?: boolean
 }
 
 // Opções carregadas no servidor para campos relation
