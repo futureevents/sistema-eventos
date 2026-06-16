@@ -91,7 +91,7 @@ export function InlineField({
         <Dropdown align="left" width={252} onOpenChange={onOpenChange}
           trigger={({ toggle }) => (
             <HoverBtn onClick={toggle} title={`Alterar ${field.label.toLowerCase()}`}>
-              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: variant === 'cell' ? 12.5 : 13, color: iso ? muted : 'var(--fe-text-faint)' }}>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: variant === 'cell' ? 12.5 : 13, color: iso ? muted : 'var(--fe-text-faint)', whiteSpace: 'nowrap' }}>
                 <svg width="13" height="13" viewBox="0 0 14 14" fill="none" style={{ opacity: 0.85, flexShrink: 0 }}><rect x="2" y="2.8" width="10" height="9.2" rx="1.6" stroke="currentColor" strokeWidth="1.2" /><path d="M2 5.2H12M4.6 1.6V3.4M9.4 1.6V3.4" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" /></svg>
                 {iso ? dataCurta(iso) : (field.placeholder ?? '—')}
               </span>

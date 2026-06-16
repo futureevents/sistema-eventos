@@ -114,7 +114,7 @@
 /* ── Animações ─────────────────────────────────────────── */
 @keyframes feSlideIn {
   from { opacity: 0; transform: translateX(24px); }
-  to   { opacity: 1; transform: translateX(0); }
+  to   { opacity: 1; }
 }
 @keyframes feFadeIn {
   from { opacity: 0; }

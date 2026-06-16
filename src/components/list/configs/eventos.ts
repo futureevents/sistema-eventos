@@ -3,10 +3,8 @@ import { SPACE_ENTREGAS } from '../spaces'
 
 const STATUS: SelectOption[] = [
   { value: 'backlog',     label: 'Backlog',     dot: '#8A8783', bg: 'var(--fe-status-todo-tint)',   text: 'var(--fe-status-todo-text)' },
-  { value: 'em_aberto',   label: 'Em aberto',   dot: '#3B82F6', bg: 'var(--fe-status-prog-tint)',   text: 'var(--fe-status-prog-text)' },
   { value: 'em_execucao', label: 'Em execução', dot: '#F59E0B', bg: 'var(--fe-status-review-tint)', text: 'var(--fe-status-review-text)' },
   { value: 'realizado',   label: 'Realizado',   dot: '#00C47A', bg: 'var(--fe-status-done-tint)',   text: 'var(--fe-status-done-text)', done: true },
-  { value: 'encerrado',   label: 'Encerrado',   dot: '#8A8783', bg: 'var(--fe-status-todo-tint)',   text: 'var(--fe-status-todo-text)' },
   { value: 'cancelado',   label: 'Cancelado',   dot: '#EF4444', bg: 'rgba(239,68,68,0.10)',         text: '#DC2626' },
 ]
 
@@ -24,7 +22,7 @@ export const eventosConfig: ListConfig = {
   defaultGroupBy: 'status',
   fields: [
     { key: 'nome', label: 'Nome do evento', type: 'text', required: true, column: { width: 'minmax(0,1fr)', primary: true, header: 'Nome do evento' } },
-    { key: 'status', label: 'Status', type: 'select', options: STATUS, alwaysGroups: ['backlog', 'em_aberto', 'em_execucao'], column: { width: '150px', display: 'pill' }, groupable: true, filterable: true },
+    { key: 'status', label: 'Status', type: 'select', options: STATUS, alwaysGroups: ['backlog', 'em_execucao'], column: { width: '150px', display: 'pill' }, groupable: true, filterable: true },
     { key: 'cliente_id', label: 'Cliente', type: 'relation', relation: { table: 'cliente', labelField: 'nome' }, column: { width: '180px' }, groupable: true, filterable: true },
     { key: 'data_realizacao_inicio', label: 'Realização', type: 'date', column: { width: '150px', header: 'Realização' }, groupable: true, filterable: true },
     { key: 'data_realizacao_fim', label: 'Fim da realização', type: 'date' },

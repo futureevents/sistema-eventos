@@ -12,6 +12,9 @@ import { Breadcrumb, SpaceBadge, Avatar, EmptyState, dataLonga, useHiddenFields 
 import { Dropdown, StatusDot, SelectMenu, OptionPill, RowMenu } from './inline'
 import { InlineField, displayLabel, groupKey, optionOf, isDerived } from './cells'
 import { RichTextEditor } from './RichText'
+import { TaskComments } from './TaskComments'
+import { TaskAttachments } from './TaskAttachments'
+import { TaskActivity } from './TaskActivity'
 
 type FilterState = Record<string, unknown>
 
@@ -552,7 +555,7 @@ function SlideOver({ row, config, options, patch, remove, onFechar }: {
           </div>
 
           {descField && (
-            <div>
+            <div style={{ marginBottom: 24 }}>
               <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7, fontSize: 12.5, color: 'var(--fe-text-muted)', marginBottom: 8 }}>
                 <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2.5 3.5H11.5M2.5 7H11.5M2.5 10.5H8" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" /></svg>
                 Descrição
@@ -560,6 +563,10 @@ function SlideOver({ row, config, options, patch, remove, onFechar }: {
               <RichTextEditor key={row.id} value={(row[config.descriptionField!] as string) ?? null} onChange={onDesc} />
             </div>
           )}
+
+          <TaskAttachments taskId={String(row.id)} taskTable={config.table} />
+          <TaskActivity taskId={String(row.id)} taskTable={config.table} config={config} />
+          <TaskComments taskId={String(row.id)} taskTable={config.table} />
         </div>
       </aside>
     </>
