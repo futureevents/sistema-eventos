@@ -333,26 +333,24 @@ function FolderSection({
           </svg>
         </button>
 
-        {/* Nome + ícone: navega se tiver href, senão toggle */}
+        {/* Ícone de pasta: sempre toggle */}
+        <button
+          onClick={onToggle}
+          style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 20, height: 32, flexShrink: 0, border: 'none', background: 'transparent', cursor: 'pointer', padding: 0, color: 'var(--fe-text-soft)' }}
+        >
+          <svg width="14" height="14" viewBox="0 0 13 13" fill="none" style={{ opacity: 0.85 }}>
+            <path d="M1.5 3.5C1.5 2.95 1.95 2.5 2.5 2.5H5L6.5 4H10.5C11.05 4 11.5 4.45 11.5 5V10C11.5 10.55 11.05 11 10.5 11H2.5C1.95 11 1.5 10.55 1.5 10V3.5Z" stroke="currentColor" strokeWidth="1.2" />
+          </svg>
+        </button>
+
+        {/* Nome: navega se tiver href, senão toggle */}
         {folder.href ? (
           <Link
             href={folder.href}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 5,
-              flex: 1,
-              height: 32,
-              padding: '0 8px 0 2px',
-              textDecoration: 'none',
-              overflow: 'hidden',
-            }}
+            style={{ display: 'flex', alignItems: 'center', flex: 1, height: 32, padding: '0 8px 0 4px', textDecoration: 'none', overflow: 'hidden' }}
             onMouseEnter={(e) => !isFolderActive && ((e.currentTarget as HTMLElement).style.background = 'var(--fe-hover)')}
             onMouseLeave={(e) => !isFolderActive && ((e.currentTarget as HTMLElement).style.background = 'transparent')}
           >
-            <svg width="14" height="14" viewBox="0 0 13 13" fill="none" style={{ opacity: 0.85, flexShrink: 0 }}>
-              <path d="M1.5 3.5C1.5 2.95 1.95 2.5 2.5 2.5H5L6.5 4H10.5C11.05 4 11.5 4.45 11.5 5V10C11.5 10.55 11.05 11 10.5 11H2.5C1.95 11 1.5 10.55 1.5 10V3.5Z" stroke="currentColor" strokeWidth="1.2" />
-            </svg>
             <span style={{ fontSize: 15, fontWeight: isFolderActive ? 600 : 500, color: isFolderActive ? 'var(--fe-black)' : 'var(--fe-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
               {folder.label}
             </span>
@@ -360,24 +358,10 @@ function FolderSection({
         ) : (
           <button
             onClick={onToggle}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 5,
-              flex: 1,
-              height: 32,
-              padding: '0 8px 0 2px',
-              border: 'none',
-              background: 'transparent',
-              cursor: 'pointer',
-              overflow: 'hidden',
-            }}
+            style={{ display: 'flex', alignItems: 'center', flex: 1, height: 32, padding: '0 8px 0 4px', border: 'none', background: 'transparent', cursor: 'pointer', overflow: 'hidden' }}
             onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.background = 'var(--fe-hover)')}
             onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.background = 'transparent')}
           >
-            <svg width="14" height="14" viewBox="0 0 13 13" fill="none" style={{ opacity: 0.85, flexShrink: 0 }}>
-              <path d="M1.5 3.5C1.5 2.95 1.95 2.5 2.5 2.5H5L6.5 4H10.5C11.05 4 11.5 4.45 11.5 5V10C11.5 10.55 11.05 11 10.5 11H2.5C1.95 11 1.5 10.55 1.5 10V3.5Z" stroke="currentColor" strokeWidth="1.2" />
-            </svg>
             <span style={{ fontSize: 15, fontWeight: 500, color: 'var(--fe-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
               {folder.label}
             </span>
