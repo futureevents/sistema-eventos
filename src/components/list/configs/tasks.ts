@@ -46,7 +46,8 @@ export function tasksConfig(tipo: TipoTask): ListConfig {
       { key: 'status', label: 'Status', type: 'select', options: STATUS, alwaysGroups: ['a_fazer', 'em_andamento', 'concluida'], groupable: true, filterable: true },
       { key: 'evento_id', label: 'Evento', type: 'relation', relation: { table: 'evento', labelField: 'nome', embed: true, extraSelect: 'cliente_id, cliente:cliente_id(nome)' }, column: { width: '168px' }, groupable: true, filterable: true },
       { key: 'responsavel_id', label: 'Responsável', type: 'relation', relation: { table: 'membros', labelField: 'nome' }, column: { width: '120px', display: 'avatar' }, groupable: true, filterable: true },
-      { key: 'data_fim', label: 'Prazo', type: 'date', column: { width: '152px' }, groupable: true, filterable: true },
+      { key: 'data_inicio', label: 'Início', type: 'date', column: { width: '140px' }, groupable: true, filterable: true },
+      { key: 'data_fim', label: 'Prazo', type: 'date', column: { width: '140px' }, groupable: true, filterable: true },
       { key: 'prioridade', label: 'Prioridade', type: 'select', options: PRIORIDADE, groupOrder: ['urgente', 'alta', 'media', 'baixa'], column: { width: '122px', display: 'flag' }, groupable: true, filterable: true },
       // Cliente derivado (via evento) — só filtro/grupo
       { key: 'cliente', label: 'Cliente', type: 'text', editable: false, groupable: true, filterable: true, valuePath: (r) => (r['evento'] as { cliente_id?: string } | null)?.cliente_id ?? null, labelPath: (r) => eventoCliente(r)?.nome ?? null },
