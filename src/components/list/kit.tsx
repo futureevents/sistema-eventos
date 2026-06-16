@@ -11,14 +11,13 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import { type Space, SPACE_ENTREGAS, SPACE_COMERCIAL, SPACE_GESTAO, SPACE_MARKETING } from './spaces'
 
 const AVATAR_PALETTE = ['#6E56CF', '#00A368', '#3B82F6', '#E8833A', '#D6457D', '#0EA5A4']
 const MESES = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez']
 
-export type Space = { badge: string; color: string; badgeText: string }
-
-export const SPACE_ENTREGAS: Space = { badge: 'E', color: '#00C47A', badgeText: '#003D26' }
-export const SPACE_COMERCIAL: Space = { badge: 'C', color: '#6E56CF', badgeText: '#FFFFFF' }
+export type { Space }
+export { SPACE_ENTREGAS, SPACE_COMERCIAL, SPACE_GESTAO, SPACE_MARKETING }
 
 // ─── Datas ──────────────────────────────────────────────────────────────────
 

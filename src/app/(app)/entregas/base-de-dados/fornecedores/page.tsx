@@ -1,12 +1,8 @@
-import { createClient } from '@/lib/supabase/server'
-import { FornecedoresView } from './FornecedoresView'
+import { loadListData } from '@/components/list/load'
+import { LIST_CONFIGS } from '@/components/list/registry'
+import { DataListClient } from '@/components/list/client'
 
 export default async function FornecedoresPage() {
-  const supabase = await createClient()
-  const { data: fornecedores } = await supabase
-    .from('fornecedor')
-    .select('id, nome, responsavel, categorias, email, whatsapp')
-    .order('criado_em', { ascending: false })
-
-  return <FornecedoresView fornecedores={fornecedores ?? []} />
+  const data = await loadListData(LIST_CONFIGS.fornecedores)
+  return <DataListClient listKey="fornecedores" {...data} />
 }

@@ -1,18 +1,11 @@
 import { notFound } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
-import { ClienteDetalhe } from './ClienteDetalhe'
+import { loadRecord } from '@/components/list/load'
+import { LIST_CONFIGS } from '@/components/list/registry'
+import { FullRecordClient } from '@/components/list/client'
 
-export default async function ClienteDetalhePage({ params }: { params: Promise<{ id: string }> }) {
+export default async function ClientePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
-  const supabase = await createClient()
-
-  const { data: cliente } = await supabase
-    .from('cliente')
-    .select('id, nome, email, telefone, whatsapp, empresa, cnpj_cpf, criado_em')
-    .eq('id', id)
-    .single()
-
-  if (!cliente) notFound()
-
-  return <ClienteDetalhe cliente={cliente} />
+  const { row, options, embeds } = await loadRecord(LIST_CONFIGS.clientes, id)
+  if (!row) notFound()
+  return <FullRecordClient listKey="clientes" row={row} options={options} embeds={embeds} />
 }

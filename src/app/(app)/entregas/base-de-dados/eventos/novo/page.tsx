@@ -1,12 +1,8 @@
-import { createClient } from '@/lib/supabase/server'
-import { NovoEventoForm } from './NovoEventoForm'
+import { loadOptions } from '@/components/list/load'
+import { LIST_CONFIGS } from '@/components/list/registry'
+import { NewRecordFormClient } from '@/components/list/client'
 
 export default async function NovoEventoPage() {
-  const supabase = await createClient()
-  const { data: clientes } = await supabase
-    .from('cliente')
-    .select('id, nome')
-    .order('nome')
-
-  return <NovoEventoForm clientes={clientes ?? []} />
+  const options = await loadOptions(LIST_CONFIGS.eventos)
+  return <NewRecordFormClient listKey="eventos" options={options} />
 }
