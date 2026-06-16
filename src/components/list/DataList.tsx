@@ -7,7 +7,7 @@ import {
   type ListConfig, type FieldDef, type Row, type OptionsMap, type SelectOption, parseISO,
 } from './types'
 import { type EmbedMap } from './load'
-import { Breadcrumb, SpaceBadge, Avatar, EmptyState, dataLonga } from './kit'
+import { Breadcrumb, SpaceBadge, Avatar, EmptyState, dataLonga, useHiddenFields, FieldToggleRow } from './kit'
 import { Dropdown, StatusDot, SelectMenu, OptionPill, RowMenu } from './inline'
 import { InlineField, displayLabel, groupKey, optionOf, isDerived } from './cells'
 import { RichTextEditor } from './RichText'
@@ -441,8 +441,12 @@ function SlideOver({ row, config, options, patch, remove, onFechar }: {
   patch: (id: string, p: Record<string, unknown>) => void; remove: (id: string) => void; onFechar: () => void
 }) {
   const statusField = config.statusField ? config.fields.find((f) => f.key === config.statusField) : null
-  const panelFields = config.fields.filter((f) => (f.inPanel ?? (!f.column?.primary && f.type !== 'richtext')) && f.key !== config.titleField && f.key !== config.descriptionField && f.key !== config.statusField)
+  const allPanelFields = config.fields.filter((f) => (f.inPanel ?? (!f.column?.primary && f.type !== 'richtext')) && f.key !== config.titleField && f.key !== config.descriptionField && f.key !== config.statusField)
   const descField = config.descriptionField ? config.fields.find((f) => f.key === config.descriptionField) : null
+
+  const { hidden, toggle: toggleField } = useHiddenFields(config.table)
+  const [showFieldConfig, setShowFieldConfig] = useState(false)
+  const panelFields = allPanelFields.filter((f) => !hidden.has(f.key))
 
   const [nome, setNome] = useState(String(row[config.titleField] ?? ''))
   const nomeTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -504,13 +508,41 @@ function SlideOver({ row, config, options, patch, remove, onFechar }: {
             onInput={(e) => { const el = e.currentTarget; el.style.height = 'auto'; el.style.height = el.scrollHeight + 'px' }}
             style={{ width: '100%', resize: 'none', border: 'none', outline: 'none', background: 'transparent', fontFamily: "'Bricolage Grotesque', sans-serif", fontWeight: 700, fontSize: 25, lineHeight: 1.18, letterSpacing: '-0.025em', color: 'var(--fe-text-strong)', margin: '0 0 20px', padding: 0, overflow: 'hidden' }} />
 
-          <div style={{ display: 'flex', flexDirection: 'column', marginBottom: descField ? 22 : 0 }}>
-            {panelFields.map((f) => (
-              <div key={f.key} style={{ display: 'grid', gridTemplateColumns: '140px 1fr', alignItems: 'center', minHeight: 40 }}>
-                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 12.5, color: 'var(--fe-text-muted)' }}>{f.panelIcon}{f.label}</span>
-                <span style={{ minWidth: 0 }}><InlineField field={f} row={row} options={options} patch={(p) => patch(row.id, p)} variant="panel" /></span>
+          <div style={{ marginBottom: descField ? 22 : 0 }}>
+            {/* Botão mostrar/ocultar campos */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', marginBottom: 4 }}>
+              <button
+                type="button"
+                onClick={() => setShowFieldConfig((p) => !p)}
+                title="Mostrar/ocultar campos"
+                style={{ display: 'inline-flex', alignItems: 'center', gap: 5, height: 22, padding: '0 7px', borderRadius: 'var(--fe-radius-sm)', border: 'none', background: showFieldConfig ? 'var(--fe-hover)' : 'transparent', color: 'var(--fe-text-faint)', fontSize: 11, fontWeight: 500, cursor: 'pointer' }}
+              >
+                <svg width="11" height="11" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="2.2" stroke="currentColor" strokeWidth="1.3" /><path d="M7 1.5C4 1.5 1.5 4 1.5 7C1.5 10 4 12.5 7 12.5C10 12.5 12.5 10 12.5 7C12.5 4 10 1.5 7 1.5Z" stroke="currentColor" strokeWidth="1.3" /></svg>
+                Campos
+                {hidden.size > 0 && (
+                  <span style={{ background: 'var(--fe-accent)', color: 'var(--fe-accent-dark)', borderRadius: 10, fontSize: 10, fontWeight: 700, padding: '0 4px', lineHeight: '14px' }}>{hidden.size}</span>
+                )}
+              </button>
+            </div>
+
+            {/* Painel de toggles */}
+            {showFieldConfig && (
+              <div style={{ padding: '6px 10px', marginBottom: 8, background: 'var(--fe-warm-white)', borderRadius: 'var(--fe-radius-md)', border: '1px solid var(--fe-border-soft)' }}>
+                {allPanelFields.map((f) => (
+                  <FieldToggleRow key={f.key} label={f.label} visible={!hidden.has(f.key)} onChange={() => toggleField(f.key)} />
+                ))}
               </div>
-            ))}
+            )}
+
+            {/* Campos visíveis */}
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              {panelFields.map((f) => (
+                <div key={f.key} style={{ display: 'grid', gridTemplateColumns: '140px 1fr', alignItems: 'center', minHeight: 40 }}>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 12.5, color: 'var(--fe-text-muted)' }}>{f.panelIcon}{f.label}</span>
+                  <span style={{ minWidth: 0 }}><InlineField field={f} row={row} options={options} patch={(p) => patch(row.id, p)} variant="panel" /></span>
+                </div>
+              ))}
+            </div>
           </div>
 
           {descField && (

@@ -9,7 +9,7 @@
  * visual: skill future-events-design (tokens --fe-*).
  */
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { type Space, SPACE_ENTREGAS, SPACE_COMERCIAL, SPACE_GESTAO, SPACE_MARKETING } from './spaces'
 
@@ -347,3 +347,54 @@ export function EmptyState({ icon, titulo, descricao, addHref, addLabel }: { ico
 export const ghostBtn: React.CSSProperties = { height: 32, padding: '0 12px', borderRadius: 'var(--fe-radius-md)', border: '1px solid var(--fe-border)', background: 'transparent', fontSize: 12.5, fontWeight: 500, color: 'var(--fe-text)', cursor: 'pointer', display: 'inline-flex', alignItems: 'center' }
 export const accentBtn = (disabled = false): React.CSSProperties => ({ height: 32, padding: '0 16px', borderRadius: 'var(--fe-radius-md)', background: disabled ? 'var(--fe-border)' : 'var(--fe-accent)', color: disabled ? 'var(--fe-text-muted)' : 'var(--fe-accent-dark)', border: 'none', fontSize: 12.5, fontWeight: 600, cursor: disabled ? 'not-allowed' : 'pointer' })
 export const inputStyle: React.CSSProperties = { width: '100%', height: 36, padding: '0 12px', borderRadius: 'var(--fe-radius-md)', border: '1px solid var(--fe-border)', background: 'var(--fe-surface)', fontSize: 13.5, color: 'var(--fe-text)', outline: 'none' }
+
+// ─── Mostrar/ocultar campos ──────────────────────────────────────────────────
+
+export function useHiddenFields(table: string) {
+  const lsKey = `fe-hidden-fields:${table}`
+  const [hidden, setHidden] = useState<Set<string>>(new Set())
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(lsKey)
+      if (raw) setHidden(new Set(JSON.parse(raw) as string[]))
+    } catch {}
+  }, [lsKey])
+
+  function toggle(key: string) {
+    setHidden((prev) => {
+      const next = new Set(prev)
+      if (next.has(key)) next.delete(key)
+      else next.add(key)
+      try { localStorage.setItem(lsKey, JSON.stringify([...next])) } catch {}
+      return next
+    })
+  }
+
+  return { hidden, toggle }
+}
+
+export function FieldToggleRow({ label, visible, onChange }: { label: string; visible: boolean; onChange: () => void }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '5px 0', gap: 8 }}>
+      <span style={{ fontSize: 12.5, color: 'var(--fe-text)', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{label}</span>
+      <button
+        type="button"
+        onClick={onChange}
+        style={{
+          width: 30, height: 17, borderRadius: 9, border: 'none', cursor: 'pointer', flexShrink: 0,
+          background: visible ? 'var(--fe-accent)' : 'var(--fe-border)',
+          position: 'relative', transition: 'background 150ms',
+        }}
+      >
+        <span style={{
+          position: 'absolute', top: 2, width: 13, height: 13,
+          left: visible ? 15 : 2,
+          borderRadius: '50%', background: '#fff',
+          transition: 'left 150ms',
+          boxShadow: '0 1px 2px rgba(0,0,0,0.18)',
+        }} />
+      </button>
+    </div>
+  )
+}
