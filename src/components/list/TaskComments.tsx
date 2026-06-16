@@ -24,6 +24,41 @@ function horaRelativa(iso: string) {
   return new Date(iso).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })
 }
 
+function CommentRow({ comment: c, isOwn, onDelete }: { comment: Comment; isOwn: boolean; onDelete: () => void }) {
+  const [hovered, setHovered] = useState(false)
+  return (
+    <div
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}
+    >
+      <div style={{ width: 30, height: 30, borderRadius: '50%', background: 'var(--fe-accent-dim)', color: 'var(--fe-accent)', fontSize: 11, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+        {initials(c.author)}
+      </div>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 4 }}>
+          <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--fe-text-strong)' }}>{c.author}</span>
+          <span style={{ fontSize: 11.5, color: 'var(--fe-text-faint)' }}>{horaRelativa(c.criado_em)}</span>
+          {isOwn && hovered && (
+            <button
+              onClick={onDelete}
+              title="Excluir comentário"
+              style={{ marginLeft: 4, width: 18, height: 18, border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--fe-prio-urgent)', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 4, padding: 0, opacity: 0.7 }}
+              onMouseEnter={(e) => (e.currentTarget.style.opacity = '1')}
+              onMouseLeave={(e) => (e.currentTarget.style.opacity = '0.7')}
+            >
+              <svg width="11" height="11" viewBox="0 0 10 10" fill="none"><path d="M2 2L8 8M8 2L2 8" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" /></svg>
+            </button>
+          )}
+        </div>
+        <div style={{ fontSize: 13.5, color: 'var(--fe-text)', lineHeight: 1.6, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+          {c.body}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export function TaskComments({ taskId, taskTable }: { taskId: string; taskTable: string }) {
   const supabase = useRef(createClient()).current
   const [comments, setComments] = useState<Comment[]>([])
@@ -95,20 +130,10 @@ export function TaskComments({ taskId, taskTable }: { taskId: string; taskTable:
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
         {comments.map((c) => (
-          <div key={c.id} style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
-            <div style={{ width: 30, height: 30, borderRadius: '50%', background: 'var(--fe-accent-dim)', color: 'var(--fe-accent)', fontSize: 11, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-              {initials(c.author)}
-            </div>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 4 }}>
-                <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--fe-text-strong)' }}>{c.author}</span>
-                <span style={{ fontSize: 11.5, color: 'var(--fe-text-faint)' }}>{horaRelativa(c.criado_em)}</span>
-              </div>
-              <div style={{ fontSize: 13.5, color: 'var(--fe-text)', lineHeight: 1.6, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
-                {c.body}
-              </div>
-            </div>
-          </div>
+          <CommentRow key={c.id} comment={c} isOwn={c.author === author} onDelete={async () => {
+            await supabase.from('task_comment').delete().eq('id', c.id)
+            setComments((prev) => prev.filter((x) => x.id !== c.id))
+          }} />
         ))}
         <div ref={bottomRef} />
       </div>
