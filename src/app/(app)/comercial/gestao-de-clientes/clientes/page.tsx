@@ -1,12 +1,8 @@
-import { createClient } from '@/lib/supabase/server'
-import { ClientesView } from './ClientesView'
+import { loadListData } from '@/components/list/load'
+import { LIST_CONFIGS } from '@/components/list/registry'
+import { DataListClient } from '@/components/list/client'
 
 export default async function ClientesPage() {
-  const supabase = await createClient()
-  const { data: clientes } = await supabase
-    .from('cliente')
-    .select('id, nome, email, telefone, whatsapp, empresa, cnpj_cpf')
-    .order('criado_em', { ascending: false })
-
-  return <ClientesView clientes={clientes ?? []} />
+  const data = await loadListData(LIST_CONFIGS.clientes)
+  return <DataListClient listKey="clientes" {...data} />
 }

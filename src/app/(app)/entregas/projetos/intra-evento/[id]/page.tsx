@@ -1,5 +1,11 @@
-import { DetalhePage } from '../../_shared/DetalhePage'
+import { notFound } from 'next/navigation'
+import { loadRecord } from '@/components/list/load'
+import { LIST_CONFIGS } from '@/components/list/registry'
+import { FullRecordClient } from '@/components/list/client'
+
 export default async function Page({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
-  return <DetalhePage id={id} />
+  const { row, options, embeds } = await loadRecord(LIST_CONFIGS['tasks:intra_evento'], id)
+  if (!row) notFound()
+  return <FullRecordClient listKey="tasks:intra_evento" row={row} options={options} embeds={embeds} />
 }
