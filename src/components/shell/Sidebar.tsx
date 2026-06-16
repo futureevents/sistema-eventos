@@ -250,7 +250,7 @@ function SpaceSection({
           <path d="M3 1.5L6 4.5L3 7.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
         <div style={{ width: 9, height: 9, borderRadius: '50%', background: space.color, flexShrink: 0 }} />
-        <span style={{ fontSize: 14, fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase', color: 'var(--fe-text-soft)' }}>
+        <span style={{ fontSize: 14, fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase', color: 'var(--fe-text)' }}>
           {space.label}
         </span>
       </button>
@@ -322,7 +322,7 @@ function FolderSection({
           <path d="M3 1.5L6 4.5L3 7.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
         {/* Folder icon */}
-        <svg width="14" height="14" viewBox="0 0 13 13" fill="none" style={{ opacity: 0.7, flexShrink: 0 }}>
+        <svg width="14" height="14" viewBox="0 0 13 13" fill="none" style={{ opacity: 0.85, flexShrink: 0 }}>
           <path d="M1.5 3.5C1.5 2.95 1.95 2.5 2.5 2.5H5L6.5 4H10.5C11.05 4 11.5 4.45 11.5 5V10C11.5 10.55 11.05 11 10.5 11H2.5C1.95 11 1.5 10.55 1.5 10V3.5Z" stroke="currentColor" strokeWidth="1.2" />
         </svg>
         <span style={{ fontSize: 15, fontWeight: 500, color: 'var(--fe-text)', textAlign: 'left', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
@@ -361,7 +361,7 @@ function FolderSection({
                 onMouseLeave={(e) => !isActive && ((e.currentTarget as HTMLElement).style.background = 'transparent')}
               >
                 {/* List icon */}
-                <svg width="13" height="13" viewBox="0 0 12 12" fill="none" style={{ opacity: 0.6, flexShrink: 0 }}>
+                <svg width="13" height="13" viewBox="0 0 12 12" fill="none" style={{ opacity: 0.75, flexShrink: 0 }}>
                   <path d="M2 3.5H10M2 6H10M2 8.5H7" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
                 </svg>
                 <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
