@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, type ReactNode } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
@@ -141,6 +141,30 @@ export function Sidebar() {
           <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: 'var(--fe-text-faint)', background: 'var(--fe-track)', padding: '1px 5px', borderRadius: 4 }}>⌘K</span>
         </button>
       </div>
+
+      {/* Atalhos pessoais */}
+      <div style={{ padding: '2px 8px 6px', flexShrink: 0 }}>
+        <QuickLink href="/inbox" label="Inbox" pathname={pathname}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 0 1-3.46 0" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </QuickLink>
+        <QuickLink href="/updates" label="Updates do dia" pathname={pathname}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+            <rect x="3" y="4" width="18" height="18" rx="2" stroke="currentColor" strokeWidth="1.5" />
+            <path d="M16 2v4M8 2v4M3 10h18" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+          </svg>
+        </QuickLink>
+        <QuickLink href="/minhas-atividades" label="Minhas atividades" pathname={pathname}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+            <circle cx="12" cy="8" r="4" stroke="currentColor" strokeWidth="1.5" />
+            <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+          </svg>
+        </QuickLink>
+      </div>
+
+      {/* Divisor */}
+      <div style={{ height: 1, background: 'var(--fe-border)', margin: '0 12px 4px', flexShrink: 0 }} />
 
       {/* Nav: Spaces */}
       <nav style={{ flex: 1, overflowY: 'auto', padding: '4px 0 16px' }}>
@@ -412,5 +436,27 @@ function FolderSection({
         </div>
       )}
     </div>
+  )
+}
+
+function QuickLink({ href, label, pathname, children }: { href: string; label: string; pathname: string; children: ReactNode }) {
+  const isActive = pathname === href || pathname.startsWith(href + '/')
+  return (
+    <Link
+      href={href}
+      style={{
+        display: 'flex', alignItems: 'center', gap: 8,
+        height: 30, padding: '0 8px', borderRadius: 'var(--fe-radius-md)',
+        textDecoration: 'none',
+        background: isActive ? 'var(--fe-accent-dim)' : 'transparent',
+        boxShadow: isActive ? 'inset 2px 0 0 var(--fe-accent)' : 'none',
+        color: isActive ? 'var(--fe-black)' : 'var(--fe-text-soft)',
+      }}
+      onMouseEnter={(e) => !isActive && ((e.currentTarget as HTMLElement).style.background = 'var(--fe-hover)')}
+      onMouseLeave={(e) => !isActive && ((e.currentTarget as HTMLElement).style.background = 'transparent')}
+    >
+      <span style={{ opacity: isActive ? 0.9 : 0.6, display: 'flex', alignItems: 'center' }}>{children}</span>
+      <span style={{ fontSize: 13.5, fontWeight: isActive ? 600 : 400 }}>{label}</span>
+    </Link>
   )
 }
