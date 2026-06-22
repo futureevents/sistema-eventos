@@ -117,9 +117,9 @@ export function UpdatesClient({ activities, concluded, userName }: {
                   }}
                 >
                   <div style={{
-                    width: 28, height: 28, borderRadius: '50%', background: '#6E56CF',
+                    width: 28, height: 28, borderRadius: '50%', background: 'var(--fe-accent)',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: 11, fontWeight: 700, color: '#fff', flexShrink: 0, marginTop: 1,
+                    fontSize: 11, fontWeight: 700, color: 'var(--fe-accent-fg)', flexShrink: 0, marginTop: 1,
                   }}>
                     {a.actor.charAt(0).toUpperCase()}
                   </div>
@@ -164,7 +164,7 @@ export function UpdatesClient({ activities, concluded, userName }: {
                     border: '1px solid var(--fe-border)', background: 'var(--fe-surface)',
                   }}
                 >
-                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ flexShrink: 0, color: '#22c55e' }}>
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ flexShrink: 0, color: 'var(--fe-status-done)' }}>
                     <circle cx="8" cy="8" r="7" stroke="currentColor" strokeWidth="1.3" />
                     <path d="M5 8L7 10L11 6" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>

@@ -38,14 +38,14 @@ export default function LoginPage() {
             className="inline-flex items-center justify-center w-10 h-10 rounded-xl mb-5"
             style={{ background: 'var(--fe-black)' }}
           >
-            <span style={{ fontFamily: "'Bricolage Grotesque', sans-serif", color: 'var(--fe-accent)', fontWeight: 800, fontSize: 18 }}>
+            <span style={{ fontFamily: "var(--font-geist), sans-serif", color: 'var(--fe-accent)', fontWeight: 600, fontSize: 18 }}>
               FE
             </span>
           </div>
           <h1
             style={{
-              fontFamily: "'Bricolage Grotesque', sans-serif",
-              fontWeight: 700,
+              fontFamily: "var(--font-geist), sans-serif",
+              fontWeight: 600,
               fontSize: 24,
               letterSpacing: '-0.03em',
               color: 'var(--fe-black)',
@@ -145,7 +145,7 @@ export default function LoginPage() {
                 height: 38,
                 borderRadius: 'var(--fe-radius-md)',
                 background: carregando ? 'var(--fe-text-faint)' : 'var(--fe-accent)',
-                color: 'var(--fe-accent-dark)',
+                color: 'var(--fe-accent-fg)',
                 fontWeight: 600,
                 fontSize: 14,
                 border: 'none',

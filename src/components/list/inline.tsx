@@ -78,7 +78,7 @@ export function FlagInline({ color, label }: { color: string; label?: string }) 
 export function StatusDot({ options, value, onChange, size = 18 }: { options: SelectOption[]; value: string; onChange: (v: string) => void; size?: number }) {
   const opt = options.find((o) => o.value === value)
   const done = !!opt?.done
-  const dot = opt?.dot ?? '#8A8783'
+  const dot = opt?.dot ?? 'var(--fe-status-todo)'
   return (
     <Dropdown align="left" width={190}
       trigger={({ toggle }) => (
@@ -249,7 +249,7 @@ export function CalendarPopover({ value, onChange, onClose }: { value: string | 
           const isHoje = toISODate(hoje) === iso
           return (
             <button key={i} onClick={(e) => { e.stopPropagation(); onChange(iso); onClose() }}
-              style={{ height: 30, borderRadius: 6, border: 'none', cursor: 'pointer', fontSize: 12.5, fontWeight: isSel ? 700 : isHoje ? 600 : 400, background: isSel ? 'var(--fe-accent)' : 'transparent', color: isSel ? 'var(--fe-accent-dark)' : isHoje ? 'var(--fe-accent-dark)' : 'var(--fe-text)', boxShadow: isHoje && !isSel ? 'inset 0 0 0 1px var(--fe-accent)' : 'none' }}
+              style={{ height: 30, borderRadius: 6, border: 'none', cursor: 'pointer', fontSize: 12.5, fontWeight: isSel ? 700 : isHoje ? 600 : 400, background: isSel ? 'var(--fe-accent)' : 'transparent', color: isSel ? 'var(--fe-accent-fg)' : isHoje ? 'var(--fe-accent-dark)' : 'var(--fe-text)', boxShadow: isHoje && !isSel ? 'inset 0 0 0 1px var(--fe-accent)' : 'none' }}
               onMouseEnter={(e) => { if (!isSel) e.currentTarget.style.background = 'var(--fe-hover)' }}
               onMouseLeave={(e) => { if (!isSel) e.currentTarget.style.background = 'transparent' }}>
               {d.getDate()}

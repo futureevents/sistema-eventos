@@ -21,7 +21,7 @@ function formatSize(bytes: number): string {
 }
 
 function fileIcon(mime: string): React.ReactNode {
-  const color = mime.startsWith('image/') ? '#6ea8fe' : mime === 'application/pdf' ? '#e57373' : mime.startsWith('video/') ? '#a78bfa' : 'var(--fe-text-muted)'
+  const color = mime.startsWith('image/') ? '#3E63DD' : mime === 'application/pdf' ? '#DC3D43' : mime.startsWith('video/') ? '#7C66DC' : 'var(--fe-text-muted)'
   if (mime.startsWith('image/')) {
     return <svg width="18" height="18" viewBox="0 0 20 20" fill="none"><rect x="2" y="2" width="16" height="16" rx="3" stroke={color} strokeWidth="1.4"/><path d="M2 13L7 8L11 12L14 9L18 13" stroke={color} strokeWidth="1.4" strokeLinejoin="round"/><circle cx="13.5" cy="6.5" r="1.5" fill={color}/></svg>
   }

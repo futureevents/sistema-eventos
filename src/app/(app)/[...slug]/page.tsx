@@ -80,7 +80,7 @@ export default async function PlaceholderPage({ params }: { params: Promise<{ sl
           </svg>
         </div>
         <div style={{ textAlign: 'center' }}>
-          <p style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontWeight: 700, fontSize: 17, letterSpacing: '-0.02em', color: 'var(--fe-text-strong)', margin: '0 0 6px' }}>
+          <p style={{ fontFamily: "var(--font-geist), sans-serif", fontWeight: 600, fontSize: 17, letterSpacing: '-0.02em', color: 'var(--fe-text-strong)', margin: '0 0 6px' }}>
             {found ? found.list : 'Página não encontrada'}
           </p>
           <p style={{ fontSize: 13, color: 'var(--fe-text-muted)', margin: 0, lineHeight: 1.5 }}>

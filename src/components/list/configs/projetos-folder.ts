@@ -2,16 +2,16 @@ import { type ListConfig, type SelectOption, type Row } from '../types'
 import { SPACE_ENTREGAS } from '../spaces'
 
 const TIPO_OPTIONS: SelectOption[] = [
-  { value: 'pre_evento',   label: 'Pré-evento',   dot: '#6E56CF', bg: 'rgba(110,86,207,0.10)', text: '#6E56CF' },
-  { value: 'intra_evento', label: 'Intra-evento', dot: '#F59E0B', bg: 'rgba(245,158,11,0.10)', text: '#B45309' },
-  { value: 'pos_evento',   label: 'Pós-evento',   dot: '#00C47A', bg: 'rgba(0,196,122,0.10)',  text: '#007A4C' },
+  { value: 'pre_evento',   label: 'Pré-evento',   dot: 'var(--fe-accent)', bg: 'var(--fe-accent-dim)', text: 'var(--fe-accent)' },
+  { value: 'intra_evento', label: 'Intra-evento', dot: 'var(--fe-status-review)', bg: 'var(--fe-status-review-tint)', text: 'var(--fe-status-review-text)' },
+  { value: 'pos_evento',   label: 'Pós-evento',   dot: 'var(--fe-accent)', bg: 'var(--fe-accent-dim)',  text: 'var(--fe-accent-dark)' },
 ]
 
 const STATUS: SelectOption[] = [
-  { value: 'a_fazer',      label: 'A fazer',      dot: '#8A8783', bg: 'var(--fe-status-todo-tint)', text: 'var(--fe-status-todo-text)' },
-  { value: 'em_andamento', label: 'Em andamento', dot: '#3B82F6', bg: 'var(--fe-status-prog-tint)', text: 'var(--fe-status-prog-text)' },
-  { value: 'concluida',    label: 'Concluída',    dot: '#00C47A', bg: 'var(--fe-status-done-tint)', text: 'var(--fe-status-done-text)', done: true },
-  { value: 'cancelada',    label: 'Cancelada',    dot: '#EF4444', bg: 'rgba(239,68,68,0.10)',       text: '#DC2626' },
+  { value: 'a_fazer',      label: 'A fazer',      dot: 'var(--fe-status-todo)', bg: 'var(--fe-status-todo-tint)', text: 'var(--fe-status-todo-text)' },
+  { value: 'em_andamento', label: 'Em andamento', dot: 'var(--fe-status-prog)', bg: 'var(--fe-status-prog-tint)', text: 'var(--fe-status-prog-text)' },
+  { value: 'concluida',    label: 'Concluída',    dot: 'var(--fe-status-done)', bg: 'var(--fe-status-done-tint)', text: 'var(--fe-status-done-text)', done: true },
+  { value: 'cancelada',    label: 'Cancelada',    dot: 'var(--fe-prio-urgent)', bg: 'rgba(220,61,67,0.10)',       text: 'var(--fe-prio-urgent)' },
 ]
 
 const PRIORIDADE: SelectOption[] = [

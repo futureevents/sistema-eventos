@@ -77,8 +77,8 @@ export function FullRecord({ config, row: rowProp, options, embeds }: {
   }
 
   return (
-    <div style={{ position: 'fixed', inset: 0, zIndex: 70, background: 'var(--fe-warm-white)', display: 'flex', flexDirection: 'column' }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 50, padding: '0 16px 0 22px', borderBottom: '1px solid var(--fe-border-soft)', background: 'var(--fe-surface)', flexShrink: 0 }}>
+    <div style={{ position: 'fixed', inset: 0, zIndex: 70, background: 'var(--fe-surface)', display: 'flex', flexDirection: 'column' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 52, padding: '0 16px 0 22px', borderBottom: '1px solid var(--fe-border-soft)', background: 'var(--fe-surface)', flexShrink: 0 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: 'var(--fe-text-muted)', minWidth: 0 }}>
           <SpaceBadge space={config.space} />
           {config.breadcrumb.map((s, i) => {
@@ -114,7 +114,7 @@ export function FullRecord({ config, row: rowProp, options, embeds }: {
 
             <textarea value={nome} onChange={(e) => onNome(e.target.value)} rows={1} placeholder={config.titlePlaceholder ?? 'Sem título'}
               onInput={(e) => { const el = e.currentTarget; el.style.height = 'auto'; el.style.height = el.scrollHeight + 'px' }}
-              style={{ width: '100%', resize: 'none', border: 'none', outline: 'none', background: 'transparent', fontFamily: "'Bricolage Grotesque', sans-serif", fontWeight: 700, fontSize: 30, lineHeight: 1.14, letterSpacing: '-0.03em', color: 'var(--fe-text-strong)', margin: '0 0 24px', padding: 0, overflow: 'hidden' }} />
+              style={{ width: '100%', resize: 'none', border: 'none', outline: 'none', background: 'transparent', fontFamily: 'var(--font-geist), sans-serif', fontWeight: 600, fontSize: 29, lineHeight: 1.2, letterSpacing: '-0.02em', color: 'var(--fe-text-strong)', margin: '0 0 24px', padding: 0, overflow: 'hidden' }} />
 
             {descField ? <RichTextEditor key={row.id} value={(row[config.descriptionField!] as string) ?? null} onChange={onDesc} minHeight={200} /> : null}
 

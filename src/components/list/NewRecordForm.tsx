@@ -67,7 +67,7 @@ export function NewRecordForm({ config, options }: { config: ListConfig; options
 
       <div style={{ flex: 1, overflowY: 'auto', padding: '32px 0' }}>
         <form id="novo-registro" onSubmit={submit} style={{ maxWidth: 640, margin: '0 auto', padding: '0 24px', display: 'flex', flexDirection: 'column', gap: 18 }}>
-          {erro && <div style={{ padding: '10px 14px', borderRadius: 'var(--fe-radius-md)', background: 'rgba(239,68,68,0.08)', color: '#DC2626', fontSize: 13 }}>{erro}</div>}
+          {erro && <div style={{ padding: '10px 14px', borderRadius: 'var(--fe-radius-md)', background: 'rgba(220,61,67,0.08)', color: 'var(--fe-prio-urgent)', fontSize: 13 }}>{erro}</div>}
           <Field label={primaryLabel(config)} required>
             <input type="text" value={String(form[config.titleField] ?? '')} onChange={(e) => set(config.titleField, e.target.value)} style={inputStyle} autoFocus />
           </Field>
@@ -95,7 +95,7 @@ function FormInput({ field, value, onChange, options }: { field: FieldDef; value
       <MultiMenu options={field.multiOptions ?? []} value={arr} onChange={onChange}>
         {({ toggle }) => (
           <button type="button" onClick={toggle} style={{ ...inputStyle, height: 'auto', minHeight: 36, textAlign: 'left', cursor: 'pointer', display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 5, padding: '6px 10px' }}>
-            {arr.length === 0 ? <span style={{ color: 'var(--fe-text-faint)' }}>Selecionar…</span> : arr.map((t) => <span key={t} style={{ fontSize: 11, fontWeight: 600, background: 'rgba(110,86,207,0.10)', color: '#5B3FD0', padding: '2px 8px', borderRadius: 4 }}>{t.split(' — ')[0]}</span>)}
+            {arr.length === 0 ? <span style={{ color: 'var(--fe-text-faint)' }}>Selecionar…</span> : arr.map((t) => <span key={t} style={{ fontSize: 11, fontWeight: 600, background: 'var(--fe-accent-dim)', color: 'var(--fe-accent)', padding: '2px 8px', borderRadius: 4 }}>{t.split(' — ')[0]}</span>)}
           </button>
         )}
       </MultiMenu>
@@ -112,7 +112,7 @@ function primaryLabel(config: ListConfig): string {
 function Field({ label, children, required }: { label: string; children: React.ReactNode; required?: boolean }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-      <label style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--fe-text-soft)' }}>{label}{required && <span style={{ color: '#EF4444', marginLeft: 2 }}>*</span>}</label>
+      <label style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--fe-text-soft)' }}>{label}{required && <span style={{ color: 'var(--fe-prio-urgent)', marginLeft: 2 }}>*</span>}</label>
       {children}
     </div>
   )

@@ -4,10 +4,10 @@ import { SPACE_ENTREGAS } from '../spaces'
 export type TipoTask = 'pre_evento' | 'intra_evento' | 'pos_evento'
 
 const STATUS: SelectOption[] = [
-  { value: 'a_fazer',      label: 'A fazer',      dot: '#8A8783', bg: 'var(--fe-status-todo-tint)', text: 'var(--fe-status-todo-text)' },
-  { value: 'em_andamento', label: 'Em andamento', dot: '#3B82F6', bg: 'var(--fe-status-prog-tint)', text: 'var(--fe-status-prog-text)' },
-  { value: 'concluida',    label: 'Concluída',    dot: '#00C47A', bg: 'var(--fe-status-done-tint)', text: 'var(--fe-status-done-text)', done: true },
-  { value: 'cancelada',    label: 'Cancelada',    dot: '#EF4444', bg: 'rgba(239,68,68,0.10)',       text: '#DC2626' },
+  { value: 'a_fazer',      label: 'A fazer',      dot: 'var(--fe-status-todo)', bg: 'var(--fe-status-todo-tint)', text: 'var(--fe-status-todo-text)' },
+  { value: 'em_andamento', label: 'Em andamento', dot: 'var(--fe-status-prog)', bg: 'var(--fe-status-prog-tint)', text: 'var(--fe-status-prog-text)' },
+  { value: 'concluida',    label: 'Concluída',    dot: 'var(--fe-status-done)', bg: 'var(--fe-status-done-tint)', text: 'var(--fe-status-done-text)', done: true },
+  { value: 'cancelada',    label: 'Cancelada',    dot: 'var(--fe-prio-urgent)', bg: 'rgba(220,61,67,0.12)',       text: '#C42A30' },
 ]
 
 const PRIORIDADE: SelectOption[] = [

@@ -6,14 +6,14 @@
  * página cheia de detalhe e primitivas (pill, avatar, tag, property row).
  *
  * Cada List compõe estes blocos com seus próprios campos. Fonte da verdade
- * visual: skill future-events-design (tokens --fe-*).
+ * visual: skill future-events-design (tokens --fe-*, design "Hórus").
  */
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { type Space, SPACE_ENTREGAS, SPACE_COMERCIAL, SPACE_GESTAO, SPACE_MARKETING } from './spaces'
 
-const AVATAR_PALETTE = ['#6E56CF', '#00A368', '#3B82F6', '#E8833A', '#D6457D', '#0EA5A4']
+const AVATAR_PALETTE = ['#5B5BD6', '#D6409F', '#30A46C', '#D9730D', '#0E8FC4', '#7C66DC']
 const MESES = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez']
 
 export type { Space }
@@ -49,8 +49,8 @@ function corAvatar(seed: string): string {
 export function Avatar({ nome, size = 24 }: { nome: string | null; size?: number }) {
   if (!nome) {
     return (
-      <span style={{ width: size, height: size, borderRadius: '50%', flexShrink: 0, border: '1.4px dashed var(--fe-border)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', color: 'var(--fe-text-faint)' }}>
-        <svg width={size * 0.46} height={size * 0.46} viewBox="0 0 12 12" fill="none"><circle cx="6" cy="4" r="2.2" stroke="currentColor" strokeWidth="1.1" /><path d="M2 10.2C2 8.4 3.8 7.4 6 7.4S10 8.4 10 10.2" stroke="currentColor" strokeWidth="1.1" strokeLinecap="round" /></svg>
+      <span style={{ width: size, height: size, borderRadius: '50%', flexShrink: 0, border: '1.5px dashed var(--fe-border)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', color: 'var(--fe-text-faint)' }}>
+        <svg width={size * 0.5} height={size * 0.5} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
       </span>
     )
   }
@@ -65,17 +65,17 @@ export function Avatar({ nome, size = 24 }: { nome: string | null; size?: number
 
 export function Pill({ label, dot, bg, text, chevron = false }: { label: string; dot?: string; bg: string; text: string; chevron?: boolean }) {
   return (
-    <span style={{ display: 'inline-flex', alignItems: 'center', gap: dot ? 7 : 0, height: 24, padding: '0 10px', borderRadius: 'var(--fe-radius-md)', background: bg, color: text, fontSize: 12, fontWeight: 700, whiteSpace: 'nowrap' }}>
-      {dot && <span style={{ width: 8, height: 8, borderRadius: 2.5, background: dot, flexShrink: 0 }} />}
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: dot ? 7 : 0, height: 24, padding: '0 10px', borderRadius: 'var(--fe-radius-md)', background: bg, color: text, fontSize: 12.5, fontWeight: 500, whiteSpace: 'nowrap' }}>
+      {dot && <span style={{ width: 7, height: 7, borderRadius: '50%', background: dot, flexShrink: 0 }} />}
       {label}
-      {chevron && <svg width="9" height="9" viewBox="0 0 9 9" fill="none" style={{ opacity: 0.5, marginLeft: 1 }}><path d="M1.5 3L4.5 6L7.5 3" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" /></svg>}
+      {chevron && <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: 0.55, marginLeft: 1 }}><polyline points="6 9 12 15 18 9" /></svg>}
     </span>
   )
 }
 
 export function Tag({ label }: { label: string }) {
   return (
-    <span style={{ display: 'inline-flex', alignItems: 'center', height: 20, padding: '0 8px', borderRadius: 'var(--fe-radius-sm)', background: 'rgba(110,86,207,0.10)', color: '#5B3FD0', fontSize: 11, fontWeight: 600, whiteSpace: 'nowrap', maxWidth: 150, overflow: 'hidden', textOverflow: 'ellipsis' }}>
+    <span style={{ display: 'inline-flex', alignItems: 'center', height: 22, padding: '0 9px', borderRadius: 'var(--fe-radius-sm)', background: 'var(--fe-track)', color: 'var(--fe-text-soft)', fontSize: 12, fontWeight: 500, whiteSpace: 'nowrap', maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis' }}>
       {label}
     </span>
   )
@@ -87,24 +87,24 @@ export function Dash() { return <span style={{ color: 'var(--fe-text-faint)' }}>
 
 export function Breadcrumb({ space, segments }: { space: Space; segments: string[] }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 46, padding: '0 18px', borderBottom: '1px solid var(--fe-border-soft)', flexShrink: 0, background: 'var(--fe-surface)' }}>
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 52, padding: '0 22px', borderBottom: '1px solid var(--fe-border-soft)', flexShrink: 0, background: 'var(--fe-surface)' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13.5, minWidth: 0 }}>
-        <SpaceBadge space={space} />
+        <SpaceBadge space={space} size={20} />
         {segments.map((s, i) => {
           const last = i === segments.length - 1
           return (
             <span key={i} style={{ display: 'inline-flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
-              <span style={{ fontWeight: last ? 600 : 400, color: last ? 'var(--fe-text-strong)' : 'var(--fe-text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s}</span>
+              <span style={{ fontSize: last ? 15 : 13.5, fontWeight: last ? 600 : 400, color: last ? 'var(--fe-text-strong)' : 'var(--fe-text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s}</span>
               {!last && <span style={{ color: 'var(--fe-text-faint)' }}>/</span>}
             </span>
           )
         })}
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0 }}>
-        <button title="Convidar" style={{ width: 24, height: 24, borderRadius: '50%', border: '1.4px dashed var(--fe-border)', background: 'var(--fe-surface)', color: 'var(--fe-text-muted)', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, lineHeight: 1 }}>+</button>
+        <button title="Convidar" style={{ width: 26, height: 26, borderRadius: '50%', border: '1.5px dashed var(--fe-border)', background: 'var(--fe-surface)', color: 'var(--fe-text-muted)', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, lineHeight: 1 }}>+</button>
         <span style={{ width: 1, height: 18, background: 'var(--fe-border)' }} />
-        <button style={{ height: 30, padding: '0 12px', borderRadius: 'var(--fe-radius-md)', border: '1px solid var(--fe-border)', background: 'transparent', fontSize: 12.5, fontWeight: 500, color: 'var(--fe-text)', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-          <svg width="13" height="13" viewBox="0 0 14 14" fill="none"><path d="M7 9V2.5M7 2.5L4.5 5M7 2.5L9.5 5M2.5 9V11C2.5 11.3 2.7 11.5 3 11.5H11C11.3 11.5 11.5 11.3 11.5 11V9" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" /></svg>
+        <button style={{ height: 32, padding: '0 12px', borderRadius: 'var(--fe-radius-md)', border: '1px solid var(--fe-border)', background: 'transparent', fontSize: 13, fontWeight: 500, color: 'var(--fe-text)', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" /><polyline points="16 6 12 2 8 6" /><line x1="12" y1="2" x2="12" y2="15" /></svg>
           Compartilhar
         </button>
         <button title="Mais" style={{ width: 30, height: 30, borderRadius: 'var(--fe-radius-md)', border: 'none', background: 'transparent', color: 'var(--fe-text-soft)', cursor: 'pointer' }}>⋯</button>
@@ -113,8 +113,8 @@ export function Breadcrumb({ space, segments }: { space: Space; segments: string
   )
 }
 
-export function SpaceBadge({ space, size = 19 }: { space: Space; size?: number }) {
-  return <span style={{ width: size, height: size, borderRadius: 5, background: space.color, color: space.badgeText, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: size * 0.58, fontWeight: 700, flexShrink: 0 }}>{space.badge}</span>
+export function SpaceBadge({ space, size = 20 }: { space: Space; size?: number }) {
+  return <span style={{ width: size, height: size, borderRadius: 5, background: space.color, color: space.badgeText, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: size * 0.55, fontWeight: 600, flexShrink: 0 }}>{space.badge}</span>
 }
 
 function Sep() { return <span style={{ color: 'var(--fe-text-faint)' }}>/</span> }
@@ -123,27 +123,34 @@ function Sep() { return <span style={{ color: 'var(--fe-text-faint)' }}>/</span>
 
 export function TabsToolbar({ grouping, busca, onBusca, addHref, addLabel }: { grouping?: string; busca: string; onBusca: (v: string) => void; addHref: string; addLabel: string }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 44, padding: '0 14px 0 18px', borderBottom: '1px solid var(--fe-border-soft)', flexShrink: 0, gap: 12, background: 'var(--fe-surface)' }}>
-      <div style={{ display: 'flex', alignItems: 'center', height: '100%', minWidth: 0, flexShrink: 1, overflow: 'hidden' }}>
-        <span style={{ height: '100%', padding: '0 12px', borderBottom: '2px solid var(--fe-black)', fontSize: 13, fontWeight: 600, color: 'var(--fe-black)', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 4H12M2 7H12M2 10H9" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" /></svg>
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 48, padding: '0 22px', borderBottom: '1px solid var(--fe-border-soft)', flexShrink: 0, gap: 12, background: 'var(--fe-surface)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 2, height: '100%', minWidth: 0, flexShrink: 1, overflow: 'hidden' }}>
+        <span style={{ height: '100%', padding: '0 4px', borderBottom: '2px solid var(--fe-accent)', fontSize: 13.5, fontWeight: 600, color: 'var(--fe-text-strong)', display: 'inline-flex', alignItems: 'center', gap: 7 }}>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><line x1="8" y1="6" x2="21" y2="6" /><line x1="8" y1="12" x2="21" y2="12" /><line x1="8" y1="18" x2="21" y2="18" /><line x1="3" y1="6" x2="3.01" y2="6" /><line x1="3" y1="12" x2="3.01" y2="12" /><line x1="3" y1="18" x2="3.01" y2="18" /></svg>
           Lista
         </span>
+        <ViewTab disabled>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="6" height="18" rx="1.5" /><rect x="10.5" y="3" width="6" height="12" rx="1.5" /><rect x="18" y="3" width="3" height="18" rx="1" /></svg>
+          Quadro
+        </ViewTab>
+        <ViewTab disabled>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" /><line x1="3" y1="10" x2="21" y2="10" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="16" y1="2" x2="16" y2="6" /></svg>
+          Calendário
+        </ViewTab>
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
-        <Ghost icon={<svg width="13" height="13" viewBox="0 0 14 14" fill="none"><path d="M1.5 2.5H12.5L8.5 7.2V11L5.5 12.5V7.2L1.5 2.5Z" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round" /></svg>}>Filtros</Ghost>
-        <Ghost icon={<svg width="13" height="13" viewBox="0 0 14 14" fill="none"><path d="M3 3.5H11M4.5 7H9.5M6 10.5H8" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" /></svg>}>Ordenar</Ghost>
+        <Ghost icon={<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" /></svg>}>Filtros</Ghost>
         {grouping && (
-          <Ghost icon={<svg width="13" height="13" viewBox="0 0 14 14" fill="none"><rect x="2" y="2.5" width="4" height="4" rx="1" stroke="currentColor" strokeWidth="1.2" /><rect x="8" y="2.5" width="4" height="4" rx="1" stroke="currentColor" strokeWidth="1.2" /><rect x="2" y="8" width="4" height="3.5" rx="1" stroke="currentColor" strokeWidth="1.2" /><rect x="8" y="8" width="4" height="3.5" rx="1" stroke="currentColor" strokeWidth="1.2" /></svg>}>
-            Agrupar: <span style={{ color: 'var(--fe-text)', fontWeight: 600, marginLeft: 3 }}>{grouping}</span>
+          <Ghost icon={<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18M6 12h12M10 18h4" /></svg>}>
+            Agrupar: <span style={{ color: 'var(--fe-text-strong)', fontWeight: 500, marginLeft: 3 }}>{grouping}</span>
           </Ghost>
         )}
         <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-          <svg width="13" height="13" viewBox="0 0 12 12" fill="none" style={{ position: 'absolute', left: 9, opacity: 0.4, pointerEvents: 'none' }}><circle cx="5" cy="5" r="3.5" stroke="currentColor" strokeWidth="1.3" /><path d="M8 8L10.5 10.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" /></svg>
-          <input value={busca} onChange={(e) => onBusca(e.target.value)} placeholder="Buscar" style={{ height: 30, width: 150, padding: '0 10px 0 26px', borderRadius: 'var(--fe-radius-md)', border: '1px solid var(--fe-border)', background: 'var(--fe-surface)', fontSize: 12.5, color: 'var(--fe-text)', outline: 'none' }} onFocus={(e) => (e.currentTarget.style.borderColor = 'var(--fe-accent)')} onBlur={(e) => (e.currentTarget.style.borderColor = 'var(--fe-border)')} />
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--fe-text-muted)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ position: 'absolute', left: 10, pointerEvents: 'none' }}><circle cx="11" cy="11" r="7" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
+          <input value={busca} onChange={(e) => onBusca(e.target.value)} placeholder="Buscar tarefa" style={{ height: 32, width: 180, padding: '0 12px 0 30px', borderRadius: 'var(--fe-radius-md)', border: '1px solid var(--fe-border)', background: 'var(--fe-warm-white)', fontSize: 13, color: 'var(--fe-text)', outline: 'none' }} onFocus={(e) => { e.currentTarget.style.borderColor = 'var(--fe-accent)'; e.currentTarget.style.background = 'var(--fe-surface)' }} onBlur={(e) => { e.currentTarget.style.borderColor = 'var(--fe-border)'; e.currentTarget.style.background = 'var(--fe-warm-white)' }} />
         </div>
-        <Link href={addHref} style={{ height: 30, padding: '0 14px', borderRadius: 'var(--fe-radius-md)', background: 'var(--fe-accent)', color: 'var(--fe-accent-dark)', fontSize: 12.5, fontWeight: 600, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap', flexShrink: 0 }}>
-          <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M6 2V10M2 6H10" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" /></svg>
+        <Link href={addHref} style={{ height: 32, padding: '0 13px', borderRadius: 'var(--fe-radius-md)', background: 'var(--fe-accent)', color: 'var(--fe-accent-fg)', fontSize: 13, fontWeight: 600, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap', flexShrink: 0 }} onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--fe-accent-hover)')} onMouseLeave={(e) => (e.currentTarget.style.background = 'var(--fe-accent)')}>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>
           {addLabel}
         </Link>
       </div>
@@ -151,10 +158,18 @@ export function TabsToolbar({ grouping, busca, onBusca, addHref, addLabel }: { g
   )
 }
 
+function ViewTab({ children, disabled }: { children: React.ReactNode; disabled?: boolean }) {
+  return (
+    <span style={{ height: '100%', padding: '0 12px', display: 'inline-flex', alignItems: 'center', gap: 7, fontSize: 13.5, fontWeight: 500, color: 'var(--fe-text-muted)', cursor: disabled ? 'default' : 'pointer', whiteSpace: 'nowrap' }}>
+      {children}
+    </span>
+  )
+}
+
 function Ghost({ children, icon }: { children: React.ReactNode; icon: React.ReactNode }) {
   return (
-    <button style={{ height: 30, padding: '0 10px', borderRadius: 'var(--fe-radius-md)', border: 'none', background: 'transparent', color: 'var(--fe-text-soft)', fontSize: 12.5, fontWeight: 500, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap', flexShrink: 0 }}
-      onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--fe-warm-white)')}
+    <button style={{ height: 32, padding: '0 11px', borderRadius: 'var(--fe-radius-md)', border: 'none', background: 'transparent', color: 'var(--fe-text-soft)', fontSize: 13, fontWeight: 500, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap', flexShrink: 0 }}
+      onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--fe-hover)')}
       onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}>
       {icon}{children}
     </button>
@@ -165,11 +180,11 @@ function Ghost({ children, icon }: { children: React.ReactNode; icon: React.Reac
 
 export type Col = { label: string; width: string }
 
-export function ColunasHeader({ cols, leftPad = 20 }: { cols: Col[]; leftPad?: number }) {
+export function ColunasHeader({ cols, leftPad = 22 }: { cols: Col[]; leftPad?: number }) {
   return (
-    <div style={{ position: 'sticky', top: 0, zIndex: 2, display: 'grid', gridTemplateColumns: cols.map((c) => c.width).join(' '), gap: 12, padding: `0 20px 0 ${leftPad}px`, height: 34, alignItems: 'center', background: 'var(--fe-surface)', borderBottom: '1px solid var(--fe-border-soft)' }}>
+    <div style={{ position: 'sticky', top: 0, zIndex: 2, display: 'grid', gridTemplateColumns: cols.map((c) => c.width).join(' '), gap: 12, padding: `0 22px 0 ${leftPad}px`, height: 38, alignItems: 'center', background: 'var(--fe-surface)', borderBottom: '1px solid var(--fe-border)' }}>
       {cols.map((c) => (
-        <span key={c.label} style={{ fontSize: 11, fontWeight: 600, color: 'var(--fe-text-faint)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{c.label}</span>
+        <span key={c.label} style={{ fontSize: 11, fontWeight: 600, color: 'var(--fe-text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{c.label}</span>
       ))}
     </div>
   )
@@ -177,10 +192,10 @@ export function ColunasHeader({ cols, leftPad = 20 }: { cols: Col[]; leftPad?: n
 
 // ─── Linha ──────────────────────────────────────────────────────────────────
 
-export function Row({ template, onClick, children, leftPad = 20 }: { template: string; onClick: () => void; children: React.ReactNode; leftPad?: number }) {
+export function Row({ template, onClick, children, leftPad = 22 }: { template: string; onClick: () => void; children: React.ReactNode; leftPad?: number }) {
   return (
-    <div onClick={onClick} style={{ display: 'grid', gridTemplateColumns: template, gap: 12, alignItems: 'center', minHeight: 44, padding: `0 20px 0 ${leftPad}px`, borderBottom: '1px solid var(--fe-divider)', cursor: 'pointer', transition: 'background var(--fe-dur-fast)' }}
-      onMouseEnter={(e) => (e.currentTarget.style.background = '#FAF9F4')}
+    <div onClick={onClick} style={{ display: 'grid', gridTemplateColumns: template, gap: 12, alignItems: 'center', minHeight: 46, padding: `0 22px 0 ${leftPad}px`, borderBottom: '1px solid var(--fe-divider)', cursor: 'pointer', transition: 'background var(--fe-dur-fast)' }}
+      onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--fe-row-hover)')}
       onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}>
       {children}
     </div>
@@ -191,13 +206,13 @@ export function CellNome({ children, avatar }: { children: React.ReactNode; avat
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
       {avatar !== undefined && <Avatar nome={avatar} size={24} />}
-      <span style={{ fontSize: 13.5, fontWeight: 500, color: 'var(--fe-text-strong)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{children}</span>
+      <span style={{ fontSize: 13.8, fontWeight: 500, color: 'var(--fe-text-strong)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{children}</span>
     </div>
   )
 }
 
 export function CellText({ children }: { children: React.ReactNode }) {
-  return <span style={{ fontSize: 12.5, color: 'var(--fe-text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{children}</span>
+  return <span style={{ fontSize: 13, color: 'var(--fe-text-soft)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{children}</span>
 }
 
 // ─── Grupo (status) ─────────────────────────────────────────────────────────
@@ -206,15 +221,17 @@ export function Grupo({ pill, count, addHref, children }: { pill: React.ReactNod
   const [aberto, setAberto] = useState(true)
   return (
     <div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, height: 40, padding: '0 20px', cursor: 'pointer', borderBottom: '1px solid var(--fe-divider)' }} onClick={() => setAberto((v) => !v)}>
-        <svg width="10" height="10" viewBox="0 0 9 9" fill="none" style={{ transform: aberto ? 'rotate(90deg)' : 'rotate(0deg)', transition: 'transform var(--fe-dur-fast) var(--fe-ease)', color: 'var(--fe-text-muted)' }}><path d="M3 1.5L6 4.5L3 7.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" /></svg>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 9, height: 38, padding: '0 22px', cursor: 'pointer', background: 'var(--fe-warm-white)' }} onClick={() => setAberto((v) => !v)}
+        onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--fe-row-hover)')}
+        onMouseLeave={(e) => (e.currentTarget.style.background = 'var(--fe-warm-white)')}>
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--fe-text-soft)" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" style={{ transform: aberto ? 'rotate(0deg)' : 'rotate(-90deg)', transition: 'transform var(--fe-dur-fast) var(--fe-ease)' }}><polyline points="6 9 12 15 18 9" /></svg>
         {pill}
-        <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 12, color: 'var(--fe-text-muted)' }}>{count}</span>
+        <span style={{ fontSize: 11.5, color: 'var(--fe-text-soft)', background: 'var(--fe-track)', borderRadius: 8, minWidth: 20, height: 18, padding: '0 6px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontWeight: 600 }}>{count}</span>
         <Link href={addHref} onClick={(e) => e.stopPropagation()} style={{ marginLeft: 6, fontSize: 12.5, color: 'var(--fe-text-faint)', textDecoration: 'none' }} onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--fe-text-soft)')} onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--fe-text-faint)')}>+ Adicionar</Link>
       </div>
       {aberto && children}
       {aberto && count === 0 && (
-        <div style={{ padding: '0 20px 0 48px', height: 38, display: 'flex', alignItems: 'center', fontSize: 12.5, color: 'var(--fe-text-faint)', borderBottom: '1px solid var(--fe-divider)' }}>Nenhum item</div>
+        <div style={{ padding: '0 22px 0 48px', height: 38, display: 'flex', alignItems: 'center', fontSize: 12.5, color: 'var(--fe-text-faint)', borderBottom: '1px solid var(--fe-divider)' }}>Nenhum item</div>
       )}
     </div>
   )
@@ -227,7 +244,7 @@ export function SlideOver({ space, segments, expandHref, onClose, statusSlot, ti
     <>
       <div className="fe-fade-in" onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'var(--fe-backdrop)', zIndex: 60 }} />
       <aside className="fe-slide-in" style={{ position: 'fixed', top: 0, right: 0, height: '100vh', width: 'var(--fe-panel-w)', maxWidth: '92vw', background: 'var(--fe-surface)', boxShadow: 'var(--fe-shadow-panel)', zIndex: 61, display: 'flex', flexDirection: 'column' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 46, padding: '0 12px 0 18px', borderBottom: '1px solid var(--fe-border-soft)', flexShrink: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 52, padding: '0 12px 0 18px', borderBottom: '1px solid var(--fe-border-soft)', flexShrink: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 12.5, color: 'var(--fe-text-muted)', minWidth: 0 }}>
             <SpaceBadge space={space} size={17} />
             {segments.map((s, i) => (
@@ -238,14 +255,14 @@ export function SlideOver({ space, segments, expandHref, onClose, statusSlot, ti
             ))}
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 2, flexShrink: 0 }}>
-            <Link href={expandHref} title="Expandir" style={iconBtn}><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M8.5 2H12V5.5M12 2L8 6M5.5 12H2V8.5M2 12L6 8" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" /></svg></Link>
+            <Link href={expandHref} title="Expandir" style={iconBtn}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 3 21 3 21 9" /><polyline points="9 21 3 21 3 15" /><line x1="21" y1="3" x2="14" y2="10" /><line x1="3" y1="21" x2="10" y2="14" /></svg></Link>
             <button title="Mais" style={iconBtn as React.CSSProperties}>⋯</button>
-            <button onClick={onClose} title="Fechar" style={iconBtn as React.CSSProperties}><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3.5 3.5L10.5 10.5M10.5 3.5L3.5 10.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" /></svg></button>
+            <button onClick={onClose} title="Fechar" style={iconBtn as React.CSSProperties}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg></button>
           </div>
         </div>
-        <div style={{ flex: 1, overflowY: 'auto', padding: '20px 22px' }}>
+        <div style={{ flex: 1, overflowY: 'auto', padding: '22px 28px 40px' }}>
           {statusSlot && <div style={{ marginBottom: 18 }}>{statusSlot}</div>}
-          <h1 style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontWeight: 700, fontSize: 25, lineHeight: 1.18, letterSpacing: '-0.025em', color: 'var(--fe-text-strong)', margin: '0 0 22px' }}>{title}</h1>
+          <h1 style={{ fontFamily: 'var(--font-geist), sans-serif', fontWeight: 600, fontSize: 24, lineHeight: 1.25, letterSpacing: '-0.01em', color: 'var(--fe-text-strong)', margin: '0 0 22px' }}>{title}</h1>
           <div style={{ display: 'flex', flexDirection: 'column' }}>{children}</div>
         </div>
       </aside>
@@ -255,21 +272,21 @@ export function SlideOver({ space, segments, expandHref, onClose, statusSlot, ti
 
 export function PropRow({ icon, label, children }: { icon: React.ReactNode; label: string; children: React.ReactNode }) {
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '140px 1fr', alignItems: 'center', minHeight: 38 }}>
-      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 12.5, color: 'var(--fe-text-muted)' }}>{icon}{label}</span>
-      <span style={{ fontSize: 13, color: 'var(--fe-text)' }}>{children}</span>
+    <div style={{ display: 'grid', gridTemplateColumns: '130px 1fr', alignItems: 'center', minHeight: 36 }}>
+      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 13, color: 'var(--fe-text-muted)' }}>{icon}{label}</span>
+      <span style={{ fontSize: 13.5, color: 'var(--fe-text)' }}>{children}</span>
     </div>
   )
 }
 
-const iconBtn: React.CSSProperties = { width: 30, height: 30, borderRadius: 'var(--fe-radius-md)', border: 'none', background: 'transparent', color: 'var(--fe-text-soft)', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', textDecoration: 'none', fontSize: 16 }
+const iconBtn: React.CSSProperties = { width: 32, height: 32, borderRadius: 'var(--fe-radius-md)', border: 'none', background: 'transparent', color: 'var(--fe-text-muted)', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', textDecoration: 'none', fontSize: 16 }
 
 // ─── Página cheia (overlay) ─────────────────────────────────────────────────
 
 export function FullPage({ space, segments, backHref, topActions, statusSlot, title, body, details, criadoEm }: { space: Space; segments: string[]; backHref: string; topActions?: React.ReactNode; statusSlot?: React.ReactNode; title?: string; body: React.ReactNode; details: React.ReactNode; criadoEm?: string }) {
   return (
-    <div style={{ position: 'fixed', inset: 0, zIndex: 70, background: 'var(--fe-warm-white)', display: 'flex', flexDirection: 'column' }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 50, padding: '0 16px 0 22px', borderBottom: '1px solid var(--fe-border-soft)', background: 'var(--fe-surface)', flexShrink: 0 }}>
+    <div style={{ position: 'fixed', inset: 0, zIndex: 70, background: 'var(--fe-surface)', display: 'flex', flexDirection: 'column' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 52, padding: '0 16px 0 22px', borderBottom: '1px solid var(--fe-border-soft)', background: 'var(--fe-surface)', flexShrink: 0 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: 'var(--fe-text-muted)', minWidth: 0 }}>
           <SpaceBadge space={space} />
           {segments.map((s, i) => {
@@ -285,11 +302,11 @@ export function FullPage({ space, segments, backHref, topActions, statusSlot, ti
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
           {topActions}
           <Link href={backHref} style={{ ...ghostBtn, display: 'inline-flex', alignItems: 'center', gap: 6, textDecoration: 'none' }}>
-            <svg width="13" height="13" viewBox="0 0 14 14" fill="none"><path d="M5.5 2H2V5.5M2 2L6 6M8.5 12H12V8.5M12 12L8 8" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" /></svg>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 3 3 3 3 9" /><polyline points="15 21 21 21 21 15" /><line x1="3" y1="3" x2="10" y2="10" /><line x1="21" y1="21" x2="14" y2="14" /></svg>
             Recolher
           </Link>
-          <Link href={backHref} title="Fechar" style={{ width: 32, height: 32, borderRadius: 'var(--fe-radius-md)', background: 'transparent', color: 'var(--fe-text-soft)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
-            <svg width="15" height="15" viewBox="0 0 14 14" fill="none"><path d="M3.5 3.5L10.5 10.5M10.5 3.5L3.5 10.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" /></svg>
+          <Link href={backHref} title="Fechar" style={{ width: 32, height: 32, borderRadius: 'var(--fe-radius-md)', background: 'transparent', color: 'var(--fe-text-muted)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
           </Link>
         </div>
       </div>
@@ -297,12 +314,12 @@ export function FullPage({ space, segments, backHref, topActions, statusSlot, ti
         <div style={{ maxWidth: 1080, margin: '0 auto', padding: '36px 32px', display: 'grid', gridTemplateColumns: 'minmax(0,1fr) 332px', gap: 36, alignItems: 'start' }}>
           <div style={{ minWidth: 0 }}>
             {statusSlot && <div style={{ marginBottom: 18 }}>{statusSlot}</div>}
-            {title && <h1 style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontWeight: 700, fontSize: 30, lineHeight: 1.14, letterSpacing: '-0.03em', color: 'var(--fe-text-strong)', margin: '0 0 24px' }}>{title}</h1>}
+            {title && <h1 style={{ fontFamily: 'var(--font-geist), sans-serif', fontWeight: 600, fontSize: 29, lineHeight: 1.2, letterSpacing: '-0.02em', color: 'var(--fe-text-strong)', margin: '0 0 24px' }}>{title}</h1>}
             {body}
           </div>
           <aside style={{ position: 'sticky', top: 0, background: 'var(--fe-surface)', border: '1px solid var(--fe-border-soft)', borderRadius: 'var(--fe-radius-lg)', boxShadow: 'var(--fe-shadow-card)', overflow: 'hidden' }}>
             <div style={{ padding: '12px 18px', borderBottom: '1px solid var(--fe-divider)' }}>
-              <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--fe-text-faint)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Detalhes</span>
+              <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--fe-text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Detalhes</span>
             </div>
             <div style={{ padding: '4px 18px 14px' }}>{details}</div>
             {criadoEm && (
@@ -333,19 +350,19 @@ export function EmptyState({ icon, titulo, descricao, addHref, addLabel }: { ico
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: 420, gap: 14, padding: 40 }}>
       <div style={{ width: 54, height: 54, borderRadius: 14, background: 'var(--fe-warm-white)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--fe-text-faint)' }}>{icon}</div>
       <div style={{ textAlign: 'center' }}>
-        <p style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontWeight: 700, fontSize: 17, letterSpacing: '-0.02em', color: 'var(--fe-text-strong)', margin: '0 0 6px' }}>{titulo}</p>
+        <p style={{ fontFamily: 'var(--font-geist), sans-serif', fontWeight: 600, fontSize: 17, letterSpacing: '-0.01em', color: 'var(--fe-text-strong)', margin: '0 0 6px' }}>{titulo}</p>
         <p style={{ fontSize: 13, color: 'var(--fe-text-muted)', maxWidth: 280, margin: 0, lineHeight: 1.5 }}>{descricao}</p>
       </div>
-      <Link href={addHref} style={{ marginTop: 4, height: 34, padding: '0 16px', borderRadius: 'var(--fe-radius-md)', background: 'var(--fe-accent)', color: 'var(--fe-accent-dark)', fontSize: 13, fontWeight: 600, textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 6 }}>
-        <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M6 2V10M2 6H10" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" /></svg>
+      <Link href={addHref} style={{ marginTop: 4, height: 34, padding: '0 16px', borderRadius: 'var(--fe-radius-md)', background: 'var(--fe-accent)', color: 'var(--fe-accent-fg)', fontSize: 13, fontWeight: 600, textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 6 }}>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>
         {addLabel}
       </Link>
     </div>
   )
 }
 
-export const ghostBtn: React.CSSProperties = { height: 32, padding: '0 12px', borderRadius: 'var(--fe-radius-md)', border: '1px solid var(--fe-border)', background: 'transparent', fontSize: 12.5, fontWeight: 500, color: 'var(--fe-text)', cursor: 'pointer', display: 'inline-flex', alignItems: 'center' }
-export const accentBtn = (disabled = false): React.CSSProperties => ({ height: 32, padding: '0 16px', borderRadius: 'var(--fe-radius-md)', background: disabled ? 'var(--fe-border)' : 'var(--fe-accent)', color: disabled ? 'var(--fe-text-muted)' : 'var(--fe-accent-dark)', border: 'none', fontSize: 12.5, fontWeight: 600, cursor: disabled ? 'not-allowed' : 'pointer' })
+export const ghostBtn: React.CSSProperties = { height: 32, padding: '0 12px', borderRadius: 'var(--fe-radius-md)', border: '1px solid var(--fe-border)', background: 'transparent', fontSize: 13, fontWeight: 500, color: 'var(--fe-text)', cursor: 'pointer', display: 'inline-flex', alignItems: 'center' }
+export const accentBtn = (disabled = false): React.CSSProperties => ({ height: 32, padding: '0 16px', borderRadius: 'var(--fe-radius-md)', background: disabled ? 'var(--fe-border)' : 'var(--fe-accent)', color: disabled ? 'var(--fe-text-muted)' : 'var(--fe-accent-fg)', border: 'none', fontSize: 13, fontWeight: 600, cursor: disabled ? 'not-allowed' : 'pointer' })
 export const inputStyle: React.CSSProperties = { width: '100%', height: 36, padding: '0 12px', borderRadius: 'var(--fe-radius-md)', border: '1px solid var(--fe-border)', background: 'var(--fe-surface)', fontSize: 13.5, color: 'var(--fe-text)', outline: 'none' }
 
 // ─── Mostrar/ocultar campos ──────────────────────────────────────────────────

@@ -134,9 +134,9 @@ function MentionDropdown({
           onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.background = 'transparent')}
         >
           <div style={{
-            width: 26, height: 26, borderRadius: '50%', background: '#6E56CF',
+            width: 26, height: 26, borderRadius: '50%', background: 'var(--fe-accent)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: 10, fontWeight: 700, color: '#fff', flexShrink: 0,
+            fontSize: 10, fontWeight: 700, color: 'var(--fe-accent-fg)', flexShrink: 0,
           }}>
             {initials(m.nome)}
           </div>
@@ -329,7 +329,7 @@ export function TaskComments({ taskId, taskTable }: { taskId: string; taskTable:
               <button
                 onClick={send}
                 disabled={sending}
-                style={{ height: 28, padding: '0 14px', borderRadius: 'var(--fe-radius-md)', border: 'none', background: 'var(--fe-accent)', color: '#fff', fontSize: 12.5, fontWeight: 600, cursor: sending ? 'default' : 'pointer', opacity: sending ? 0.6 : 1 }}
+                style={{ height: 28, padding: '0 14px', borderRadius: 'var(--fe-radius-md)', border: 'none', background: 'var(--fe-accent)', color: 'var(--fe-accent-fg)', fontSize: 12.5, fontWeight: 600, cursor: sending ? 'default' : 'pointer', opacity: sending ? 0.6 : 1 }}
               >
                 {sending ? 'Enviando…' : 'Comentar'}
               </button>

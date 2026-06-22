@@ -2,7 +2,7 @@ import { Sidebar } from '@/components/shell/Sidebar'
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div style={{ display: 'flex', height: '100vh', overflow: 'hidden', background: 'var(--fe-warm-white)' }}>
+    <div style={{ display: 'flex', height: '100vh', overflow: 'hidden', background: 'var(--fe-surface)' }}>
       <Sidebar />
       <main style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
         {children}

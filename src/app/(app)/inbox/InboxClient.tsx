@@ -88,9 +88,9 @@ export function InboxClient({ mentions }: { mentions: Comment[]; currentUserId: 
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                   <div style={{
-                    width: 24, height: 24, borderRadius: '50%', background: '#6E56CF',
+                    width: 24, height: 24, borderRadius: '50%', background: 'var(--fe-accent)',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: 10, fontWeight: 700, color: '#fff', flexShrink: 0,
+                    fontSize: 10, fontWeight: 700, color: 'var(--fe-accent-fg)', flexShrink: 0,
                   }}>
                     {c.author.charAt(0).toUpperCase()}
                   </div>

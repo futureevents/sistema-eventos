@@ -22,12 +22,12 @@ const STATUS_LABEL: Record<string, string> = {
 }
 
 const STATUS_COLOR: Record<string, string> = {
-  backlog: '#94a3b8',
-  em_planejamento: '#60a5fa',
-  pre_producao: '#60a5fa',
-  producao: '#a78bfa',
-  realizado: 'var(--fe-accent)',
-  cancelado: '#f87171',
+  backlog: 'var(--fe-text-muted)',
+  em_planejamento: '#3E63DD',
+  pre_producao: '#3E63DD',
+  producao: '#7C66DC',
+  realizado: 'var(--fe-status-done)',
+  cancelado: '#DC3D43',
 }
 
 function EventCard({ evento, onRemove }: { evento: EventoRow; onRemove?: () => void }) {
@@ -38,7 +38,7 @@ function EventCard({ evento, onRemove }: { evento: EventoRow; onRemove?: () => v
       onMouseLeave={() => setHovered(false)}
       style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 10px', borderRadius: 'var(--fe-radius-md)', border: '1px solid var(--fe-border-soft)', background: hovered ? 'var(--fe-border-soft)' : 'var(--fe-surface)', transition: 'background 100ms' }}
     >
-      <div style={{ width: 8, height: 8, borderRadius: '50%', background: STATUS_COLOR[evento.status] ?? '#94a3b8', flexShrink: 0 }} />
+      <div style={{ width: 8, height: 8, borderRadius: '50%', background: STATUS_COLOR[evento.status] ?? 'var(--fe-text-muted)', flexShrink: 0 }} />
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--fe-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{evento.nome}</div>
         <div style={{ fontSize: 11.5, color: 'var(--fe-text-faint)', display: 'flex', gap: 8 }}>
@@ -149,7 +149,7 @@ function FornecedorEventos({ rowId }: { rowId: string }) {
                   onMouseEnter={(el) => (el.currentTarget.style.background = 'var(--fe-border-soft)')}
                   onMouseLeave={(el) => (el.currentTarget.style.background = 'transparent')}
                 >
-                  <div style={{ width: 7, height: 7, borderRadius: '50%', background: STATUS_COLOR[e.status] ?? '#94a3b8', flexShrink: 0 }} />
+                  <div style={{ width: 7, height: 7, borderRadius: '50%', background: STATUS_COLOR[e.status] ?? 'var(--fe-text-muted)', flexShrink: 0 }} />
                   <span style={{ fontSize: 13, color: 'var(--fe-text)' }}>{e.nome}</span>
                 </button>
               ))

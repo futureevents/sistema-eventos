@@ -2,10 +2,10 @@ import { type ListConfig, type SelectOption } from '../types'
 import { SPACE_ENTREGAS } from '../spaces'
 
 const STATUS: SelectOption[] = [
-  { value: 'backlog',     label: 'Backlog',     dot: '#8A8783', bg: 'var(--fe-status-todo-tint)',   text: 'var(--fe-status-todo-text)' },
-  { value: 'em_execucao', label: 'Em execução', dot: '#F59E0B', bg: 'var(--fe-status-review-tint)', text: 'var(--fe-status-review-text)' },
-  { value: 'realizado',   label: 'Realizado',   dot: '#00C47A', bg: 'var(--fe-status-done-tint)',   text: 'var(--fe-status-done-text)', done: true },
-  { value: 'cancelado',   label: 'Cancelado',   dot: '#EF4444', bg: 'rgba(239,68,68,0.10)',         text: '#DC2626' },
+  { value: 'backlog',     label: 'Backlog',     dot: 'var(--fe-status-todo)',   bg: 'var(--fe-status-todo-tint)',   text: 'var(--fe-status-todo-text)' },
+  { value: 'em_execucao', label: 'Em execução', dot: 'var(--fe-status-review)', bg: 'var(--fe-status-review-tint)', text: 'var(--fe-status-review-text)' },
+  { value: 'realizado',   label: 'Realizado',   dot: 'var(--fe-status-done)',   bg: 'var(--fe-status-done-tint)',   text: 'var(--fe-status-done-text)', done: true },
+  { value: 'cancelado',   label: 'Cancelado',   dot: 'var(--fe-prio-urgent)',   bg: 'rgba(220,61,67,0.12)',         text: '#C42A30' },
 ]
 
 export const eventosConfig: ListConfig = {

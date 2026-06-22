@@ -22,7 +22,7 @@ export const NAV: NavSpace[] = [
   {
     label: 'Comercial',
     slug: 'comercial',
-    color: '#6E56CF',
+    color: '#8E4EC6',
     folders: [
       {
         label: 'Oportunidades',
@@ -44,7 +44,7 @@ export const NAV: NavSpace[] = [
   {
     label: 'Entregas',
     slug: 'entregas',
-    color: '#00C47A',
+    color: '#30A46C',
     folders: [
       {
         label: 'Projetos',
@@ -96,7 +96,7 @@ export const NAV: NavSpace[] = [
   {
     label: 'Gestão',
     slug: 'gestao',
-    color: '#F59E0B',
+    color: '#D9730D',
     folders: [
       {
         label: 'Acessos',
@@ -128,7 +128,7 @@ export const NAV: NavSpace[] = [
   {
     label: 'Marketing',
     slug: 'marketing',
-    color: '#EC4899',
+    color: '#E54666',
     folders: [
       {
         label: 'Criação',

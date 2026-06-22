@@ -244,7 +244,7 @@ function Toolbar({
             style={{ height: 30, width: 150, padding: '0 10px 0 26px', borderRadius: 'var(--fe-radius-md)', border: '1px solid var(--fe-border)', background: 'var(--fe-surface)', fontSize: 12.5, color: 'var(--fe-text)', outline: 'none' }}
             onFocus={(e) => (e.currentTarget.style.borderColor = 'var(--fe-accent)')} onBlur={(e) => (e.currentTarget.style.borderColor = 'var(--fe-border)')} />
         </div>
-        <Link href={addHref} style={{ height: 30, padding: '0 14px', borderRadius: 'var(--fe-radius-md)', background: 'var(--fe-accent)', color: 'var(--fe-accent-dark)', fontSize: 12.5, fontWeight: 600, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap', flexShrink: 0 }}>
+        <Link href={addHref} style={{ height: 30, padding: '0 14px', borderRadius: 'var(--fe-radius-md)', background: 'var(--fe-accent)', color: 'var(--fe-accent-fg)', fontSize: 12.5, fontWeight: 600, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap', flexShrink: 0 }}>
           <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M6 2V10M2 6H10" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" /></svg>
           {addLabel}
         </Link>
@@ -270,7 +270,7 @@ function Ghost({ children, icon, onClick, badge }: { children: React.ReactNode; 
       onMouseEnter={(e) => { if (!badge) e.currentTarget.style.background = 'var(--fe-warm-white)' }}
       onMouseLeave={(e) => { if (!badge) e.currentTarget.style.background = 'transparent' }}>
       {icon}{children}
-      {badge ? <span style={{ minWidth: 16, height: 16, padding: '0 4px', borderRadius: 8, background: 'var(--fe-accent)', color: 'var(--fe-accent-dark)', fontSize: 10.5, fontWeight: 700, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>{badge}</span> : null}
+      {badge ? <span style={{ minWidth: 16, height: 16, padding: '0 4px', borderRadius: 8, background: 'var(--fe-accent)', color: 'var(--fe-accent-fg)', fontSize: 10.5, fontWeight: 700, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>{badge}</span> : null}
     </button>
   )
 }
@@ -299,7 +299,7 @@ function AgruparBtn({ groupable, groupBy, onGroupBy, label }: { groupable: Field
 
 function FiltrosBtn({ filterable, filtros, onFiltros, n, rows, options }: { filterable: FieldDef[]; filtros: FilterState; onFiltros: (f: FilterState) => void; n: number; rows: Row[]; options: OptionsMap }) {
   const selStyle: React.CSSProperties = { width: '100%', height: 32, padding: '0 8px', borderRadius: 6, border: '1px solid var(--fe-border)', background: 'var(--fe-surface)', fontSize: 12.5, color: 'var(--fe-text)', outline: 'none' }
-  const dateStyle: React.CSSProperties = { ...selStyle, fontFamily: "'JetBrains Mono', monospace", fontSize: 12 }
+  const dateStyle: React.CSSProperties = { ...selStyle, fontFamily: 'var(--font-geist-mono), monospace', fontSize: 12 }
   function setF(key: string, val: unknown) { onFiltros({ ...filtros, [key]: val }) }
   function toggleArr(key: string, v: string) { const cur = (filtros[key] as string[]) ?? []; setF(key, cur.includes(v) ? cur.filter((x) => x !== v) : [...cur, v]) }
 
@@ -396,7 +396,7 @@ function Grupo({ grupo, grid, columns, config, options, patch, remove, onAbrir, 
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, height: 40, padding: '0 20px', cursor: 'pointer', borderBottom: '1px solid var(--fe-border-soft)', background: 'var(--fe-warm-white)' }} onClick={() => setAberto((v) => !v)}>
           <svg width="10" height="10" viewBox="0 0 9 9" fill="none" style={{ transform: aberto ? 'rotate(90deg)' : 'rotate(0deg)', transition: 'transform var(--fe-dur-fast) var(--fe-ease)', color: 'var(--fe-text-muted)' }}><path d="M3 1.5L6 4.5L3 7.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" /></svg>
           {grupo.option ? <OptionPill opt={grupo.option} /> : <span style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--fe-text-strong)' }}>{grupo.label}</span>}
-          <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 12, color: 'var(--fe-text-muted)' }}>{grupo.itens.length}</span>
+          <span style={{ fontFamily: 'var(--font-geist-mono), monospace', fontSize: 12, color: 'var(--fe-text-muted)' }}>{grupo.itens.length}</span>
           <Link href={addHref} onClick={(e) => e.stopPropagation()} style={{ marginLeft: 6, fontSize: 12.5, color: 'var(--fe-text-faint)', textDecoration: 'none' }} onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--fe-text-soft)')} onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--fe-text-faint)')}>+ Adicionar</Link>
         </div>
       )}
@@ -517,7 +517,7 @@ function SlideOver({ row, config, options, patch, remove, onFechar }: {
 
           <textarea value={nome} onChange={(e) => onNome(e.target.value)} rows={1} placeholder={config.titlePlaceholder ?? 'Sem título'}
             onInput={(e) => { const el = e.currentTarget; el.style.height = 'auto'; el.style.height = el.scrollHeight + 'px' }}
-            style={{ width: '100%', resize: 'none', border: 'none', outline: 'none', background: 'transparent', fontFamily: "'Bricolage Grotesque', sans-serif", fontWeight: 700, fontSize: 25, lineHeight: 1.18, letterSpacing: '-0.025em', color: 'var(--fe-text-strong)', margin: '0 0 20px', padding: 0, overflow: 'hidden' }} />
+            style={{ width: '100%', resize: 'none', border: 'none', outline: 'none', background: 'transparent', fontFamily: 'var(--font-geist), sans-serif', fontWeight: 600, fontSize: 24, lineHeight: 1.25, letterSpacing: '-0.01em', color: 'var(--fe-text-strong)', margin: '0 0 20px', padding: 0, overflow: 'hidden' }} />
 
           <div style={{ marginBottom: descField ? 22 : 0 }}>
             {/* Campos visíveis */}

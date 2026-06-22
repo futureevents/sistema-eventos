@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 
-const CORES = ['#27241F', '#DC2626', '#E8833A', '#047857', '#2563EB', '#6E56CF', '#D6457D', '#9B9893']
+const CORES = ['var(--fe-text-strong)', 'var(--fe-prio-urgent)', 'var(--fe-prio-high)', 'var(--fe-status-done-text)', 'var(--fe-status-prog-text)', 'var(--fe-accent)', '#D6409F', 'var(--fe-text-muted)']
 
 function execCmd(cmd: string, value?: string) { document.execCommand(cmd, false, value) }
 

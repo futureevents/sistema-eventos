@@ -18,11 +18,11 @@ const STATUS_LABEL: Record<string, string> = {
 }
 
 const STATUS_COLOR: Record<string, string> = {
-  a_fazer: '#94a3b8', em_andamento: '#f59e0b', concluida: '#22c55e', cancelada: '#ef4444',
+  a_fazer: 'var(--fe-status-todo)', em_andamento: 'var(--fe-status-prog)', concluida: 'var(--fe-status-done)', cancelada: 'var(--fe-prio-urgent)',
 }
 
 const PRIORIDADE_COLOR: Record<string, string> = {
-  baixa: '#22c55e', media: '#f59e0b', alta: '#f97316', urgente: '#ef4444',
+  baixa: 'var(--fe-prio-low)', media: 'var(--fe-prio-normal)', alta: 'var(--fe-prio-high)', urgente: 'var(--fe-prio-urgent)',
 }
 
 const TIPO_LABEL: Record<string, string> = {
@@ -74,8 +74,8 @@ export function MinhasAtividadesClient({ tasksProjeto, userName }: {
       <div style={{ display: 'flex', gap: 12, marginBottom: 28 }}>
         {[
           { label: 'Ativas', value: totalAtivas, color: 'var(--fe-black)' },
-          { label: 'Concluídas', value: totalConcluidas, color: '#22c55e' },
-          { label: 'Atrasadas', value: totalAtrasadas, color: '#ef4444' },
+          { label: 'Concluídas', value: totalConcluidas, color: 'var(--fe-status-done)' },
+          { label: 'Atrasadas', value: totalAtrasadas, color: 'var(--fe-prio-urgent)' },
         ].map((s) => (
           <div key={s.label} style={{
             flex: 1, padding: '14px 16px', borderRadius: 'var(--fe-radius-md)',
@@ -125,17 +125,17 @@ export function MinhasAtividadesClient({ tasksProjeto, userName }: {
                 style={{
                   display: 'flex', alignItems: 'center', gap: 12,
                   padding: '11px 14px', borderRadius: 'var(--fe-radius-md)',
-                  border: `1px solid ${overdue ? '#fecaca' : 'var(--fe-border)'}`,
-                  background: overdue ? '#fff5f5' : 'var(--fe-surface)',
+                  border: `1px solid ${overdue ? 'rgba(220,61,67,0.28)' : 'var(--fe-border)'}`,
+                  background: overdue ? 'rgba(220,61,67,0.05)' : 'var(--fe-surface)',
                   textDecoration: 'none', transition: 'background var(--fe-dur-fast)',
                 }}
                 onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.background = 'var(--fe-hover)')}
-                onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.background = overdue ? '#fff5f5' : 'var(--fe-surface)')}
+                onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.background = overdue ? 'rgba(220,61,67,0.05)' : 'var(--fe-surface)')}
               >
                 {/* Status dot */}
                 <div style={{
                   width: 8, height: 8, borderRadius: '50%',
-                  background: STATUS_COLOR[t.status] ?? '#94a3b8', flexShrink: 0,
+                  background: STATUS_COLOR[t.status] ?? 'var(--fe-status-todo)', flexShrink: 0,
                 }} />
 
                 {/* Nome */}
@@ -160,7 +160,7 @@ export function MinhasAtividadesClient({ tasksProjeto, userName }: {
                   {t.prioridade && t.prioridade !== 'media' && (
                     <span style={{
                       fontSize: 11.5, padding: '1px 7px', borderRadius: 20,
-                      background: PRIORIDADE_COLOR[t.prioridade] + '20',
+                      background: `color-mix(in srgb, ${PRIORIDADE_COLOR[t.prioridade]} 12%, transparent)`,
                       color: PRIORIDADE_COLOR[t.prioridade],
                       fontWeight: 600,
                     }}>
@@ -170,7 +170,7 @@ export function MinhasAtividadesClient({ tasksProjeto, userName }: {
 
                   {t.data_fim && (
                     <span style={{
-                      fontSize: 11.5, color: overdue ? '#ef4444' : 'var(--fe-text-faint)',
+                      fontSize: 11.5, color: overdue ? 'var(--fe-prio-urgent)' : 'var(--fe-text-faint)',
                       fontWeight: overdue ? 600 : 400,
                     }}>
                       {overdue ? '⚠ ' : ''}{formatDate(t.data_fim)}
