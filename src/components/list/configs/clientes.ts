@@ -14,8 +14,8 @@ export const clientesConfig: ListConfig = {
   descriptionField: 'descricao',
   defaultGroupBy: null,
   fields: [
-    { key: 'nome', label: 'Nome', type: 'text', required: true, column: { width: 'minmax(0,1fr)', primary: true, header: 'Nome' } },
-    { key: 'empresa', label: 'Empresa', type: 'text', column: { width: '180px' }, filterable: true, groupable: true },
+    { key: 'nome', label: 'Nome', type: 'text', required: true, column: { width: 'minmax(0,1fr)', primary: true, header: 'Nome', subtitle: (r) => (r.empresa as string) || null } },
+    { key: 'empresa', label: 'Empresa', type: 'text', filterable: true, groupable: true },
     { key: 'cnpj_cpf', label: 'CNPJ / CPF', type: 'text', column: { width: '150px' } },
     { key: 'whatsapp', label: 'WhatsApp', type: 'tel', column: { width: '140px' } },
     { key: 'telefone', label: 'Telefone', type: 'tel' },

@@ -88,7 +88,7 @@ export function InlineField({
     case 'date': {
       const iso = (row[field.key] as string) ?? null
       return (
-        <Dropdown align="left" width={252} onOpenChange={onOpenChange}
+        <Dropdown align="left" width={252} fill={variant === 'cell'} onOpenChange={onOpenChange}
           trigger={({ toggle }) => (
             <HoverBtn onClick={toggle} title={`Alterar ${field.label.toLowerCase()}`}>
               <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: variant === 'cell' ? 12.5 : 13, color: iso ? muted : 'var(--fe-text-faint)', whiteSpace: 'nowrap' }}>
@@ -107,7 +107,7 @@ export function InlineField({
       const opt = optionOf(field, value)
       const display = field.column?.display === 'flag' ? 'flag' : 'pill'
       return (
-        <SelectMenu options={field.options ?? []} value={value} display={display} onChange={(v) => patch({ [field.key]: v })}>
+        <SelectMenu options={field.options ?? []} value={value} display={display} fill={variant === 'cell'} onChange={(v) => patch({ [field.key]: v })}>
           {({ toggle }) => (
             <HoverBtn onClick={toggle} title={`Alterar ${field.label.toLowerCase()}`}>
               {opt ? (display === 'flag' ? <FlagInline color={opt.flag ?? opt.dot ?? 'var(--fe-text-muted)'} label={opt.label} /> : <OptionPill opt={opt} chevron={variant === 'panel'} />) : <span style={{ color: 'var(--fe-text-faint)', fontSize: 12.5 }}>—</span>}
@@ -122,7 +122,7 @@ export function InlineField({
       const lbl = displayLabel(field, row, options)
       const isAvatar = field.column?.display === 'avatar'
       return (
-        <RelationMenu options={options[field.key] ?? []} value={value} semLabel={`Sem ${field.label.toLowerCase()}`} onChange={(id) => patch({ [field.key]: id })}>
+        <RelationMenu options={options[field.key] ?? []} value={value} semLabel={`Sem ${field.label.toLowerCase()}`} fill={variant === 'cell' && !isAvatar} onChange={(id) => patch({ [field.key]: id })}>
           {({ toggle }) => (
             isAvatar ? (
               <button onClick={toggle} title={`Alterar ${field.label.toLowerCase()}`} style={{ border: 'none', background: 'transparent', padding: 2, borderRadius: '50%', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
@@ -142,7 +142,7 @@ export function InlineField({
     case 'multiselect': {
       const arr = (row[field.key] as string[]) ?? []
       return (
-        <MultiMenu options={field.multiOptions ?? []} value={arr} onChange={(v) => patch({ [field.key]: v })}>
+        <MultiMenu options={field.multiOptions ?? []} value={arr} fill={variant === 'cell'} onChange={(v) => patch({ [field.key]: v })}>
           {({ toggle }) => (
             <HoverBtn onClick={toggle} title={`Alterar ${field.label.toLowerCase()}`}>
               {arr.length === 0 ? <span style={{ color: 'var(--fe-text-faint)', fontSize: 12.5 }}>—</span> : (

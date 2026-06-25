@@ -91,21 +91,25 @@ export function DataList({ config, rows: rowsProp, options, embeds }: {
         filterable={filterable} filtros={filtros} onFiltros={setFiltros} nFiltros={nFiltros}
         rows={rows} options={options} salvando={salvando} addHref={addHref} addLabel={config.addLabel ?? `Adicionar ${config.singular}`}
       />
-      <div style={{ flex: 1, overflowY: 'auto' }}>
-        {rows.length === 0 ? (
-          <EmptyState icon={config.emptyIcon ?? <DefaultEmptyIcon />} titulo={`Nenhum registro em ${config.plural}`} descricao={`Crie o primeiro ${config.singular.toLowerCase()} para começar.`} addHref={addHref} addLabel={config.addLabel ?? `Adicionar ${config.singular}`} />
-        ) : (
-          <>
-            <Header columns={columns} grid={grid} config={config} />
-            {grupos.map((g) => (
-              <Grupo key={g.key} grupo={g} grid={grid} columns={columns} config={config} options={options} patch={patch} remove={remove} onAbrir={setSel} addHref={addHref} grouped={!!groupBy} />
-            ))}
-            {grupos.every((g) => g.itens.length === 0) && (
-              <div style={{ padding: '40px 20px', textAlign: 'center', fontSize: 13, color: 'var(--fe-text-muted)' }}>Nenhum registro corresponde aos filtros.</div>
+      <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', padding: '14px 24px 24px' }}>
+        <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', background: 'var(--fe-surface)', border: '1px solid var(--fe-border)', borderRadius: 'var(--fe-radius-xl)', boxShadow: 'var(--fe-shadow-card)', overflow: 'hidden' }}>
+          <div style={{ flex: 1, minHeight: 0, overflowY: 'auto' }}>
+            {rows.length === 0 ? (
+              <EmptyState icon={config.emptyIcon ?? <DefaultEmptyIcon />} titulo={`Nenhum registro em ${config.plural}`} descricao={`Crie o primeiro ${config.singular.toLowerCase()} para começar.`} addHref={addHref} addLabel={config.addLabel ?? `Adicionar ${config.singular}`} />
+            ) : (
+              <>
+                <Header columns={columns} grid={grid} config={config} />
+                {grupos.map((g, i) => (
+                  <Grupo key={g.key} grupo={g} grid={grid} columns={columns} config={config} options={options} patch={patch} remove={remove} onAbrir={setSel} addHref={addHref} grouped={!!groupBy} first={i === 0} />
+                ))}
+                {grupos.every((g) => g.itens.length === 0) && (
+                  <div style={{ padding: '40px 24px', textAlign: 'center', fontSize: 13, color: 'var(--fe-text-muted)' }}>Nenhum registro corresponde aos filtros.</div>
+                )}
+                <div style={{ height: 24 }} />
+              </>
             )}
-            <div style={{ height: 40 }} />
-          </>
-        )}
+          </div>
+        </div>
       </div>
 
       {aberto && (
@@ -227,7 +231,7 @@ function Toolbar({
 }) {
   const groupLabel = groupBy ? (config.fields.find((f) => f.key === groupBy)?.label ?? 'Nenhum') : 'Nenhum'
   return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 44, padding: '0 14px 0 18px', borderBottom: '1px solid var(--fe-border-soft)', flexShrink: 0, gap: 12, background: 'var(--fe-surface)' }}>
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 44, padding: '0 18px 0 22px', flexShrink: 0, gap: 12, background: 'var(--fe-surface)' }}>
       <div style={{ display: 'flex', alignItems: 'center', height: '100%' }}>
         <span style={{ height: '100%', padding: '0 12px', borderBottom: '2px solid var(--fe-black)', fontSize: 13, fontWeight: 600, color: 'var(--fe-black)', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 4H12M2 7H12M2 10H9" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" /></svg>
@@ -376,7 +380,7 @@ function Chip({ children, ativo, onClick }: { children: React.ReactNode; ativo: 
 
 function Header({ columns, grid, config }: { columns: FieldDef[]; grid: string; config: ListConfig }) {
   return (
-    <div style={{ position: 'sticky', top: 0, zIndex: 2, display: 'grid', gridTemplateColumns: grid, gap: 12, padding: '0 20px 0 48px', height: 34, alignItems: 'center', background: 'var(--fe-surface)', borderBottom: '1px solid var(--fe-border)' }}>
+    <div style={{ position: 'sticky', top: 0, zIndex: 2, display: 'grid', gridTemplateColumns: grid, gap: 12, padding: '0 24px 0 52px', height: 36, alignItems: 'center', background: 'var(--fe-surface)', borderBottom: '1px solid var(--fe-border)' }}>
       {columns.map((c) => <span key={c.key} style={{ fontSize: 11, fontWeight: 600, color: 'var(--fe-text-faint)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{c.column!.header ?? (c.column!.primary ? `Nome (${config.singular.toLowerCase()})` : c.label)}</span>)}
       <span />
     </div>
@@ -385,15 +389,15 @@ function Header({ columns, grid, config }: { columns: FieldDef[]; grid: string; 
 
 // ─── Grupo ─────────────────────────────────────────────────────────────────────
 
-function Grupo({ grupo, grid, columns, config, options, patch, remove, onAbrir, addHref, grouped }: {
+function Grupo({ grupo, grid, columns, config, options, patch, remove, onAbrir, addHref, grouped, first }: {
   grupo: GrupoView; grid: string; columns: FieldDef[]; config: ListConfig; options: OptionsMap
-  patch: (id: string, p: Record<string, unknown>) => void; remove: (id: string) => void; onAbrir: (id: string) => void; addHref: string; grouped: boolean
+  patch: (id: string, p: Record<string, unknown>) => void; remove: (id: string) => void; onAbrir: (id: string) => void; addHref: string; grouped: boolean; first?: boolean
 }) {
   const [aberto, setAberto] = useState(true)
   return (
     <div>
       {grouped && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, height: 40, padding: '0 20px', cursor: 'pointer', borderBottom: '1px solid var(--fe-border-soft)', background: 'var(--fe-warm-white)' }} onClick={() => setAberto((v) => !v)}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, height: 40, marginTop: first ? 0 : 10, padding: '0 24px', cursor: 'pointer', borderTop: first ? 'none' : '1px solid var(--fe-divider)', borderBottom: '1px solid var(--fe-border-soft)', background: 'var(--fe-warm-white)' }} onClick={() => setAberto((v) => !v)}>
           <svg width="10" height="10" viewBox="0 0 9 9" fill="none" style={{ transform: aberto ? 'rotate(90deg)' : 'rotate(0deg)', transition: 'transform var(--fe-dur-fast) var(--fe-ease)', color: 'var(--fe-text-muted)' }}><path d="M3 1.5L6 4.5L3 7.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" /></svg>
           {grupo.option ? <OptionPill opt={grupo.option} /> : <span style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--fe-text-strong)' }}>{grupo.label}</span>}
           <span style={{ fontFamily: 'var(--font-geist-mono), monospace', fontSize: 12, color: 'var(--fe-text-muted)' }}>{grupo.itens.length}</span>
@@ -404,7 +408,7 @@ function Grupo({ grupo, grid, columns, config, options, patch, remove, onAbrir, 
         <RowLine key={r.id} row={r} grid={grid} columns={columns} config={config} options={options} patch={patch} remove={remove} onAbrir={onAbrir} />
       ))}
       {aberto && grouped && grupo.itens.length === 0 && (
-        <div style={{ padding: '0 20px 0 48px', height: 38, display: 'flex', alignItems: 'center', fontSize: 12.5, color: 'var(--fe-text-faint)', borderBottom: '1px solid var(--fe-border-soft)' }}>Nenhum registro</div>
+        <div style={{ padding: '0 24px 0 52px', height: 38, display: 'flex', alignItems: 'center', fontSize: 12.5, color: 'var(--fe-text-faint)', borderBottom: '1px solid var(--fe-divider)' }}>Nenhum registro</div>
       )}
     </div>
   )
@@ -419,19 +423,28 @@ function RowLine({ row, grid, columns, config, options, patch, remove, onAbrir }
   const titulo = String(row[config.titleField] ?? '')
   const doneOpt = statusField ? optionOf(statusField, String(row[config.statusField!] ?? '')) : undefined
   const concluida = !!doneOpt?.done
+  const primaryCol = columns.find((f) => f.column!.primary)?.column
+  const twoLine = !!primaryCol?.subtitle
 
   return (
-    <div className="fe-row" style={{ display: 'grid', gridTemplateColumns: grid, gap: 12, alignItems: 'center', minHeight: 46, padding: '0 20px', borderBottom: '1px solid var(--fe-border-soft)', cursor: 'pointer', transition: 'background var(--fe-dur-fast)', background: 'var(--fe-surface)' }}
+    <div className="fe-row" style={{ display: 'grid', gridTemplateColumns: grid, gap: 12, alignItems: 'center', minHeight: twoLine ? 58 : 46, padding: '0 24px', borderBottom: '1px solid var(--fe-divider)', cursor: 'pointer', transition: 'background var(--fe-dur-fast)', background: 'var(--fe-surface)' }}
       onClick={() => { if (!pop) onAbrir(row.id) }}
       onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--fe-warm-white)')}
       onMouseLeave={(e) => (e.currentTarget.style.background = 'var(--fe-surface)')}>
       {columns.map((f) => (
         <span key={f.key} onClick={(e) => { if (!f.column!.primary) e.stopPropagation() }} style={{ minWidth: 0, display: 'flex', alignItems: 'center' }}>
           {f.column!.primary ? (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 9, minWidth: 0 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
               {statusField && <span onClick={(e) => e.stopPropagation()} style={{ display: 'inline-flex' }}><StatusDot options={statusField.options ?? []} value={String(row[config.statusField!] ?? '')} onChange={(v) => patch(row.id, { [config.statusField!]: v })} /></span>}
-              {config.titleAvatar && <Avatar nome={titulo || null} size={24} />}
-              <span style={{ fontSize: 13.5, fontWeight: 500, color: concluida ? 'var(--fe-text-muted)' : 'var(--fe-text-strong)', textDecoration: concluida ? 'line-through' : 'none', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{titulo || <span style={{ color: 'var(--fe-text-faint)' }}>Sem título</span>}</span>
+              {config.titleAvatar && <Avatar nome={titulo || null} size={twoLine ? 30 : 24} />}
+              {twoLine ? (
+                <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0, gap: 1 }}>
+                  <span style={{ fontSize: 14, fontWeight: 500, color: concluida ? 'var(--fe-text-muted)' : 'var(--fe-text-strong)', textDecoration: concluida ? 'line-through' : 'none', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', lineHeight: 1.3 }}>{titulo || <span style={{ color: 'var(--fe-text-faint)' }}>Sem título</span>}</span>
+                  {(() => { const sub = primaryCol!.subtitle!(row); return sub ? <span style={{ fontSize: 12.5, color: 'var(--fe-text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', lineHeight: 1.3 }}>{sub}</span> : null })()}
+                </div>
+              ) : (
+                <span style={{ fontSize: 13.5, fontWeight: 500, color: concluida ? 'var(--fe-text-muted)' : 'var(--fe-text-strong)', textDecoration: concluida ? 'line-through' : 'none', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{titulo || <span style={{ color: 'var(--fe-text-faint)' }}>Sem título</span>}</span>
+              )}
             </div>
           ) : (
             <InlineField field={f} row={row} options={options} patch={(p) => patch(row.id, p)} variant="cell" onOpenChange={setPop} />

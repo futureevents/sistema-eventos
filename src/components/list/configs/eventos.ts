@@ -23,7 +23,7 @@ export const eventosConfig: ListConfig = {
   fields: [
     { key: 'nome', label: 'Nome do evento', type: 'text', required: true, column: { width: 'minmax(0,1fr)', primary: true, header: 'Nome do evento' } },
     { key: 'status', label: 'Status', type: 'select', options: STATUS, alwaysGroups: ['backlog', 'em_execucao'], column: { width: '150px', display: 'pill' }, groupable: true, filterable: true },
-    { key: 'cliente_id', label: 'Cliente', type: 'relation', relation: { table: 'cliente', labelField: 'nome' }, column: { width: '180px' }, groupable: true, filterable: true },
+    { key: 'cliente_id', label: 'Cliente', type: 'relation', relation: { table: 'cliente', labelField: 'nome' }, column: { width: 'minmax(150px,0.7fr)' }, groupable: true, filterable: true },
     { key: 'data_realizacao_inicio', label: 'Realização', type: 'date', column: { width: '150px', header: 'Realização' }, groupable: true, filterable: true },
     { key: 'data_realizacao_fim', label: 'Fim da realização', type: 'date' },
     { key: 'local', label: 'Local', type: 'text', column: { width: '160px' } },

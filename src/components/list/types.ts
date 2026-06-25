@@ -33,8 +33,9 @@ export type FieldDef = {
   editable?: boolean                 // default true (richtext/derived tratados à parte)
   placeholder?: string
 
-  // Coluna na tabela
-  column?: { width: string; primary?: boolean; display?: ColumnDisplay; header?: string }
+  // Coluna na tabela. subtitle (só na coluna primary) ativa a linha em 2 níveis:
+  // título + subtítulo (estilo diretório), em vez de uma linha só.
+  column?: { width: string; primary?: boolean; display?: ColumnDisplay; header?: string; subtitle?: (row: Row) => string | null }
 
   // Painel (slide-over / página cheia)
   inPanel?: boolean                  // default: true p/ campos não-primary e não-richtext

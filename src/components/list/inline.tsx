@@ -7,7 +7,7 @@ import { Pill } from './kit'
 // ─── Dropdown / Popover ancorado ──────────────────────────────────────────────
 
 export function Dropdown({
-  trigger, children, align = 'left', width, onOpenChange, stopPropagation = true,
+  trigger, children, align = 'left', width, onOpenChange, stopPropagation = true, fill = false,
 }: {
   trigger: (props: { open: boolean; toggle: (e: React.MouseEvent) => void }) => React.ReactNode
   children: (close: () => void) => React.ReactNode
@@ -15,6 +15,7 @@ export function Dropdown({
   width?: number
   onOpenChange?: (open: boolean) => void
   stopPropagation?: boolean
+  fill?: boolean    // preenche a célula (em vez de encolher ao conteúdo) p/ o ellipsis truncar certo
 }) {
   const [open, setOpen] = useState(false)
   const wrapRef = useRef<HTMLDivElement>(null)
@@ -32,7 +33,7 @@ export function Dropdown({
   const close = () => setOpen(false)
 
   return (
-    <div ref={wrapRef} style={{ position: 'relative', display: 'inline-flex', minWidth: 0, maxWidth: '100%' }}>
+    <div ref={wrapRef} style={{ position: 'relative', display: fill ? 'flex' : 'inline-flex', flex: fill ? '1 1 auto' : undefined, width: fill ? '100%' : undefined, minWidth: 0, maxWidth: '100%' }}>
       {trigger({ open, toggle })}
       {open && (
         <div onClick={(e) => stopPropagation && e.stopPropagation()}
@@ -98,15 +99,16 @@ export function StatusDot({ options, value, onChange, size = 18 }: { options: Se
 
 // ─── Select genérico (pill/flag) com trigger ──────────────────────────────────
 
-export function SelectMenu({ options, value, onChange, display = 'pill', children }: {
+export function SelectMenu({ options, value, onChange, display = 'pill', children, fill = false }: {
   options: SelectOption[]
   value: string
   onChange: (v: string) => void
   display?: 'pill' | 'flag'
   children: (props: { toggle: (e: React.MouseEvent) => void }) => React.ReactNode
+  fill?: boolean
 }) {
   return (
-    <Dropdown align="left" width={188} trigger={({ toggle }) => children({ toggle })}>
+    <Dropdown align="left" width={188} fill={fill} trigger={({ toggle }) => children({ toggle })}>
       {(close) => options.map((o) => (
         <MenuItem key={o.value} ativo={o.value === value} onClick={(e) => { e.stopPropagation(); close(); onChange(o.value) }}>
           {display === 'flag' ? <FlagInline color={o.flag ?? o.dot ?? 'var(--fe-text-muted)'} label={o.label} /> : <OptionPill opt={o} />}
@@ -118,17 +120,18 @@ export function SelectMenu({ options, value, onChange, display = 'pill', childre
 
 // ─── Relation (FK) com busca ──────────────────────────────────────────────────
 
-export function RelationMenu({ options, value, onChange, semLabel, children }: {
+export function RelationMenu({ options, value, onChange, semLabel, children, fill = false }: {
   options: OptionsMap[string]
   value: string | null
   onChange: (id: string | null) => void
   semLabel: string
   children: (props: { toggle: (e: React.MouseEvent) => void }) => React.ReactNode
+  fill?: boolean
 }) {
   const [busca, setBusca] = useState('')
   const filtrados = busca.trim() ? options.filter((o) => o.label.toLowerCase().includes(busca.trim().toLowerCase())) : options
   return (
-    <Dropdown align="left" width={240} onOpenChange={(o) => { if (!o) setBusca('') }} trigger={({ toggle }) => children({ toggle })}>
+    <Dropdown align="left" width={240} fill={fill} onOpenChange={(o) => { if (!o) setBusca('') }} trigger={({ toggle }) => children({ toggle })}>
       {(close) => (
         <div>
           <input autoFocus value={busca} onChange={(e) => setBusca(e.target.value)} placeholder="Buscar" onClick={(e) => e.stopPropagation()}
@@ -150,17 +153,18 @@ export function RelationMenu({ options, value, onChange, semLabel, children }: {
 
 // ─── Multiselect (array de strings) ───────────────────────────────────────────
 
-export function MultiMenu({ options, value, onChange, children }: {
+export function MultiMenu({ options, value, onChange, children, fill = false }: {
   options: readonly string[]
   value: string[]
   onChange: (v: string[]) => void
   children: (props: { toggle: (e: React.MouseEvent) => void }) => React.ReactNode
+  fill?: boolean
 }) {
   const [busca, setBusca] = useState('')
   const filtrados = busca.trim() ? options.filter((o) => o.toLowerCase().includes(busca.trim().toLowerCase())) : options
   function toggle(opt: string) { onChange(value.includes(opt) ? value.filter((x) => x !== opt) : [...value, opt]) }
   return (
-    <Dropdown align="left" width={260} onOpenChange={(o) => { if (!o) setBusca('') }} trigger={({ toggle: t }) => children({ toggle: t })}>
+    <Dropdown align="left" width={260} fill={fill} onOpenChange={(o) => { if (!o) setBusca('') }} trigger={({ toggle: t }) => children({ toggle: t })}>
       {() => (
         <div>
           <input autoFocus value={busca} onChange={(e) => setBusca(e.target.value)} placeholder="Buscar categoria" onClick={(e) => e.stopPropagation()}
