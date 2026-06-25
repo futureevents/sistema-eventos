@@ -439,11 +439,11 @@ function RowLine({ row, grid, columns, config, options, patch, remove, onAbrir }
               {config.titleAvatar && <Avatar nome={titulo || null} size={twoLine ? 30 : 24} />}
               {twoLine ? (
                 <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0, gap: 1 }}>
-                  <span style={{ fontSize: 14, fontWeight: 500, color: concluida ? 'var(--fe-text-muted)' : 'var(--fe-text-strong)', textDecoration: concluida ? 'line-through' : 'none', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', lineHeight: 1.3 }}>{titulo || <span style={{ color: 'var(--fe-text-faint)' }}>Sem título</span>}</span>
-                  {(() => { const sub = primaryCol!.subtitle!(row); return sub ? <span style={{ fontSize: 12.5, color: 'var(--fe-text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', lineHeight: 1.3 }}>{sub}</span> : null })()}
+                  <span style={{ fontSize: 'var(--fe-text-md)', fontWeight: 500, color: concluida ? 'var(--fe-text-muted)' : 'var(--fe-text-strong)', textDecoration: concluida ? 'line-through' : 'none', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', lineHeight: 1.3 }}>{titulo || <span style={{ color: 'var(--fe-text-faint)' }}>Sem título</span>}</span>
+                  {(() => { const sub = primaryCol!.subtitle!(row); return sub ? <span style={{ fontSize: 'var(--fe-text-sm)', color: 'var(--fe-text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', lineHeight: 1.3 }}>{sub}</span> : null })()}
                 </div>
               ) : (
-                <span style={{ fontSize: 13.5, fontWeight: 500, color: concluida ? 'var(--fe-text-muted)' : 'var(--fe-text-strong)', textDecoration: concluida ? 'line-through' : 'none', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{titulo || <span style={{ color: 'var(--fe-text-faint)' }}>Sem título</span>}</span>
+                <span style={{ fontSize: 'var(--fe-text-md)', fontWeight: 500, color: concluida ? 'var(--fe-text-muted)' : 'var(--fe-text-strong)', textDecoration: concluida ? 'line-through' : 'none', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{titulo || <span style={{ color: 'var(--fe-text-faint)' }}>Sem título</span>}</span>
               )}
             </div>
           ) : (

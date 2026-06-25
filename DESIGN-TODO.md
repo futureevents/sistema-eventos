@@ -10,7 +10,7 @@
 |---|---|
 | **Parte 1 — `/layout`** (Profundidade & proporção) | ✅ **Concluído** — commit `ed98469`, deploy prod em https://sistema-eventos-eosin.vercel.app |
 | **Parte 2 — `/colorize`** (contraste de texto) | ✅ **Concluído** — tokens `--fe-text-muted`/`--fe-text-faint` AA + token `--fe-icon` |
-| Parte 3 — `/typeset` (tipografia) | ⬜ |
+| **Parte 3 — `/typeset`** (tipografia) | ✅ **Concluído** — base 14px + escala em tokens `--fe-text-*` + nome da Task a 14,5px |
 | Parte 4 — `/adapt` (responsividade) | ⬜ |
 | Parte 5 — `/clarify` (acessibilidade) | ⬜ |
 | Parte 6 — `/quieter` → `/delight` → `/polish` (acabamento) | ⬜ |
@@ -42,12 +42,12 @@ Arquivos mexidos: `DataList.tsx`, `cells.tsx`, `inline.tsx`, `types.ts`, `config
 - [x] Variar o ritmo vertical: **gap branco acima de cada cabeçalho de grupo** (exceto o primeiro)
 - [x] Itens de lista no estilo do print: ícone + 2 linhas (título + subtítulo) — novo `column.subtitle` (opt-in) no motor; aplicado em **Clientes** (avatar + nome + empresa), removendo a coluna Empresa redundante. Lists que não declaram `subtitle` seguem em 1 linha.
 
-### Tipografia → `/typeset`
-Arquivo: `src/app/globals.css`
-- [ ] Subir base de **13,5px → 14px**
-- [ ] Line-height de conteúdo para **~1,55**
-- [ ] Abrir a escala (mais contraste entre passos, razão ≥1,25)
-- [ ] Nome da Task na linha em **14–15px**
+### ✅ Tipografia → `/typeset` — CONCLUÍDO
+Arquivos: `src/app/globals.css` (base + escala em tokens + rich text) · `kit.tsx` (títulos painel/página) · `DataList.tsx` (nome da Task na linha)
+- [x] Subir base de **13,5px → 14px** — `body { font-size: var(--fe-text-base) }`; line-height **1,55** + `font-kerning`/`liga`/`calt`
+- [x] Line-height de conteúdo para **~1,55** — body 1,55; parágrafos de rich text 1,6
+- [x] Abrir a escala (mais contraste entre passos, razão ≥1,25) — nova escala semântica `--fe-text-xs..3xl` (11/12,5/14/14,5/16/20/24/29); colapsa o cluster muddy 13/13,5/13,8 e abre os títulos (rich h3 15,5→16, h2 19→20 = 1,25×)
+- [x] Nome da Task na linha em **14–15px** — single-line 13,5→**14,5** e two-line 14→**14,5** (`--fe-text-md`), subtítulo mantido a 12,5 (`--fe-text-sm`) p/ contraste de 2 níveis
 
 ### ✅ Contraste de texto → `/colorize` — CONCLUÍDO
 Arquivos: `src/app/globals.css` (tokens) + reatribuição de glifos decorativos em `kit.tsx`, `Sidebar.tsx`, `FolderView.tsx`, `FullRecord.tsx`, `NewRecordForm.tsx`, `TaskActivity.tsx`, `TaskAttachments.tsx`
@@ -99,8 +99,8 @@ Arquivos: `DataList.tsx`, inputs do `kit.tsx`
 ## Sequência sugerida
 1. ✅ ~~`/layout` — cards bordados + raio + padding + respiro (maior impacto)~~ — **feito**
 2. ✅ ~~`/colorize` — corrigir contraste do texto secundário~~ — **feito**
-3. `/typeset` — base 14px + hierarquia ← **próximo**
-4. `/adapt` — responsividade
+3. ✅ ~~`/typeset` — base 14px + hierarquia~~ — **feito**
+4. `/adapt` — responsividade ← **próximo**
 5. `/clarify` — acessibilidade
 6. `/quieter` → `/delight` → `/polish` — acabamento
 

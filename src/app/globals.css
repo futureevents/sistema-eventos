@@ -39,6 +39,17 @@
   --fe-text-faint:   #868C99;  /* 3.37:1 — metadados/terciário (era #B5B8BE, 2.0:1) */
   --fe-icon:         #B0B4BD;  /* cinza claro reservado só a glifos/ícones decorativos */
 
+  /* Escala tipográfica — base 14px, passos abertos (≥1,25) no topo p/ hierarquia clara.
+     Região densa (xs→md) fica justa de propósito; títulos abrem a escala. */
+  --fe-text-xs:   11px;    /* eyebrow / labels em CAIXA ALTA */
+  --fe-text-sm:   12.5px;  /* metadados, subtítulos, células secundárias */
+  --fe-text-base: 14px;    /* corpo / padrão */
+  --fe-text-md:   14.5px;  /* nome da Task na linha, corpo enfatizado */
+  --fe-text-lg:   16px;    /* subtítulo de seção (rich text h3) */
+  --fe-text-xl:   20px;    /* título de seção (rich text h2) — 1,25× do lg */
+  --fe-text-2xl:  24px;    /* título do painel lateral */
+  --fe-text-3xl:  29px;    /* título de página cheia */
+
   --fe-status-todo:        #8B8F98;
   --fe-status-todo-tint:   rgba(139,143,152,0.13);
   --fe-status-todo-text:   #5B606B;
@@ -108,10 +119,12 @@
     background-color: var(--fe-surface);
     color: var(--fe-text);
     font-family: var(--font-geist), -apple-system, 'Segoe UI', system-ui, sans-serif;
-    font-size: 13.5px;
-    line-height: 1.5;
+    font-size: var(--fe-text-base);
+    line-height: 1.55;
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
+    font-kerning: normal;
+    font-feature-settings: 'kern', 'liga', 'calt';
   }
 }
 
@@ -132,9 +145,9 @@
 .fe-fade-in   { animation: feFadeIn var(--fe-dur-fast) var(--fe-ease) both; }
 
 /* ── Rich text (descrição de tarefas) ──────────────────── */
-.fe-richtext h2 { font-family: var(--font-geist), sans-serif; font-size: 19px; font-weight: 600; letter-spacing: -0.01em; line-height: 1.3; color: var(--fe-text-strong); margin: 16px 0 6px; }
-.fe-richtext h3 { font-size: 15.5px; font-weight: 600; line-height: 1.35; color: var(--fe-text-strong); margin: 14px 0 4px; }
-.fe-richtext p { margin: 0 0 12px; }
+.fe-richtext h2 { font-family: var(--font-geist), sans-serif; font-size: var(--fe-text-xl); font-weight: 600; letter-spacing: -0.012em; line-height: 1.25; color: var(--fe-text-strong); margin: 18px 0 6px; }
+.fe-richtext h3 { font-size: var(--fe-text-lg); font-weight: 600; letter-spacing: -0.006em; line-height: 1.35; color: var(--fe-text-strong); margin: 14px 0 4px; }
+.fe-richtext p { margin: 0 0 12px; line-height: 1.6; }
 .fe-richtext ul { list-style: disc; padding-left: 20px; margin: 4px 0 12px; }
 .fe-richtext ol { list-style: decimal; padding-left: 20px; margin: 4px 0 12px; }
 .fe-richtext li { margin: 3px 0; }

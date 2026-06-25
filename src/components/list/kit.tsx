@@ -262,7 +262,7 @@ export function SlideOver({ space, segments, expandHref, onClose, statusSlot, ti
         </div>
         <div style={{ flex: 1, overflowY: 'auto', padding: '22px 28px 40px' }}>
           {statusSlot && <div style={{ marginBottom: 18 }}>{statusSlot}</div>}
-          <h1 style={{ fontFamily: 'var(--font-geist), sans-serif', fontWeight: 600, fontSize: 24, lineHeight: 1.25, letterSpacing: '-0.01em', color: 'var(--fe-text-strong)', margin: '0 0 22px' }}>{title}</h1>
+          <h1 style={{ fontFamily: 'var(--font-geist), sans-serif', fontWeight: 600, fontSize: 'var(--fe-text-2xl)', lineHeight: 1.25, letterSpacing: '-0.015em', color: 'var(--fe-text-strong)', margin: '0 0 22px' }}>{title}</h1>
           <div style={{ display: 'flex', flexDirection: 'column' }}>{children}</div>
         </div>
       </aside>
@@ -314,7 +314,7 @@ export function FullPage({ space, segments, backHref, topActions, statusSlot, ti
         <div style={{ maxWidth: 1080, margin: '0 auto', padding: '36px 32px', display: 'grid', gridTemplateColumns: 'minmax(0,1fr) 332px', gap: 36, alignItems: 'start' }}>
           <div style={{ minWidth: 0 }}>
             {statusSlot && <div style={{ marginBottom: 18 }}>{statusSlot}</div>}
-            {title && <h1 style={{ fontFamily: 'var(--font-geist), sans-serif', fontWeight: 600, fontSize: 29, lineHeight: 1.2, letterSpacing: '-0.02em', color: 'var(--fe-text-strong)', margin: '0 0 24px' }}>{title}</h1>}
+            {title && <h1 style={{ fontFamily: 'var(--font-geist), sans-serif', fontWeight: 600, fontSize: 'var(--fe-text-3xl)', lineHeight: 1.2, letterSpacing: '-0.02em', color: 'var(--fe-text-strong)', margin: '0 0 24px' }}>{title}</h1>}
             {body}
           </div>
           <aside style={{ position: 'sticky', top: 0, background: 'var(--fe-surface)', border: '1px solid var(--fe-border-soft)', borderRadius: 'var(--fe-radius-lg)', boxShadow: 'var(--fe-shadow-card)', overflow: 'hidden' }}>
