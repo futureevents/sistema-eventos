@@ -381,7 +381,7 @@ function Chip({ children, ativo, onClick }: { children: React.ReactNode; ativo: 
 
 function Header({ columns, grid, config }: { columns: FieldDef[]; grid: string; config: ListConfig }) {
   return (
-    <div style={{ position: 'sticky', top: 0, zIndex: 2, display: 'grid', gridTemplateColumns: grid, gap: 12, padding: '0 24px 0 92px', height: 36, alignItems: 'center', background: 'var(--fe-surface)', borderBottom: '1px solid var(--fe-border)' }}>
+    <div style={{ position: 'sticky', top: 0, zIndex: 2, display: 'grid', gridTemplateColumns: grid, gap: 12, padding: '0 24px 0 52px', height: 36, alignItems: 'center', background: 'var(--fe-surface)', borderBottom: '1px solid var(--fe-border)' }}>
       {columns.map((c) => <span key={c.key} style={{ fontSize: 11, fontWeight: 600, color: 'var(--fe-text-faint)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{c.column!.header ?? (c.column!.primary ? `Nome (${config.singular.toLowerCase()})` : c.label)}</span>)}
       <span />
     </div>
@@ -398,7 +398,7 @@ function Grupo({ grupo, grid, columns, config, options, patch, remove, onAbrir, 
   return (
     <div>
       {grouped && (
-        <div className="fe-group-head" role="button" tabIndex={0} aria-expanded={aberto} aria-label={`${aberto ? 'Recolher' : 'Expandir'} grupo ${grupo.label ?? grupo.option?.label ?? ''}`.trim()} style={{ display: 'flex', alignItems: 'center', gap: 8, height: 36, marginTop: first ? 6 : 24, padding: '0 24px 0 64px', cursor: 'pointer', background: 'transparent' }}
+        <div className="fe-group-head" role="button" tabIndex={0} aria-expanded={aberto} aria-label={`${aberto ? 'Recolher' : 'Expandir'} grupo ${grupo.label ?? grupo.option?.label ?? ''}`.trim()} style={{ display: 'flex', alignItems: 'center', gap: 8, height: 36, marginTop: first ? 6 : 24, padding: '0 24px', cursor: 'pointer', background: 'transparent' }}
           onClick={() => setAberto((v) => !v)}
           onKeyDown={(e) => { if ((e.key === 'Enter' || e.key === ' ') && e.target === e.currentTarget) { e.preventDefault(); setAberto((v) => !v) } }}>
           <span style={{ width: 20, flexShrink: 0, display: 'inline-flex', alignItems: 'center' }}>
@@ -413,7 +413,7 @@ function Grupo({ grupo, grid, columns, config, options, patch, remove, onAbrir, 
         <RowLine key={r.id} row={r} grid={grid} columns={columns} config={config} options={options} patch={patch} remove={remove} onAbrir={onAbrir} />
       ))}
       {aberto && grouped && grupo.itens.length === 0 && (
-        <div style={{ padding: '0 24px 0 92px', height: 38, display: 'flex', alignItems: 'center', fontSize: 12.5, color: 'var(--fe-text-faint)', borderBottom: '1px solid var(--fe-divider)' }}>Nenhum registro</div>
+        <div style={{ padding: '0 24px 0 52px', height: 38, display: 'flex', alignItems: 'center', fontSize: 12.5, color: 'var(--fe-text-faint)', borderBottom: '1px solid var(--fe-divider)' }}>Nenhum registro</div>
       )}
     </div>
   )
@@ -432,7 +432,7 @@ function RowLine({ row, grid, columns, config, options, patch, remove, onAbrir }
   const twoLine = !!primaryCol?.subtitle
 
   return (
-    <div className="fe-row" role="button" tabIndex={0} aria-label={`Abrir ${titulo || 'registro sem título'}`} style={{ display: 'grid', gridTemplateColumns: grid, gap: 12, alignItems: 'center', minHeight: twoLine ? 58 : 46, padding: '0 24px 0 64px', borderBottom: '1px solid var(--fe-divider)', cursor: 'pointer', transition: 'background var(--fe-dur-fast)', background: 'var(--fe-surface)' }}
+    <div className="fe-row" role="button" tabIndex={0} aria-label={`Abrir ${titulo || 'registro sem título'}`} style={{ display: 'grid', gridTemplateColumns: grid, gap: 12, alignItems: 'center', minHeight: twoLine ? 58 : 46, padding: '0 24px', borderBottom: '1px solid var(--fe-divider)', cursor: 'pointer', transition: 'background var(--fe-dur-fast)', background: 'var(--fe-surface)' }}
       onClick={() => { if (!pop) onAbrir(row.id) }}
       onKeyDown={(e) => { if ((e.key === 'Enter' || e.key === ' ') && e.target === e.currentTarget) { e.preventDefault(); if (!pop) onAbrir(row.id) } }}
       onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--fe-warm-white)')}
