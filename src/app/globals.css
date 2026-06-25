@@ -248,6 +248,37 @@ select:focus-visible,
   .fe-row-actions button { width: 30px; height: 30px; }
 }
 
+/* ── Configurações — nav secundária ────────────────────── */
+.fe-settings-nav {
+  width: 232px;
+  min-width: 232px;
+  flex-shrink: 0;
+  padding: 16px 12px;
+  border-right: 1px solid var(--fe-border-soft);
+  background: var(--fe-surface);
+  overflow-y: auto;
+}
+
+/* Telas estreitas: nav vira faixa horizontal rolável no topo do conteúdo */
+@media (max-width: 768px) {
+  .fe-settings-body { flex-direction: column; }
+  .fe-settings-nav {
+    width: 100%;
+    min-width: 0;
+    display: flex;
+    gap: 4px;
+    padding: 8px 12px;
+    border-right: none;
+    border-bottom: 1px solid var(--fe-border-soft);
+    overflow-x: auto;
+    overflow-y: hidden;
+  }
+  /* Esconde os rótulos de grupo e empilha em linha de pills */
+  .fe-settings-nav > div { margin-bottom: 0 !important; display: contents; }
+  .fe-settings-nav > div > div:first-child { display: none; }
+  .fe-settings-nav a { white-space: nowrap; }
+}
+
 /* ── Scrollbar discreta ────────────────────────────────── */
 ::-webkit-scrollbar { width: 10px; height: 10px; }
 ::-webkit-scrollbar-track { background: transparent; }
