@@ -1,7 +1,11 @@
-import { SectionScaffold } from '@/components/settings/SectionScaffold'
-import { getSettingsSection } from '@/components/settings/sections'
+import { createClient } from '@/lib/supabase/server'
+import { PlaybookEditor, type PlaybookRow } from '@/components/settings/PlaybookEditor'
 
-export default function PlaybookPage() {
-  const s = getSettingsSection('playbook')!
-  return <SectionScaffold icon={s.icon} title={s.label} summary={s.summary} planned={s.planned} />
+export default async function PlaybookPage() {
+  const supabase = await createClient()
+  const { data } = await supabase
+    .from('playbook_modelo')
+    .select('*')
+    .order('ordem', { ascending: true })
+  return <PlaybookEditor rows={(data ?? []) as PlaybookRow[]} />
 }

@@ -35,15 +35,10 @@ export const SETTINGS_SECTIONS: SettingsSection[] = [
     slug: 'playbook',
     href: '/configuracoes/playbook',
     label: 'Playbook das entregas',
-    summary: 'Tasks-modelo de pré, intra e pós-evento criadas automaticamente.',
+    summary: 'Tasks-modelo de onboarding, pré, intra e pós-evento criadas automaticamente.',
     group: 'Automações',
     icon: 'bolt',
-    planned: [
-      'Cadastro das tasks-modelo por fase (pré / intra / pós-evento)',
-      'Datas relativas às datas do evento (ex.: montagem − 2 dias)',
-      'Responsável e prioridade padrão por task-modelo',
-      'Geração automática quando o evento entra em execução',
-    ],
+    planned: [],
   },
   {
     slug: 'acessos',

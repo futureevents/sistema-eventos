@@ -1,7 +1,7 @@
 import { type ListConfig, type SelectOption, type Row } from '../types'
 import { SPACE_ENTREGAS } from '../spaces'
 
-export type TipoTask = 'pre_evento' | 'intra_evento' | 'pos_evento'
+export type TipoTask = 'onboarding' | 'pre_evento' | 'intra_evento' | 'pos_evento'
 
 const STATUS: SelectOption[] = [
   { value: 'a_fazer',      label: 'A fazer',      dot: 'var(--fe-status-todo)', bg: 'var(--fe-status-todo-tint)', text: 'var(--fe-status-todo-text)' },
@@ -17,10 +17,11 @@ const PRIORIDADE: SelectOption[] = [
   { value: 'baixa',   label: 'Baixa',   flag: 'var(--fe-prio-low)' },
 ]
 
-const META: Record<TipoTask, { label: string; slug: string }> = {
-  pre_evento:   { label: 'Pré-evento',   slug: 'pre-evento' },
-  intra_evento: { label: 'Intra-evento', slug: 'intra-evento' },
-  pos_evento:   { label: 'Pós-evento',   slug: 'pos-evento' },
+const META: Record<TipoTask, { label: string; breadcrumb: string[]; basePath: string }> = {
+  onboarding:   { label: 'Tarefas de onboarding', breadcrumb: ['Entregas', 'Entrada de clientes', 'Tarefas de onboarding'], basePath: '/entregas/entrada-de-clientes/onboarding' },
+  pre_evento:   { label: 'Pré-evento',   breadcrumb: ['Entregas', 'Projetos', 'Pré-evento'],   basePath: '/entregas/projetos/pre-evento' },
+  intra_evento: { label: 'Intra-evento', breadcrumb: ['Entregas', 'Projetos', 'Intra-evento'], basePath: '/entregas/projetos/intra-evento' },
+  pos_evento:   { label: 'Pós-evento',   breadcrumb: ['Entregas', 'Projetos', 'Pós-evento'],   basePath: '/entregas/projetos/pos-evento' },
 }
 
 const eventoCliente = (row: Row) => (row['evento'] as { cliente?: { nome?: string } } | null)?.cliente ?? null
@@ -30,8 +31,8 @@ export function tasksConfig(tipo: TipoTask): ListConfig {
   return {
     table: 'task_projeto',
     space: SPACE_ENTREGAS,
-    breadcrumb: ['Entregas', 'Projetos', meta.label],
-    basePath: `/entregas/projetos/${meta.slug}`,
+    breadcrumb: meta.breadcrumb,
+    basePath: meta.basePath,
     singular: 'Tarefa',
     plural: meta.label,
     addLabel: 'Adicionar tarefa',

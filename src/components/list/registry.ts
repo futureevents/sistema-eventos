@@ -13,6 +13,7 @@ export const LIST_CONFIGS: Record<string, ListConfig> = {
   eventos: eventosConfig,
   clientes: clientesConfig,
   fornecedores: fornecedoresConfig,
+  'tasks:onboarding': tasksConfig('onboarding'),
   'tasks:pre_evento': tasksConfig('pre_evento'),
   'tasks:intra_evento': tasksConfig('intra_evento'),
   'tasks:pos_evento': tasksConfig('pos_evento'),
