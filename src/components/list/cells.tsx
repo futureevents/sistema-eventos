@@ -73,7 +73,7 @@ export function InlineField({
   onOpenChange?: (open: boolean) => void
 }) {
   const editable = field.editable !== false && !isDerived(field)
-  const muted = variant === 'cell' ? 'var(--fe-text-muted)' : 'var(--fe-text)'
+  const muted = 'var(--fe-text)'
 
   // Derivado / não editável → só exibe
   if (!editable) {
