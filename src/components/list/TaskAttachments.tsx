@@ -116,7 +116,7 @@ export function TaskAttachments({ taskId, taskTable }: { taskId: string; taskTab
           marginBottom: attachments.length > 0 ? 14 : 0,
         }}
       >
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ color: dragging ? 'var(--fe-accent)' : 'var(--fe-text-faint)', flexShrink: 0 }}>
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ color: dragging ? 'var(--fe-accent)' : 'var(--fe-icon)', flexShrink: 0 }}>
           <path d="M8 3V11M5 6L8 3L11 6" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
           <path d="M3 13H13" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
         </svg>

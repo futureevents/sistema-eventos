@@ -4,6 +4,19 @@
 > Score atual: **12/20 (Aceitável)**. Meta: **17–18/20**.
 > Queixa-base do usuário: *"está grosseiro, com pouca cara de app, quero proporções melhores e mais amigável aos olhos."*
 
+## Progresso
+
+| Bloco | Status |
+|---|---|
+| **Parte 1 — `/layout`** (Profundidade & proporção) | ✅ **Concluído** — commit `ed98469`, deploy prod em https://sistema-eventos-eosin.vercel.app |
+| **Parte 2 — `/colorize`** (contraste de texto) | ✅ **Concluído** — tokens `--fe-text-muted`/`--fe-text-faint` AA + token `--fe-icon` |
+| Parte 3 — `/typeset` (tipografia) | ⬜ |
+| Parte 4 — `/adapt` (responsividade) | ⬜ |
+| Parte 5 — `/clarify` (acessibilidade) | ⬜ |
+| Parte 6 — `/quieter` → `/delight` → `/polish` (acabamento) | ⬜ |
+
+> Convenção: `[x]` = feito e verificado em preview. Não refazer itens marcados.
+
 ## Princípio norteador (decisão do usuário)
 
 **Manter o fundo branco `#FFFFFF`.** As referências aprovadas (KokonutUI, ClickUp) são brancas.
@@ -18,8 +31,9 @@ A meta é branco *estruturado* (conteúdo dentro de cards bordados e arejados, c
 
 ## 🎯 P1 — Resolvem a queixa "grosseiro / pouca cara de app"
 
-### Profundidade & proporção → `/layout`
-Arquivos: `src/components/list/kit.tsx`, `src/components/list/DataList.tsx`
+### ✅ Profundidade & proporção → `/layout` — CONCLUÍDO (commit `ed98469`)
+Arquivos mexidos: `DataList.tsx`, `cells.tsx`, `inline.tsx`, `types.ts`, `configs/clientes.ts`, `configs/eventos.ts`
+(`kit.tsx` `Row`/`ColunasHeader` são legados — a lista viva é renderizada pelos internos de `DataList.tsx`)
 - [x] Manter `#FFFFFF`, mas envelopar listas e painéis em **card com borda 1px + `--fe-radius-xl` (14px) + padding** (estilo KokonutUI) — tabela agora vive num card bordado e arejado
 - [x] Usar `--fe-shadow-card` (já existe no token, nunca era usado) de forma sutil no card da lista
 - [x] Aumentar gutters → **24px internos** (conteúdo ~48px da borda da viewport, com o respiro do card)
@@ -35,12 +49,12 @@ Arquivo: `src/app/globals.css`
 - [ ] Abrir a escala (mais contraste entre passos, razão ≥1,25)
 - [ ] Nome da Task na linha em **14–15px**
 
-### Contraste de texto → `/colorize`
-Arquivo: `src/app/globals.css`
-- [ ] Escurecer `--fe-text-muted` (#9499A1 ≈ 2,6:1) → ~#6B7280 para passar **WCAG AA** (4,5:1)
-- [ ] Escurecer `--fe-text-faint` (#B5B8BE ≈ 1,9:1) → ~#8A8F97
-- [ ] Reservar o cinza mais claro só para ícones decorativos
-- [ ] (Opcional, bem sutil) tingir neutros levemente para o índigo — sem mexer no `#FFFFFF` das superfícies
+### ✅ Contraste de texto → `/colorize` — CONCLUÍDO
+Arquivos: `src/app/globals.css` (tokens) + reatribuição de glifos decorativos em `kit.tsx`, `Sidebar.tsx`, `FolderView.tsx`, `FullRecord.tsx`, `NewRecordForm.tsx`, `TaskActivity.tsx`, `TaskAttachments.tsx`
+- [x] Escurecer `--fe-text-muted` (#9499A1 ≈ 2,9:1) → **#6A707E (4,96:1)** — passa **WCAG AA** para texto normal; sincronizado `--muted-foreground` do shadcn
+- [x] Escurecer `--fe-text-faint` (#B5B8BE ≈ 2,0:1) → **#868C99 (3,37:1)** — AA para texto grande/secundário (metadados, timestamps, cabeçalhos de coluna)
+- [x] Reservar o cinza mais claro só para ícones decorativos: novo token **`--fe-icon` (#B0B4BD)**, aplicado aos separadores `/`, dashes `—`, avatar tracejado, ícone de empty-state e strokes de SVG decorativos
+- [x] (Opcional, bem sutil) neutros de texto inclinados levemente ao índigo/cool (B>R) — superfícies `#FFFFFF` intactas
 
 ### Responsividade → `/adapt`
 Arquivos: `src/components/shell/Sidebar.tsx`, `kit.tsx`, `FullPage`
@@ -60,7 +74,7 @@ Arquivos: `DataList.tsx`, inputs do `kit.tsx`
 
 ## 🔧 P2 — Acabamento que tira o ar de "inacabado"
 - [ ] Aliviar placeholders grandes (descrição e dropzone de anexos) → `/delight`
-- [ ] Aplicar o sistema de elevação (sombras já definidas, mas não usadas nas listas) → `/layout`
+- [x] Aplicar o sistema de elevação (sombras já definidas, mas não usadas nas listas) → `/layout` — `--fe-shadow-card` agora aplicada no card da lista (feito junto da Parte 1)
 - [ ] Promover cores hard-coded a tokens: `AVATAR_PALETTE`, avatar `#6B59C9`, scrollbar `#D8DADE/#C2C5CB` → `/colorize`
 - [ ] Calmar o log de Histórico: tirar fonte mono + chips roxos nas datas, destacar por peso → `/quieter`
 
@@ -83,9 +97,9 @@ Arquivos: `DataList.tsx`, inputs do `kit.tsx`
 ---
 
 ## Sequência sugerida
-1. `/layout` — cards bordados + raio + padding + respiro (maior impacto)
-2. `/colorize` — corrigir contraste do texto secundário
-3. `/typeset` — base 14px + hierarquia
+1. ✅ ~~`/layout` — cards bordados + raio + padding + respiro (maior impacto)~~ — **feito**
+2. ✅ ~~`/colorize` — corrigir contraste do texto secundário~~ — **feito**
+3. `/typeset` — base 14px + hierarquia ← **próximo**
 4. `/adapt` — responsividade
 5. `/clarify` — acessibilidade
 6. `/quieter` → `/delight` → `/polish` — acabamento

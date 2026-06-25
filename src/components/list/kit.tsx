@@ -49,7 +49,7 @@ function corAvatar(seed: string): string {
 export function Avatar({ nome, size = 24 }: { nome: string | null; size?: number }) {
   if (!nome) {
     return (
-      <span style={{ width: size, height: size, borderRadius: '50%', flexShrink: 0, border: '1.5px dashed var(--fe-border)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', color: 'var(--fe-text-faint)' }}>
+      <span style={{ width: size, height: size, borderRadius: '50%', flexShrink: 0, border: '1.5px dashed var(--fe-border)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', color: 'var(--fe-icon)' }}>
         <svg width={size * 0.5} height={size * 0.5} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
       </span>
     )
@@ -81,7 +81,7 @@ export function Tag({ label }: { label: string }) {
   )
 }
 
-export function Dash() { return <span style={{ color: 'var(--fe-text-faint)' }}>—</span> }
+export function Dash() { return <span style={{ color: 'var(--fe-icon)' }}>—</span> }
 
 // ─── Breadcrumb ─────────────────────────────────────────────────────────────
 
@@ -95,7 +95,7 @@ export function Breadcrumb({ space, segments }: { space: Space; segments: string
           return (
             <span key={i} style={{ display: 'inline-flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
               <span style={{ fontSize: last ? 15 : 13.5, fontWeight: last ? 600 : 400, color: last ? 'var(--fe-text-strong)' : 'var(--fe-text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s}</span>
-              {!last && <span style={{ color: 'var(--fe-text-faint)' }}>/</span>}
+              {!last && <span style={{ color: 'var(--fe-icon)' }}>/</span>}
             </span>
           )
         })}
@@ -117,7 +117,7 @@ export function SpaceBadge({ space, size = 20 }: { space: Space; size?: number }
   return <span style={{ width: size, height: size, borderRadius: 5, background: space.color, color: space.badgeText, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: size * 0.55, fontWeight: 600, flexShrink: 0 }}>{space.badge}</span>
 }
 
-function Sep() { return <span style={{ color: 'var(--fe-text-faint)' }}>/</span> }
+function Sep() { return <span style={{ color: 'var(--fe-icon)' }}>/</span> }
 
 // ─── Tabs + Toolbar ─────────────────────────────────────────────────────────
 
@@ -348,7 +348,7 @@ export function DetRow({ label, children, last }: { label: string; children: Rea
 export function EmptyState({ icon, titulo, descricao, addHref, addLabel }: { icon: React.ReactNode; titulo: string; descricao: string; addHref: string; addLabel: string }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: 420, gap: 14, padding: 40 }}>
-      <div style={{ width: 54, height: 54, borderRadius: 14, background: 'var(--fe-warm-white)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--fe-text-faint)' }}>{icon}</div>
+      <div style={{ width: 54, height: 54, borderRadius: 14, background: 'var(--fe-warm-white)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--fe-icon)' }}>{icon}</div>
       <div style={{ textAlign: 'center' }}>
         <p style={{ fontFamily: 'var(--font-geist), sans-serif', fontWeight: 600, fontSize: 17, letterSpacing: '-0.01em', color: 'var(--fe-text-strong)', margin: '0 0 6px' }}>{titulo}</p>
         <p style={{ fontSize: 13, color: 'var(--fe-text-muted)', maxWidth: 280, margin: 0, lineHeight: 1.5 }}>{descricao}</p>

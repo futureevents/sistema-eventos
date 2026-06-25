@@ -56,7 +56,7 @@ export function NewRecordForm({ config, options }: { config: ListConfig; options
         <div style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 13, color: 'var(--fe-text-muted)' }}>
           <SpaceBadge space={config.space} size={18} />
           <Link href={config.basePath} style={{ color: 'var(--fe-text-muted)', textDecoration: 'none' }}>{config.breadcrumb[config.breadcrumb.length - 1]}</Link>
-          <span style={{ color: 'var(--fe-text-faint)' }}>/</span>
+          <span style={{ color: 'var(--fe-icon)' }}>/</span>
           <span style={{ fontWeight: 600, color: 'var(--fe-text-strong)' }}>Novo {config.singular.toLowerCase()}</span>
         </div>
         <div style={{ display: 'flex', gap: 8 }}>

@@ -81,7 +81,7 @@ export function TaskActivity({ taskId, taskTable, config }: {
         <span style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--fe-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
           Histórico {items.length > 0 ? `(${items.length})` : ''}
         </span>
-        <svg width="11" height="11" viewBox="0 0 12 12" fill="none" style={{ color: 'var(--fe-text-faint)', transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 150ms' }}>
+        <svg width="11" height="11" viewBox="0 0 12 12" fill="none" style={{ color: 'var(--fe-icon)', transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 150ms' }}>
           <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       </button>

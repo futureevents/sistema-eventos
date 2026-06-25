@@ -83,7 +83,7 @@ export function FullRecord({ config, row: rowProp, options, embeds }: {
           <SpaceBadge space={config.space} />
           {config.breadcrumb.map((s, i) => {
             const last = i === config.breadcrumb.length - 1
-            return <span key={i} style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}><span style={{ color: last ? undefined : 'var(--fe-text-muted)' }}>{i === config.breadcrumb.length - 1 ? <Link href={config.basePath} style={{ color: 'var(--fe-text-muted)', textDecoration: 'none' }}>{s}</Link> : s}</span><span style={{ color: 'var(--fe-text-faint)' }}>/</span></span>
+            return <span key={i} style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}><span style={{ color: last ? undefined : 'var(--fe-text-muted)' }}>{i === config.breadcrumb.length - 1 ? <Link href={config.basePath} style={{ color: 'var(--fe-text-muted)', textDecoration: 'none' }}>{s}</Link> : s}</span><span style={{ color: 'var(--fe-icon)' }}>/</span></span>
           })}
           <span style={{ fontWeight: 600, color: 'var(--fe-text-strong)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{String(row[config.titleField] ?? '')}</span>
         </div>

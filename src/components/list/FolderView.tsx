@@ -37,7 +37,7 @@ export function FolderView({
         <SpaceBadge space={space} size={18} />
         {breadcrumb.map((seg, i) => (
           <span key={i} style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-            {i > 0 && <span style={{ color: 'var(--fe-text-faint)', fontSize: 13 }}>/</span>}
+            {i > 0 && <span style={{ color: 'var(--fe-icon)', fontSize: 13 }}>/</span>}
             <span style={{ fontSize: 13, fontWeight: i === breadcrumb.length - 1 ? 600 : 400, color: i === breadcrumb.length - 1 ? 'var(--fe-text-strong)' : 'var(--fe-text-muted)' }}>
               {seg}
             </span>

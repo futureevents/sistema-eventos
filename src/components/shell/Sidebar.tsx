@@ -173,7 +173,7 @@ export function Sidebar() {
         {/* Espaços label */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 10px 6px' }}>
           <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.06em', color: 'var(--fe-text-muted)', textTransform: 'uppercase' }}>Espaços</span>
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--fe-text-faint)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--fe-icon)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>
         </div>
 
         {/* Spaces */}

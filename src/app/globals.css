@@ -35,8 +35,9 @@
   --fe-text-strong:  #16181D;
   --fe-text:         #3B3F46;
   --fe-text-soft:    #4A4E57;
-  --fe-text-muted:   #9499A1;
-  --fe-text-faint:   #B5B8BE;
+  --fe-text-muted:   #6A707E;  /* AA 4.96:1 — texto secundário (era #9499A1, 2.9:1) */
+  --fe-text-faint:   #868C99;  /* 3.37:1 — metadados/terciário (era #B5B8BE, 2.0:1) */
+  --fe-icon:         #B0B4BD;  /* cinza claro reservado só a glifos/ícones decorativos */
 
   --fe-status-todo:        #8B8F98;
   --fe-status-todo-tint:   rgba(139,143,152,0.13);
@@ -88,7 +89,7 @@
   --secondary: #F4F5F7;
   --secondary-foreground: #3B3F46;
   --muted: #F4F5F7;
-  --muted-foreground: #9499A1;
+  --muted-foreground: #6A707E;
   --accent: #F0F1F3;
   --accent-foreground: #16181D;
   --destructive: #DC3D43;
