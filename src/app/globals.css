@@ -161,6 +161,27 @@
 .fe-row .fe-row-actions { opacity: 0; transition: opacity var(--fe-dur-fast); }
 .fe-row:hover .fe-row-actions { opacity: 1; }
 
+/* ── Acessibilidade — foco visível por teclado (Parte 5 /clarify) ──────── */
+/* :focus-visible só dispara em navegação por teclado — o mouse não vê o anel.
+   !important sobrepõe os `outline: none` inline dos inputs e células editáveis
+   (única situação em que a folha de estilo vence o estilo inline). */
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible,
+[role="button"]:focus-visible {
+  outline: 2px solid var(--fe-accent) !important;
+  outline-offset: 2px;
+}
+/* Linhas e cabeçalhos de grupo: anel interno (offset negativo) p/ não ser
+   cortado pelo overflow:hidden do card da lista. */
+.fe-row:focus-visible,
+.fe-group-head:focus-visible {
+  outline: 2px solid var(--fe-accent) !important;
+  outline-offset: -2px;
+}
+
 /* ── Responsividade — Parte 4 (/adapt) ─────────────────── */
 
 /* Sidebar: coluna fixa em ≥1024px; gaveta off-canvas abaixo disso */

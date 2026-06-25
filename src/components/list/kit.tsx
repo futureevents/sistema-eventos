@@ -101,13 +101,13 @@ export function Breadcrumb({ space, segments }: { space: Space; segments: string
         })}
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0 }}>
-        <button title="Convidar" className="fe-hide-sm" style={{ width: 26, height: 26, borderRadius: '50%', border: '1.5px dashed var(--fe-border)', background: 'var(--fe-surface)', color: 'var(--fe-text-muted)', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, lineHeight: 1 }}>+</button>
+        <button title="Convidar" aria-label="Convidar pessoa" className="fe-hide-sm" style={{ width: 26, height: 26, borderRadius: '50%', border: '1.5px dashed var(--fe-border)', background: 'var(--fe-surface)', color: 'var(--fe-text-muted)', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, lineHeight: 1 }}>+</button>
         <span className="fe-hide-sm" style={{ width: 1, height: 18, background: 'var(--fe-border)' }} />
-        <button title="Compartilhar" style={{ height: 32, padding: '0 12px', borderRadius: 'var(--fe-radius-md)', border: '1px solid var(--fe-border)', background: 'transparent', fontSize: 13, fontWeight: 500, color: 'var(--fe-text)', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+        <button title="Compartilhar" aria-label="Compartilhar" style={{ height: 32, padding: '0 12px', borderRadius: 'var(--fe-radius-md)', border: '1px solid var(--fe-border)', background: 'transparent', fontSize: 13, fontWeight: 500, color: 'var(--fe-text)', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" /><polyline points="16 6 12 2 8 6" /><line x1="12" y1="2" x2="12" y2="15" /></svg>
           <span className="fe-hide-sm">Compartilhar</span>
         </button>
-        <button title="Mais" style={{ width: 30, height: 30, borderRadius: 'var(--fe-radius-md)', border: 'none', background: 'transparent', color: 'var(--fe-text-soft)', cursor: 'pointer' }}>⋯</button>
+        <button title="Mais" aria-label="Mais ações" style={{ width: 30, height: 30, borderRadius: 'var(--fe-radius-md)', border: 'none', background: 'transparent', color: 'var(--fe-text-soft)', cursor: 'pointer' }}>⋯</button>
       </div>
     </div>
   )
@@ -255,9 +255,9 @@ export function SlideOver({ space, segments, expandHref, onClose, statusSlot, ti
             ))}
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 2, flexShrink: 0 }}>
-            <Link href={expandHref} title="Expandir" style={iconBtn}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 3 21 3 21 9" /><polyline points="9 21 3 21 3 15" /><line x1="21" y1="3" x2="14" y2="10" /><line x1="3" y1="21" x2="10" y2="14" /></svg></Link>
-            <button title="Mais" style={iconBtn as React.CSSProperties}>⋯</button>
-            <button onClick={onClose} title="Fechar" style={iconBtn as React.CSSProperties}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg></button>
+            <Link href={expandHref} title="Expandir" aria-label="Expandir em tela cheia" style={iconBtn}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 3 21 3 21 9" /><polyline points="9 21 3 21 3 15" /><line x1="21" y1="3" x2="14" y2="10" /><line x1="3" y1="21" x2="10" y2="14" /></svg></Link>
+            <button title="Mais" aria-label="Mais ações" style={iconBtn as React.CSSProperties}>⋯</button>
+            <button onClick={onClose} title="Fechar" aria-label="Fechar painel" style={iconBtn as React.CSSProperties}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg></button>
           </div>
         </div>
         <div style={{ flex: 1, overflowY: 'auto', padding: '22px 28px 40px' }}>
@@ -305,7 +305,7 @@ export function FullPage({ space, segments, backHref, topActions, statusSlot, ti
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 3 3 3 3 9" /><polyline points="15 21 21 21 21 15" /><line x1="3" y1="3" x2="10" y2="10" /><line x1="21" y1="21" x2="14" y2="14" /></svg>
             Recolher
           </Link>
-          <Link href={backHref} title="Fechar" style={{ width: 32, height: 32, borderRadius: 'var(--fe-radius-md)', background: 'transparent', color: 'var(--fe-text-muted)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+          <Link href={backHref} title="Fechar" aria-label="Fechar" style={{ width: 32, height: 32, borderRadius: 'var(--fe-radius-md)', background: 'transparent', color: 'var(--fe-text-muted)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
           </Link>
         </div>

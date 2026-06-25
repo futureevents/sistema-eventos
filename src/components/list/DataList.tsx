@@ -398,7 +398,9 @@ function Grupo({ grupo, grid, columns, config, options, patch, remove, onAbrir, 
   return (
     <div>
       {grouped && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, height: 40, marginTop: first ? 0 : 10, padding: '0 24px', cursor: 'pointer', borderTop: first ? 'none' : '1px solid var(--fe-divider)', borderBottom: '1px solid var(--fe-border-soft)', background: 'var(--fe-warm-white)' }} onClick={() => setAberto((v) => !v)}>
+        <div className="fe-group-head" role="button" tabIndex={0} aria-expanded={aberto} aria-label={`${aberto ? 'Recolher' : 'Expandir'} grupo ${grupo.label ?? grupo.option?.label ?? ''}`.trim()} style={{ display: 'flex', alignItems: 'center', gap: 8, height: 40, marginTop: first ? 0 : 10, padding: '0 24px', cursor: 'pointer', borderTop: first ? 'none' : '1px solid var(--fe-divider)', borderBottom: '1px solid var(--fe-border-soft)', background: 'var(--fe-warm-white)' }}
+          onClick={() => setAberto((v) => !v)}
+          onKeyDown={(e) => { if ((e.key === 'Enter' || e.key === ' ') && e.target === e.currentTarget) { e.preventDefault(); setAberto((v) => !v) } }}>
           <svg width="10" height="10" viewBox="0 0 9 9" fill="none" style={{ transform: aberto ? 'rotate(90deg)' : 'rotate(0deg)', transition: 'transform var(--fe-dur-fast) var(--fe-ease)', color: 'var(--fe-text-muted)' }}><path d="M3 1.5L6 4.5L3 7.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" /></svg>
           {grupo.option ? <OptionPill opt={grupo.option} /> : <span style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--fe-text-strong)' }}>{grupo.label}</span>}
           <span style={{ fontFamily: 'var(--font-geist-mono), monospace', fontSize: 12, color: 'var(--fe-text-muted)' }}>{grupo.itens.length}</span>
@@ -428,8 +430,9 @@ function RowLine({ row, grid, columns, config, options, patch, remove, onAbrir }
   const twoLine = !!primaryCol?.subtitle
 
   return (
-    <div className="fe-row" style={{ display: 'grid', gridTemplateColumns: grid, gap: 12, alignItems: 'center', minHeight: twoLine ? 58 : 46, padding: '0 24px', borderBottom: '1px solid var(--fe-divider)', cursor: 'pointer', transition: 'background var(--fe-dur-fast)', background: 'var(--fe-surface)' }}
+    <div className="fe-row" role="button" tabIndex={0} aria-label={`Abrir ${titulo || 'registro sem título'}`} style={{ display: 'grid', gridTemplateColumns: grid, gap: 12, alignItems: 'center', minHeight: twoLine ? 58 : 46, padding: '0 24px', borderBottom: '1px solid var(--fe-divider)', cursor: 'pointer', transition: 'background var(--fe-dur-fast)', background: 'var(--fe-surface)' }}
       onClick={() => { if (!pop) onAbrir(row.id) }}
+      onKeyDown={(e) => { if ((e.key === 'Enter' || e.key === ' ') && e.target === e.currentTarget) { e.preventDefault(); if (!pop) onAbrir(row.id) } }}
       onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--fe-warm-white)')}
       onMouseLeave={(e) => (e.currentTarget.style.background = 'var(--fe-surface)')}>
       {columns.map((f) => (
@@ -497,8 +500,8 @@ function SlideOver({ row, config, options, patch, remove, onFechar }: {
             <span style={{ color: 'var(--fe-text-soft)', fontWeight: 500 }}>{config.breadcrumb[config.breadcrumb.length - 1]}</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            <Link href={`${config.rowBasePath?.(row) ?? config.basePath}/${row.id}`} title="Expandir" style={iconBtn}><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M8.5 2H12V5.5M12 2L8 6M5.5 12H2V8.5M2 12L6 8" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" /></svg></Link>
-            <Dropdown align="right" width={160} trigger={({ toggle }) => <button onClick={toggle} title="Mais" style={iconBtn as React.CSSProperties}>⋯</button>}>
+            <Link href={`${config.rowBasePath?.(row) ?? config.basePath}/${row.id}`} title="Expandir" aria-label="Expandir em tela cheia" style={iconBtn}><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M8.5 2H12V5.5M12 2L8 6M5.5 12H2V8.5M2 12L6 8" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" /></svg></Link>
+            <Dropdown align="right" width={160} trigger={({ toggle }) => <button onClick={toggle} title="Mais" aria-label="Mais ações" style={iconBtn as React.CSSProperties}>⋯</button>}>
               {(close) => (
                 <button onClick={() => { close(); if (confirm(`Excluir "${String(row[config.titleField] ?? '')}"?`)) remove(row.id) }} style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '7px 8px', border: 'none', background: 'transparent', borderRadius: 6, cursor: 'pointer', fontSize: 13, color: 'var(--fe-prio-urgent)' }}
                   onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--fe-hover)')} onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}>
@@ -506,7 +509,7 @@ function SlideOver({ row, config, options, patch, remove, onFechar }: {
                 </button>
               )}
             </Dropdown>
-            <button onClick={onFechar} title="Fechar" style={iconBtn as React.CSSProperties}><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3.5 3.5L10.5 10.5M10.5 3.5L3.5 10.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" /></svg></button>
+            <button onClick={onFechar} title="Fechar" aria-label="Fechar painel" style={iconBtn as React.CSSProperties}><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3.5 3.5L10.5 10.5M10.5 3.5L3.5 10.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" /></svg></button>
           </div>
         </div>
 
@@ -548,6 +551,7 @@ function SlideOver({ row, config, options, patch, remove, onFechar }: {
                   <button
                     onClick={() => toggleField(f.key)}
                     title="Ocultar campo"
+                    aria-label={`Ocultar campo ${f.label}`}
                     style={{ width: 18, height: 18, borderRadius: 4, border: 'none', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: hoveredField === f.key ? 0.45 : 0, color: 'var(--fe-text-muted)', transition: 'opacity 100ms', padding: 0 }}
                   >
                     <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 2L8 8M8 2L2 8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /></svg>

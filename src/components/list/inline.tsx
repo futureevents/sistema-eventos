@@ -83,7 +83,7 @@ export function StatusDot({ options, value, onChange, size = 18 }: { options: Se
   return (
     <Dropdown align="left" width={190}
       trigger={({ toggle }) => (
-        <button onClick={toggle} title="Alterar status"
+        <button onClick={toggle} title="Alterar status" aria-label="Alterar status"
           style={{ width: size, height: size, flexShrink: 0, borderRadius: '50%', cursor: 'pointer', padding: 0, border: done ? 'none' : `2px solid ${dot}`, background: done ? (opt?.dot ?? 'var(--fe-accent)') : 'transparent', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
           {done && <svg width={size * 0.58} height={size * 0.58} viewBox="0 0 12 12" fill="none"><path d="M2.5 6.2L5 8.5L9.5 3.5" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>}
         </button>
@@ -238,9 +238,9 @@ export function CalendarPopover({ value, onChange, onClose }: { value: string | 
   return (
     <div style={{ width: 252, padding: 4 }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '2px 4px 8px' }}>
-        <button style={navBtn} onClick={(e) => { e.stopPropagation(); setCursor(new Date(ano, mes - 1, 1)) }}><svg width="13" height="13" viewBox="0 0 12 12" fill="none"><path d="M7.5 2L3.5 6L7.5 10" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" /></svg></button>
+        <button style={navBtn} aria-label="Mês anterior" onClick={(e) => { e.stopPropagation(); setCursor(new Date(ano, mes - 1, 1)) }}><svg width="13" height="13" viewBox="0 0 12 12" fill="none"><path d="M7.5 2L3.5 6L7.5 10" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" /></svg></button>
         <span style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--fe-text-strong)' }}>{MESES_LONGOS[mes]} {ano}</span>
-        <button style={navBtn} onClick={(e) => { e.stopPropagation(); setCursor(new Date(ano, mes + 1, 1)) }}><svg width="13" height="13" viewBox="0 0 12 12" fill="none"><path d="M4.5 2L8.5 6L4.5 10" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" /></svg></button>
+        <button style={navBtn} aria-label="Próximo mês" onClick={(e) => { e.stopPropagation(); setCursor(new Date(ano, mes + 1, 1)) }}><svg width="13" height="13" viewBox="0 0 12 12" fill="none"><path d="M4.5 2L8.5 6L4.5 10" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" /></svg></button>
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', gap: 1, marginBottom: 2 }}>
         {DOW.map((d, i) => <span key={i} style={{ fontSize: 10.5, fontWeight: 600, color: 'var(--fe-text-faint)', textAlign: 'center', height: 22, lineHeight: '22px' }}>{d}</span>)}
@@ -275,7 +275,7 @@ export function RowMenu({ onExcluir }: { onExcluir: () => void }) {
   return (
     <Dropdown align="right" width={160}
       trigger={({ toggle }) => (
-        <button onClick={toggle} title="Mais" style={{ width: 24, height: 24, borderRadius: 6, border: 'none', background: 'transparent', color: 'var(--fe-text-muted)', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
+        <button onClick={toggle} title="Mais" aria-label="Mais ações" style={{ width: 24, height: 24, borderRadius: 6, border: 'none', background: 'transparent', color: 'var(--fe-text-muted)', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
           onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--fe-hover)')}
           onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}>
           <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor"><circle cx="3.5" cy="8" r="1.3" /><circle cx="8" cy="8" r="1.3" /><circle cx="12.5" cy="8" r="1.3" /></svg>
