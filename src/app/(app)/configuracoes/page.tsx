@@ -1,3 +1,5 @@
+'use client'
+
 import Link from 'next/link'
 import { SETTINGS_SECTIONS, SettingsIcon } from '@/components/settings/sections'
 
