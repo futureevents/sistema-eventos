@@ -91,13 +91,14 @@ export function DataList({ config, rows: rowsProp, options, embeds }: {
         filterable={filterable} filtros={filtros} onFiltros={setFiltros} nFiltros={nFiltros}
         rows={rows} options={options} salvando={salvando} addHref={addHref} addLabel={config.addLabel ?? `Adicionar ${config.singular}`}
       />
-      <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', padding: '14px 24px 24px' }}>
+      <div className="fe-list-pad" style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
         <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', background: 'var(--fe-surface)', border: '1px solid var(--fe-border)', borderRadius: 'var(--fe-radius-xl)', boxShadow: 'var(--fe-shadow-card)', overflow: 'hidden' }}>
-          <div style={{ flex: 1, minHeight: 0, overflowY: 'auto' }}>
+          {/* Scroll vertical e horizontal contidos no card (tabela larga rola dentro da borda) */}
+          <div style={{ flex: 1, minHeight: 0, overflow: 'auto' }}>
             {rows.length === 0 ? (
               <EmptyState icon={config.emptyIcon ?? <DefaultEmptyIcon />} titulo={`Nenhum registro em ${config.plural}`} descricao={`Crie o primeiro ${config.singular.toLowerCase()} para começar.`} addHref={addHref} addLabel={config.addLabel ?? `Adicionar ${config.singular}`} />
             ) : (
-              <>
+              <div style={{ minWidth: 'var(--fe-list-min-w)' }}>
                 <Header columns={columns} grid={grid} config={config} />
                 {grupos.map((g, i) => (
                   <Grupo key={g.key} grupo={g} grid={grid} columns={columns} config={config} options={options} patch={patch} remove={remove} onAbrir={setSel} addHref={addHref} grouped={!!groupBy} first={i === 0} />
@@ -106,7 +107,7 @@ export function DataList({ config, rows: rowsProp, options, embeds }: {
                   <div style={{ padding: '40px 24px', textAlign: 'center', fontSize: 13, color: 'var(--fe-text-muted)' }}>Nenhum registro corresponde aos filtros.</div>
                 )}
                 <div style={{ height: 24 }} />
-              </>
+              </div>
             )}
           </div>
         </div>
@@ -231,7 +232,7 @@ function Toolbar({
 }) {
   const groupLabel = groupBy ? (config.fields.find((f) => f.key === groupBy)?.label ?? 'Nenhum') : 'Nenhum'
   return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 44, padding: '0 18px 0 22px', flexShrink: 0, gap: 12, background: 'var(--fe-surface)' }}>
+    <div className="fe-bar-pad" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 44, padding: '0 18px 0 22px', flexShrink: 0, gap: 12, background: 'var(--fe-surface)' }}>
       <div style={{ display: 'flex', alignItems: 'center', height: '100%' }}>
         <span style={{ height: '100%', padding: '0 12px', borderBottom: '2px solid var(--fe-black)', fontSize: 13, fontWeight: 600, color: 'var(--fe-black)', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 4H12M2 7H12M2 10H9" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" /></svg>
@@ -242,10 +243,10 @@ function Toolbar({
         <SaveIndicator estado={salvando} />
         {filterable.length > 0 && <FiltrosBtn filterable={filterable} filtros={filtros} onFiltros={onFiltros} n={nFiltros} rows={rows} options={options} />}
         {groupable.length > 0 && <AgruparBtn groupable={groupable} groupBy={groupBy} onGroupBy={onGroupBy} label={groupLabel} />}
-        <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+        <div style={{ position: 'relative', display: 'flex', alignItems: 'center', minWidth: 0 }}>
           <svg width="13" height="13" viewBox="0 0 12 12" fill="none" style={{ position: 'absolute', left: 9, opacity: 0.4, pointerEvents: 'none' }}><circle cx="5" cy="5" r="3.5" stroke="currentColor" strokeWidth="1.3" /><path d="M8 8L10.5 10.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" /></svg>
           <input value={busca} onChange={(e) => onBusca(e.target.value)} placeholder="Buscar"
-            style={{ height: 30, width: 150, padding: '0 10px 0 26px', borderRadius: 'var(--fe-radius-md)', border: '1px solid var(--fe-border)', background: 'var(--fe-surface)', fontSize: 12.5, color: 'var(--fe-text)', outline: 'none' }}
+            style={{ height: 30, width: 'clamp(96px, 22vw, 150px)', minWidth: 0, padding: '0 10px 0 26px', borderRadius: 'var(--fe-radius-md)', border: '1px solid var(--fe-border)', background: 'var(--fe-surface)', fontSize: 12.5, color: 'var(--fe-text)', outline: 'none' }}
             onFocus={(e) => (e.currentTarget.style.borderColor = 'var(--fe-accent)')} onBlur={(e) => (e.currentTarget.style.borderColor = 'var(--fe-border)')} />
         </div>
         <Link href={addHref} style={{ height: 30, padding: '0 14px', borderRadius: 'var(--fe-radius-md)', background: 'var(--fe-accent)', color: 'var(--fe-accent-fg)', fontSize: 12.5, fontWeight: 600, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap', flexShrink: 0 }}>
@@ -285,7 +286,7 @@ function AgruparBtn({ groupable, groupBy, onGroupBy, label }: { groupable: Field
     <Dropdown align="right" width={180} stopPropagation={false}
       trigger={({ toggle }) => (
         <Ghost onClick={toggle} icon={<svg width="13" height="13" viewBox="0 0 14 14" fill="none"><rect x="2" y="2.5" width="4" height="4" rx="1" stroke="currentColor" strokeWidth="1.2" /><rect x="8" y="2.5" width="4" height="4" rx="1" stroke="currentColor" strokeWidth="1.2" /><rect x="2" y="8" width="4" height="3.5" rx="1" stroke="currentColor" strokeWidth="1.2" /><rect x="8" y="8" width="4" height="3.5" rx="1" stroke="currentColor" strokeWidth="1.2" /></svg>}>
-          Agrupar: <span style={{ color: 'var(--fe-text)', fontWeight: 600, marginLeft: 3 }}>{label}</span>
+          <span className="fe-hide-sm">Agrupar: <span style={{ color: 'var(--fe-text)', fontWeight: 600, marginLeft: 3 }}>{label}</span></span>
         </Ghost>
       )}>
       {(close) => opcoes.map((o) => (
@@ -309,7 +310,7 @@ function FiltrosBtn({ filterable, filtros, onFiltros, n, rows, options }: { filt
 
   return (
     <Dropdown align="right" width={280} stopPropagation={false}
-      trigger={({ toggle }) => (<Ghost onClick={toggle} badge={n} icon={<svg width="13" height="13" viewBox="0 0 14 14" fill="none"><path d="M1.5 2.5H12.5L8.5 7.2V11L5.5 12.5V7.2L1.5 2.5Z" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round" /></svg>}>Filtros</Ghost>)}>
+      trigger={({ toggle }) => (<Ghost onClick={toggle} badge={n} icon={<svg width="13" height="13" viewBox="0 0 14 14" fill="none"><path d="M1.5 2.5H12.5L8.5 7.2V11L5.5 12.5V7.2L1.5 2.5Z" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round" /></svg>}><span className="fe-hide-sm">Filtros</span></Ghost>)}>
       {() => (
         <div style={{ padding: 4, display: 'flex', flexDirection: 'column', gap: 12, maxHeight: 440, overflowY: 'auto' }}>
           {filterable.map((f) => (

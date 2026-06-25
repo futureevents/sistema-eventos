@@ -11,7 +11,7 @@
 | **Parte 1 — `/layout`** (Profundidade & proporção) | ✅ **Concluído** — commit `ed98469`, deploy prod em https://sistema-eventos-eosin.vercel.app |
 | **Parte 2 — `/colorize`** (contraste de texto) | ✅ **Concluído** — tokens `--fe-text-muted`/`--fe-text-faint` AA + token `--fe-icon` |
 | **Parte 3 — `/typeset`** (tipografia) | ✅ **Concluído** — base 14px + escala em tokens `--fe-text-*` + nome da Task a 14,5px |
-| Parte 4 — `/adapt` (responsividade) | ⬜ |
+| **Parte 4 — `/adapt`** (responsividade) | ✅ **Concluído** — breakpoints 1024/900/640, sidebar-gaveta, scroll-x no card, alvos de toque |
 | Parte 5 — `/clarify` (acessibilidade) | ⬜ |
 | Parte 6 — `/quieter` → `/delight` → `/polish` (acabamento) | ⬜ |
 
@@ -56,13 +56,13 @@ Arquivos: `src/app/globals.css` (tokens) + reatribuição de glifos decorativos 
 - [x] Reservar o cinza mais claro só para ícones decorativos: novo token **`--fe-icon` (#B0B4BD)**, aplicado aos separadores `/`, dashes `—`, avatar tracejado, ícone de empty-state e strokes de SVG decorativos
 - [x] (Opcional, bem sutil) neutros de texto inclinados levemente ao índigo/cool (B>R) — superfícies `#FFFFFF` intactas
 
-### Responsividade → `/adapt`
-Arquivos: `src/components/shell/Sidebar.tsx`, `kit.tsx`, `FullPage`
-- [ ] Adicionar breakpoints (hoje há **zero** media queries)
-- [ ] Sidebar colapsável abaixo de ~1024px
-- [ ] Corrigir overlap de breadcrumb/cabeçalhos em telas estreitas
-- [ ] Tabela com scroll-x contido dentro do card
-- [ ] Touch targets ≥ 36–44px; ações de linha visíveis no toque (hoje só no hover)
+### ✅ Responsividade → `/adapt` — CONCLUÍDO
+Arquivos: `shell/AppShell.tsx` (novo wrapper client com gaveta + barra móvel) · `shell/Sidebar.tsx` (props `mobileOpen`/`onClose`, classes `fe-sidebar`/`fe-nav-row`) · `app/(app)/layout.tsx` · `globals.css` (todas as media queries + token `--fe-list-min-w`) · `list/kit.tsx` (Breadcrumb `fe-hide-sm`/`fe-bar-pad`, FullPage `fe-fullpage-grid`) · `list/DataList.tsx` (scroll-x no card, padding `fe-list-pad`, toolbar responsiva)
+- [x] Adicionar breakpoints — antes **zero**; agora `@media` em **1024** (gaveta), **900** (FullPage empilha), **640** (gutters/labels) e **`hover:none`** (toque)
+- [x] Sidebar colapsável abaixo de ~1024px — vira **gaveta off-canvas** (`position:fixed` + `translateX`) com backdrop e botão hambúrguer na barra móvel; fecha ao navegar/no backdrop/no ×
+- [x] Corrigir overlap de breadcrumb/cabeçalhos em telas estreitas — `fe-hide-sm` esconde rótulo "Compartilhar"/convite e labels de Filtros/Agrupar; busca vira `clamp(96px,22vw,150px)`; `fe-bar-pad` aperta gutters em ≤640px
+- [x] Tabela com scroll-x contido dentro do card — scroll container `overflow:auto`; conteúdo com `min-width: var(--fe-list-min-w)` (760/680px) rola na horizontal **dentro da borda do card**, header sticky alinhado
+- [x] Touch targets ≥ 36–44px; ações de linha visíveis no toque — `@media (hover:none)` revela `.fe-row-actions`; `.fe-nav-row` sobe os itens da gaveta para **min-height 42px**
 
 ### Acessibilidade → `/clarify`
 Arquivos: `DataList.tsx`, inputs do `kit.tsx`
@@ -100,8 +100,8 @@ Arquivos: `DataList.tsx`, inputs do `kit.tsx`
 1. ✅ ~~`/layout` — cards bordados + raio + padding + respiro (maior impacto)~~ — **feito**
 2. ✅ ~~`/colorize` — corrigir contraste do texto secundário~~ — **feito**
 3. ✅ ~~`/typeset` — base 14px + hierarquia~~ — **feito**
-4. `/adapt` — responsividade ← **próximo**
-5. `/clarify` — acessibilidade
+4. ✅ ~~`/adapt` — responsividade~~ — **feito**
+5. `/clarify` — acessibilidade ← **próximo**
 6. `/quieter` → `/delight` → `/polish` — acabamento
 
 Os 3 primeiros resolvem ~80% da sensação. Rodar `/audit` de novo após cada bloco para acompanhar o score.

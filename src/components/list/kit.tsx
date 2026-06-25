@@ -87,7 +87,7 @@ export function Dash() { return <span style={{ color: 'var(--fe-icon)' }}>—</s
 
 export function Breadcrumb({ space, segments }: { space: Space; segments: string[] }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 52, padding: '0 22px', borderBottom: '1px solid var(--fe-border-soft)', flexShrink: 0, background: 'var(--fe-surface)' }}>
+    <div className="fe-bar-pad" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 52, padding: '0 22px', borderBottom: '1px solid var(--fe-border-soft)', flexShrink: 0, background: 'var(--fe-surface)' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13.5, minWidth: 0 }}>
         <SpaceBadge space={space} size={20} />
         {segments.map((s, i) => {
@@ -101,11 +101,11 @@ export function Breadcrumb({ space, segments }: { space: Space; segments: string
         })}
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0 }}>
-        <button title="Convidar" style={{ width: 26, height: 26, borderRadius: '50%', border: '1.5px dashed var(--fe-border)', background: 'var(--fe-surface)', color: 'var(--fe-text-muted)', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, lineHeight: 1 }}>+</button>
-        <span style={{ width: 1, height: 18, background: 'var(--fe-border)' }} />
-        <button style={{ height: 32, padding: '0 12px', borderRadius: 'var(--fe-radius-md)', border: '1px solid var(--fe-border)', background: 'transparent', fontSize: 13, fontWeight: 500, color: 'var(--fe-text)', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+        <button title="Convidar" className="fe-hide-sm" style={{ width: 26, height: 26, borderRadius: '50%', border: '1.5px dashed var(--fe-border)', background: 'var(--fe-surface)', color: 'var(--fe-text-muted)', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, lineHeight: 1 }}>+</button>
+        <span className="fe-hide-sm" style={{ width: 1, height: 18, background: 'var(--fe-border)' }} />
+        <button title="Compartilhar" style={{ height: 32, padding: '0 12px', borderRadius: 'var(--fe-radius-md)', border: '1px solid var(--fe-border)', background: 'transparent', fontSize: 13, fontWeight: 500, color: 'var(--fe-text)', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" /><polyline points="16 6 12 2 8 6" /><line x1="12" y1="2" x2="12" y2="15" /></svg>
-          Compartilhar
+          <span className="fe-hide-sm">Compartilhar</span>
         </button>
         <button title="Mais" style={{ width: 30, height: 30, borderRadius: 'var(--fe-radius-md)', border: 'none', background: 'transparent', color: 'var(--fe-text-soft)', cursor: 'pointer' }}>⋯</button>
       </div>
@@ -311,7 +311,7 @@ export function FullPage({ space, segments, backHref, topActions, statusSlot, ti
         </div>
       </div>
       <div style={{ flex: 1, overflowY: 'auto' }}>
-        <div style={{ maxWidth: 1080, margin: '0 auto', padding: '36px 32px', display: 'grid', gridTemplateColumns: 'minmax(0,1fr) 332px', gap: 36, alignItems: 'start' }}>
+        <div className="fe-fullpage-grid" style={{ maxWidth: 1080, margin: '0 auto', padding: '36px 32px', display: 'grid', gridTemplateColumns: 'minmax(0,1fr) 332px', gap: 36, alignItems: 'start' }}>
           <div style={{ minWidth: 0 }}>
             {statusSlot && <div style={{ marginBottom: 18 }}>{statusSlot}</div>}
             {title && <h1 style={{ fontFamily: 'var(--font-geist), sans-serif', fontWeight: 600, fontSize: 'var(--fe-text-3xl)', lineHeight: 1.2, letterSpacing: '-0.02em', color: 'var(--fe-text-strong)', margin: '0 0 24px' }}>{title}</h1>}

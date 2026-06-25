@@ -6,7 +6,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { NAV, type NavSpace, type NavFolder } from '@/lib/nav'
 
-export function Sidebar() {
+export function Sidebar({ mobileOpen = false, onClose }: { mobileOpen?: boolean; onClose?: () => void } = {}) {
   const pathname = usePathname()
   const router = useRouter()
 
@@ -70,19 +70,25 @@ export function Sidebar() {
 
   return (
     <aside
+      className={`fe-sidebar${mobileOpen ? ' fe-sidebar-open' : ''}`}
       style={{
-        width: 'var(--fe-sidebar-w)',
-        minWidth: 'var(--fe-sidebar-w)',
         background: 'var(--fe-sidebar)',
         borderRight: '1px solid var(--fe-border)',
         display: 'flex',
         flexDirection: 'column',
-        height: '100vh',
-        position: 'sticky',
-        top: 0,
         overflow: 'hidden',
       }}
     >
+      {/* Fechar gaveta (só na barra móvel) */}
+      <button
+        onClick={onClose}
+        aria-label="Fechar menu"
+        className="fe-mobile-only"
+        style={{ position: 'absolute', top: 14, right: 10, width: 32, height: 32, borderRadius: 'var(--fe-radius-md)', border: 'none', background: 'transparent', color: 'var(--fe-text-muted)', cursor: 'pointer', alignItems: 'center', justifyContent: 'center', zIndex: 1 }}
+      >
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+      </button>
+
       {/* Workspace switcher */}
       <button
         style={{
@@ -231,6 +237,7 @@ function SpaceSection({
       {/* Space row */}
       <button
         onClick={onToggle}
+        className="fe-nav-row"
         style={{
           display: 'flex',
           alignItems: 'center',
@@ -298,6 +305,7 @@ function FolderSection({
     <div>
       {/* Folder row: chevron + ícone togglam; nome navega se tiver href */}
       <div
+        className="fe-nav-row"
         style={{
           display: 'flex',
           alignItems: 'center',
@@ -357,6 +365,7 @@ function FolderSection({
               <Link
                 key={list.slug}
                 href={list.href}
+                className="fe-nav-row"
                 style={{
                   display: 'flex',
                   alignItems: 'center',
@@ -395,6 +404,7 @@ function QuickLink({ href, label, pathname, children }: { href: string; label: s
   return (
     <Link
       href={href}
+      className="fe-nav-row"
       style={{
         display: 'flex', alignItems: 'center', gap: 10,
         height: 34, padding: '0 10px', borderRadius: 'var(--fe-radius-md)',

@@ -83,6 +83,7 @@
   --fe-sidebar-w:   264px;
   --fe-panel-w:     540px;
   --fe-kanban-col:  290px;
+  --fe-list-min-w:  760px;  /* piso de legibilidade da tabela; abaixo disso rola na horizontal */
 
   --fe-ease:        cubic-bezier(.16,1,.3,1);
   --fe-dur-fast:    .14s;
@@ -159,6 +160,72 @@
 /* Ações de linha visíveis só no hover da linha */
 .fe-row .fe-row-actions { opacity: 0; transition: opacity var(--fe-dur-fast); }
 .fe-row:hover .fe-row-actions { opacity: 1; }
+
+/* ── Responsividade — Parte 4 (/adapt) ─────────────────── */
+
+/* Sidebar: coluna fixa em ≥1024px; gaveta off-canvas abaixo disso */
+.fe-sidebar {
+  width: var(--fe-sidebar-w);
+  min-width: var(--fe-sidebar-w);
+  height: 100vh;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+.fe-sidebar-backdrop { display: none; }
+.fe-mobile-bar { display: none; }
+.fe-mobile-only { display: none; }
+
+@media (max-width: 1023px) {
+  .fe-sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    transform: translateX(-100%);
+    transition: transform var(--fe-dur-panel) var(--fe-ease);
+    box-shadow: var(--fe-shadow-panel);
+    z-index: 80;
+  }
+  .fe-sidebar.fe-sidebar-open { transform: translateX(0); }
+
+  .fe-sidebar-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: var(--fe-backdrop);
+    z-index: 70;
+    animation: feFadeIn var(--fe-dur-fast) var(--fe-ease) both;
+  }
+
+  .fe-mobile-bar { display: flex; }
+  .fe-mobile-only { display: inline-flex; }
+
+  /* Alvos de toque maiores na navegação da gaveta */
+  .fe-nav-row { height: auto !important; min-height: 42px; }
+}
+
+/* Padding do contêiner da lista (card) — aperta os gutters no celular */
+.fe-list-pad { padding: 14px 24px 24px; }
+
+/* Página cheia de detalhe: empilha em coluna única em telas estreitas */
+@media (max-width: 900px) {
+  .fe-fullpage-grid { grid-template-columns: 1fr !important; gap: 24px !important; padding: 24px 18px !important; }
+  .fe-fullpage-grid > aside { position: static !important; }
+}
+
+/* Telas estreitas: esconder rótulos auxiliares e apertar gutters */
+@media (max-width: 640px) {
+  .fe-hide-sm { display: none !important; }
+  .fe-list-pad { padding: 10px 12px 14px; }
+  .fe-bar-pad { padding-left: 12px !important; padding-right: 12px !important; }
+  :root { --fe-list-min-w: 680px; }
+}
+
+/* Ações de linha e alvos de toque maiores em telas sem hover (toque) */
+@media (hover: none) {
+  .fe-row .fe-row-actions { opacity: 1; }
+  .fe-row-actions button { width: 30px; height: 30px; }
+}
 
 /* ── Scrollbar discreta ────────────────────────────────── */
 ::-webkit-scrollbar { width: 10px; height: 10px; }
