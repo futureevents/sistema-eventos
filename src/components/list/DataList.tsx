@@ -529,7 +529,7 @@ function RowLine({ row, grid, columns, config, options, patch, remove, onAbrir, 
       onMouseEnter={(e) => { setHovered(true); if (!selected) e.currentTarget.style.background = 'var(--fe-warm-white)' }}
       onMouseLeave={(e) => { setHovered(false); if (!selected) e.currentTarget.style.background = 'var(--fe-surface)' }}>
       {/* Checkbox */}
-      <span onClick={(e) => { e.stopPropagation(); onToggle() }} style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+      <span onClick={(e) => e.stopPropagation()} style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
         <Checkbox checked={selected} onChange={onToggle} visible={hovered || selected || anySelected} />
       </span>
       {columns.map((f) => (
