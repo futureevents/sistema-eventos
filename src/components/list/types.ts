@@ -81,6 +81,9 @@ export type ListConfig = {
   titleAvatar?: boolean              // mostra avatar (iniciais do título) na coluna principal
   descriptionField?: string
   statusField?: string               // campo select usado na "boinha" + grupo padrão
+  startDateField?: string            // campo date "início" — mostrado logo abaixo do nome (estilo ClickUp)
+  endDateField?: string              // campo date "término/prazo" — mostrado logo abaixo do nome
+  assigneeField?: string             // campo relation "responsável" — mostrado junto das datas, abaixo do nome
   fields: FieldDef[]
   defaultGroupBy?: string | null
   // filtro-base da List (ex.: tasks compartilham a tabela por `tipo`)

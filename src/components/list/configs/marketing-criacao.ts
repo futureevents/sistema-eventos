@@ -33,18 +33,18 @@ const TIPO_CONTEUDO: SelectOption[] = [
 ]
 
 const FORMATO_CONTEUDO: SelectOption[] = [
-  { value: 'feed',       label: 'Feed' },
-  { value: 'story',      label: 'Story' },
-  { value: 'reels',      label: 'Reels' },
-  { value: 'estatico',   label: 'Estático' },
-  { value: 'video',      label: 'Vídeo' },
-  { value: 'carrossel',  label: 'Carrossel' },
-  { value: 'audio',      label: 'Áudio' },
-  { value: 'texto',      label: 'Texto' },
-  { value: 'thumb',      label: 'Thumb' },
-  { value: 'web',        label: 'Web' },
-  { value: 'formulario', label: 'Formulário' },
-].map((o) => ({ ...o, dot: 'var(--fe-status-todo)', bg: 'var(--fe-status-todo-tint)', text: 'var(--fe-status-todo-text)' }))
+  { value: 'feed',       label: 'Feed',       dot: '#3E63DD', bg: 'rgba(62,99,221,0.12)',   text: '#3A4FC0' },
+  { value: 'story',      label: 'Story',      dot: '#8E4EC6', bg: 'rgba(142,78,198,0.12)',  text: '#7A3DAE' },
+  { value: 'reels',      label: 'Reels',      dot: '#E54666', bg: 'rgba(229,70,102,0.12)',  text: '#C42A30' },
+  { value: 'estatico',   label: 'Estático',   dot: '#2E9E62', bg: 'rgba(46,158,98,0.14)',   text: '#207A49' },
+  { value: 'video',      label: 'Vídeo',      dot: '#D5680B', bg: 'rgba(213,104,11,0.14)',  text: '#9A4E0A' },
+  { value: 'carrossel',  label: 'Carrossel',  dot: '#0E8FC4', bg: 'rgba(14,143,196,0.12)',  text: '#0B6E97' },
+  { value: 'audio',      label: 'Áudio',      dot: '#7C66DC', bg: 'rgba(124,102,220,0.13)', text: '#5B4BC0' },
+  { value: 'texto',      label: 'Texto',      dot: '#8B8F98', bg: 'rgba(139,143,152,0.14)', text: '#5B606B' },
+  { value: 'thumb',      label: 'Thumb',      dot: '#D6409F', bg: 'rgba(214,64,159,0.12)',  text: '#B03088' },
+  { value: 'web',        label: 'Web',        dot: '#5B5BD6', bg: 'rgba(91,91,214,0.12)',   text: '#4A4AC0' },
+  { value: 'formulario', label: 'Formulário', dot: '#D9730D', bg: 'rgba(217,115,13,0.13)',  text: '#9A4E0A' },
+]
 
 const CANAIS = ['Instagram', 'WhatsApp', 'Web', 'YouTube', 'Formy'] as const
 
@@ -91,6 +91,9 @@ export function marketingConfig(tipo: TipoListaMkt): ListConfig {
     titlePlaceholder: 'Nome do conteúdo',
     descriptionField: 'descricao',
     statusField: 'status',
+    startDateField: 'data_inicio',
+    endDateField: 'data_fim',
+    assigneeField: 'responsavel_id',
     defaultGroupBy: 'status',
     baseFilter: { col: 'tipo', value: tipo },
     templates: tipo === 'copy' ? TEMPLATES_COPY : undefined,
@@ -98,7 +101,7 @@ export function marketingConfig(tipo: TipoListaMkt): ListConfig {
       { key: 'nome', label: 'Nome do conteúdo', type: 'text', required: true, column: { width: 'minmax(0,1fr)', primary: true, header: 'Nome do conteúdo' } },
       { key: 'status', label: 'Status', type: 'select', options: statusOptions, groupOrder: statusValues, alwaysGroups: statusValues.filter((v) => v !== 'descartado' && v !== 'finalizado'), column: { width: '170px', display: 'pill' }, groupable: true, filterable: true },
       { key: 'tipo_conteudo', label: 'Tipo de conteúdo', type: 'select', options: TIPO_CONTEUDO, column: { width: '150px', display: 'pill' }, groupable: true, filterable: true },
-      { key: 'formato_conteudo', label: 'Formato de conteúdo', type: 'select', options: FORMATO_CONTEUDO, column: { width: '140px', display: 'pill' }, groupable: true, filterable: true },
+      { key: 'formato_conteudo', label: 'Formato de conteúdo', type: 'multiselect', options: FORMATO_CONTEUDO, column: { width: '190px', display: 'tags' }, filterable: true },
       { key: 'canais_publicacao', label: 'Canais de publicação', type: 'multiselect', multiOptions: CANAIS, column: { width: '200px', display: 'tags' }, filterable: true },
       { key: 'designer_id', label: 'Designer / Editor de vídeos', type: 'relation', relation: { table: 'membros', labelField: 'nome' }, column: { width: '120px', display: 'avatar' }, groupable: true, filterable: true },
       { key: 'data_publicacao', label: 'Data de publicação', type: 'date', column: { width: '150px', header: 'Publicação' }, groupable: true, filterable: true },

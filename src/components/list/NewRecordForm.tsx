@@ -107,11 +107,15 @@ function FormInput({ field, value, onChange, options }: { field: FieldDef; value
   if (field.type === 'date') return <input type="date" value={String(value ?? '')} onChange={(e) => onChange(e.target.value)} style={inputStyle} />
   if (field.type === 'multiselect') {
     const arr = (value as string[]) ?? []
+    const colored = field.options
     return (
-      <MultiMenu options={field.multiOptions ?? []} value={arr} onChange={onChange}>
+      <MultiMenu options={field.multiOptions ?? []} colored={colored} value={arr} onChange={onChange}>
         {({ toggle }) => (
           <button type="button" onClick={toggle} style={{ ...inputStyle, height: 'auto', minHeight: 36, textAlign: 'left', cursor: 'pointer', display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 5, padding: '6px 10px' }}>
-            {arr.length === 0 ? <span style={{ color: 'var(--fe-text-faint)' }}>Selecionar…</span> : arr.map((t) => <span key={t} style={{ fontSize: 11, fontWeight: 600, background: 'var(--fe-accent-dim)', color: 'var(--fe-accent)', padding: '2px 8px', borderRadius: 4 }}>{t.split(' — ')[0]}</span>)}
+            {arr.length === 0 ? <span style={{ color: 'var(--fe-text-faint)' }}>Selecionar…</span> : arr.map((t) => {
+              const opt = colored?.find((o) => o.value === t)
+              return <span key={t} style={{ fontSize: 11, fontWeight: 600, background: opt?.bg ?? 'var(--fe-accent-dim)', color: opt?.text ?? 'var(--fe-accent)', padding: '2px 8px', borderRadius: 4 }}>{opt?.label ?? t.split(' — ')[0]}</span>
+            })}
           </button>
         )}
       </MultiMenu>

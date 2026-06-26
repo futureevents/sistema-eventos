@@ -12,9 +12,11 @@ import { Breadcrumb, SpaceBadge, Avatar, EmptyState, dataLonga, useHiddenFields 
 import { Dropdown, StatusDot, SelectMenu, OptionPill, RowMenu } from './inline'
 import { InlineField, displayLabel, groupKey, optionOf, isDerived } from './cells'
 import { RichTextEditor } from './RichText'
+import { QuickAddRow } from './QuickAdd'
 import { TaskComments } from './TaskComments'
 import { TaskAttachments } from './TaskAttachments'
 import { TaskActivity } from './TaskActivity'
+import { TaskChecklists } from './TaskChecklists'
 
 type FilterState = Record<string, unknown>
 
@@ -59,6 +61,27 @@ export function DataList({ config, rows: rowsProp, options, embeds }: {
     const { error } = await supabase.from(config.table).update(partial).eq('id', id)
     if (error) { setSalvando('idle'); return }
     marcarSalvo()
+  }
+
+  async function add(partial: Record<string, unknown>): Promise<boolean> {
+    const payload: Record<string, unknown> = { ...partial }
+    if (config.baseFilter) payload[config.baseFilter.col] = config.baseFilter.value
+    if (config.baseFilterIn && payload[config.baseFilterIn.col] == null) payload[config.baseFilterIn.col] = config.baseFilterIn.values[0]
+    setSalvando('saving')
+    const { data, error } = await supabase.from(config.table).insert(payload).select('*').single()
+    if (error || !data) { setSalvando('idle'); return false }
+    const novo = { ...(data as Row) }
+    for (const k of Object.keys(payload)) {
+      const f = config.fields.find((x) => x.key === k)
+      if (f?.type === 'relation' && f.relation?.embed) {
+        const alias = k.replace(/_id$/, '')
+        const newId = payload[k] as string | null
+        novo[alias] = newId ? (embeds[k]?.[newId] ?? null) : null
+      }
+    }
+    setRows((prev) => [...prev, novo])
+    marcarSalvo()
+    return true
   }
 
   async function patchMany(ids: string[], partial: Record<string, unknown>) {
@@ -113,10 +136,17 @@ export function DataList({ config, rows: rowsProp, options, embeds }: {
   const columns = useMemo(() => config.fields.filter((f) => f.column), [config])
   const groupable = useMemo(() => config.fields.filter((f) => f.groupable), [config])
   const filterable = useMemo(() => config.fields.filter((f) => f.filterable), [config])
-  const grid = useMemo(() => '20px ' + columns.map((c) => c.column!.width).join(' ') + ' 30px', [columns])
+  // A coluna primária (nome) usa minmax(0,1fr) nas configs; com muitas colunas
+  // fixas o piso 0 colapsa o nome p/ 0px. Garante um piso mínimo p/ o nome sempre
+  // aparecer (o resto rola na horizontal).
+  const grid = useMemo(() => '20px ' + columns.map((c) => {
+    const w = c.column!.width
+    return c.column!.primary && w.startsWith('minmax(0') ? w.replace('minmax(0', 'minmax(220px') : w
+  }).join(' ') + ' 30px', [columns])
 
   const filtradas = useMemo(() => aplicarFiltros(rows, busca, filtros, config), [rows, busca, filtros, config])
-  const grupos = useMemo(() => agrupar(filtradas, groupBy ? config.fields.find((f) => f.key === groupBy) ?? null : null, options), [filtradas, groupBy, config, options])
+  const groupByField = useMemo(() => (groupBy ? config.fields.find((f) => f.key === groupBy) ?? null : null), [groupBy, config])
+  const grupos = useMemo(() => agrupar(filtradas, groupByField, options), [filtradas, groupByField, options])
   const nFiltros = contarFiltros(filtros)
   const visibleIds = useMemo(() => filtradas.map((r) => r.id), [filtradas])
   const allVisibleSelected = visibleIds.length > 0 && visibleIds.every((id) => selectedIds.has(id))
@@ -139,15 +169,15 @@ export function DataList({ config, rows: rowsProp, options, embeds }: {
       <div className="fe-list-pad" style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
         <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', background: 'var(--fe-surface)', border: '1px solid var(--fe-border)', borderRadius: 'var(--fe-radius-xl)', boxShadow: 'var(--fe-shadow-card)', overflow: 'hidden' }}>
           <div style={{ flex: 1, minHeight: 0, overflow: 'auto' }}>
-            {rows.length === 0 ? (
+            {rows.length === 0 && grupos.length <= 1 ? (
               <EmptyState icon={config.emptyIcon ?? <DefaultEmptyIcon />} titulo={`Nenhum registro em ${config.plural}`} descricao={`Crie o primeiro ${config.singular.toLowerCase()} para começar.`} addHref={addHref} addLabel={config.addLabel ?? `Adicionar ${config.singular}`} />
             ) : (
               <div style={{ minWidth: 'var(--fe-list-min-w)' }}>
                 <Header columns={columns} grid={grid} config={config} allSelected={allVisibleSelected} someSelected={someSelected} onToggleAll={() => toggleSelectAll(visibleIds)} />
                 {grupos.map((g, i) => (
-                  <Grupo key={g.key} grupo={g} grid={grid} columns={columns} config={config} options={options} patch={patch} remove={remove} onAbrir={setSel} addHref={addHref} grouped={!!groupBy} first={i === 0} selectedIds={selectedIds} onToggle={toggleSelect} />
+                  <Grupo key={g.key} grupo={g} grid={grid} columns={columns} config={config} options={options} patch={patch} remove={remove} add={add} groupByField={groupByField} onAbrir={setSel} grouped={!!groupBy} first={i === 0} selectedIds={selectedIds} onToggle={toggleSelect} />
                 ))}
-                {grupos.every((g) => g.itens.length === 0) && (
+                {rows.length > 0 && (busca.trim() !== '' || nFiltros > 0) && grupos.every((g) => g.itens.length === 0) && (
                   <div style={{ padding: '40px 24px', textAlign: 'center', fontSize: 13, color: 'var(--fe-text-muted)' }}>Nenhum registro corresponde aos filtros.</div>
                 )}
                 <div style={{ height: 24 }} />
@@ -376,7 +406,9 @@ function FiltrosBtn({ filterable, filtros, onFiltros, n, rows, options }: { filt
               )}
               {f.type === 'multiselect' && (
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
-                  {(f.multiOptions ?? []).map((o) => <Chip key={o} ativo={((filtros[f.key] as string[]) ?? []).includes(o)} onClick={() => toggleArr(f.key, o)}>{o.split(' — ')[0]}</Chip>)}
+                  {f.options
+                    ? f.options.map((o) => <Chip key={o.value} ativo={((filtros[f.key] as string[]) ?? []).includes(o.value)} onClick={() => toggleArr(f.key, o.value)}>{o.label}</Chip>)
+                    : (f.multiOptions ?? []).map((o) => <Chip key={o} ativo={((filtros[f.key] as string[]) ?? []).includes(o)} onClick={() => toggleArr(f.key, o)}>{o.split(' — ')[0]}</Chip>)}
                 </div>
               )}
               {f.type === 'relation' && (
@@ -477,12 +509,22 @@ function Checkbox({ checked, indeterminate = false, onChange, visible = true }: 
 
 // ─── Grupo ─────────────────────────────────────────────────────────────────────
 
-function Grupo({ grupo, grid, columns, config, options, patch, remove, onAbrir, addHref, grouped, first, selectedIds, onToggle }: {
+function Grupo({ grupo, grid, columns, config, options, patch, remove, add, groupByField, onAbrir, grouped, first, selectedIds, onToggle }: {
   grupo: GrupoView; grid: string; columns: FieldDef[]; config: ListConfig; options: OptionsMap
-  patch: (id: string, p: Record<string, unknown>) => void; remove: (id: string) => void; onAbrir: (id: string) => void; addHref: string; grouped: boolean; first?: boolean
+  patch: (id: string, p: Record<string, unknown>) => void; remove: (id: string) => void
+  add: (p: Record<string, unknown>) => Promise<boolean>; groupByField: FieldDef | null
+  onAbrir: (id: string) => void; grouped: boolean; first?: boolean
   selectedIds: Set<string>; onToggle: (id: string) => void
 }) {
   const [aberto, setAberto] = useState(true)
+  const [adicionando, setAdicionando] = useState(false)
+
+  // Defaults da nova task ao criar dentro deste grupo (ex.: status do grupo).
+  const groupDefaults = useMemo<Record<string, unknown> | undefined>(() => {
+    if (groupByField?.type === 'select' && grupo.key && !grupo.key.startsWith('__')) return { [groupByField.key]: grupo.key }
+    return undefined
+  }, [groupByField, grupo.key])
+
   return (
     <div>
       {grouped && (
@@ -494,14 +536,14 @@ function Grupo({ grupo, grid, columns, config, options, patch, remove, onAbrir, 
           </span>
           {grupo.option ? <OptionPill opt={grupo.option} /> : <span style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--fe-text-strong)' }}>{grupo.label}</span>}
           <span style={{ fontFamily: 'var(--font-geist-mono), monospace', fontSize: 12, color: 'var(--fe-text-muted)' }}>{grupo.itens.length}</span>
-          <Link href={addHref} onClick={(e) => e.stopPropagation()} style={{ marginLeft: 6, fontSize: 12.5, color: 'var(--fe-text-faint)', textDecoration: 'none' }} onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--fe-text-soft)')} onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--fe-text-faint)')}>+ Adicionar</Link>
+          <button onClick={(e) => { e.stopPropagation(); setAberto(true); setAdicionando(true) }} style={{ marginLeft: 6, border: 'none', background: 'transparent', padding: 0, cursor: 'pointer', fontSize: 12.5, color: 'var(--fe-text-faint)' }} onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--fe-text-soft)')} onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--fe-text-faint)')}>+ Adicionar</button>
         </div>
       )}
       {aberto && grupo.itens.map((r) => (
         <RowLine key={r.id} row={r} grid={grid} columns={columns} config={config} options={options} patch={patch} remove={remove} onAbrir={onAbrir} selected={selectedIds.has(r.id)} onToggle={() => onToggle(r.id)} anySelected={selectedIds.size > 0} />
       ))}
-      {aberto && grouped && grupo.itens.length === 0 && (
-        <div style={{ padding: '0 24px 0 52px', height: 38, display: 'flex', alignItems: 'center', fontSize: 12.5, color: 'var(--fe-text-faint)', borderBottom: '1px solid var(--fe-divider)' }}>Nenhum registro</div>
+      {aberto && (
+        <QuickAddRow config={config} defaults={groupDefaults} active={adicionando} onActiveChange={setAdicionando} onCreate={add} placeholder={grouped ? 'Adicionar task' : undefined} />
       )}
     </div>
   )
@@ -730,6 +772,11 @@ function SlideOver({ row, config, options, patch, remove, onFechar }: {
   const { hidden, toggle: toggleField, reset: showAllFields } = useHiddenFields(config.table)
   const [hoveredField, setHoveredField] = useState<string | null>(null)
   const panelFields = allPanelFields.filter((f) => !hidden.has(f.key))
+  // Datas logo abaixo do nome; demais campos abaixo da descrição (estilo ClickUp).
+  const startField = config.startDateField ? config.fields.find((f) => f.key === config.startDateField) ?? null : null
+  const endField = config.endDateField ? config.fields.find((f) => f.key === config.endDateField) ?? null : null
+  const assigneeField = config.assigneeField ? config.fields.find((f) => f.key === config.assigneeField) ?? null : null
+  const customPanelFields = panelFields.filter((f) => f.key !== config.startDateField && f.key !== config.endDateField && f.key !== config.assigneeField)
 
   const [nome, setNome] = useState(String(row[config.titleField] ?? ''))
   const nomeTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -791,9 +838,45 @@ function SlideOver({ row, config, options, patch, remove, onFechar }: {
             onInput={(e) => { const el = e.currentTarget; el.style.height = 'auto'; el.style.height = el.scrollHeight + 'px' }}
             style={{ width: '100%', resize: 'none', border: 'none', outline: 'none', background: 'transparent', fontFamily: 'var(--font-geist), sans-serif', fontWeight: 600, fontSize: 24, lineHeight: 1.25, letterSpacing: '-0.01em', color: 'var(--fe-text-strong)', margin: '0 0 20px', padding: 0, overflow: 'hidden' }} />
 
-          <div style={{ marginBottom: descField ? 22 : 0 }}>
-            <div style={{ display: 'flex', flexDirection: 'column' }}>
-              {panelFields.map((f) => (
+          {/* Responsável + datas — empilhados verticalmente sob o nome (menos poluição) */}
+          {(assigneeField || startField || endField) && (
+            <div style={{ display: 'flex', flexDirection: 'column', marginBottom: descField ? 20 : 4 }}>
+              {assigneeField && (
+                <div style={{ display: 'grid', gridTemplateColumns: '120px minmax(0,1fr)', alignItems: 'center', minHeight: 34 }}>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12.5, color: 'var(--fe-text-muted)' }}><PersonGlyph />{assigneeField.label}</span>
+                  <span style={{ minWidth: 0 }}><InlineField field={assigneeField} row={row} options={options} patch={(p) => patch(row.id, p)} variant="panel" /></span>
+                </div>
+              )}
+              {startField && (
+                <div style={{ display: 'grid', gridTemplateColumns: '120px minmax(0,1fr)', alignItems: 'center', minHeight: 34 }}>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12.5, color: 'var(--fe-text-muted)' }}><DateGlyph />{startField.label}</span>
+                  <span style={{ minWidth: 0 }}><InlineField field={startField} row={row} options={options} patch={(p) => patch(row.id, p)} variant="panel" /></span>
+                </div>
+              )}
+              {endField && (
+                <div style={{ display: 'grid', gridTemplateColumns: '120px minmax(0,1fr)', alignItems: 'center', minHeight: 34 }}>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12.5, color: 'var(--fe-text-muted)' }}><DateGlyph />{endField.label}</span>
+                  <span style={{ minWidth: 0 }}><InlineField field={endField} row={row} options={options} patch={(p) => patch(row.id, p)} variant="panel" /></span>
+                </div>
+              )}
+            </div>
+          )}
+
+          {descField && (
+            <div style={{ marginBottom: 24 }}>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7, fontSize: 12.5, color: 'var(--fe-text-muted)', marginBottom: 8 }}>
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2.5 3.5H11.5M2.5 7H11.5M2.5 10.5H8" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" /></svg>
+                Descrição
+              </span>
+              <RichTextEditor key={row.id} value={(row[config.descriptionField!] as string) ?? null} onChange={onDesc} />
+            </div>
+          )}
+
+          {/* Custom fields — abaixo da descrição (estilo ClickUp) */}
+          {(customPanelFields.length > 0 || hidden.size > 0) && (
+            <div style={{ marginBottom: 10 }}>
+              <div style={{ fontSize: 'var(--fe-text-xs)', fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--fe-text-muted)', marginBottom: 6 }}>Campos</div>
+              {customPanelFields.map((f) => (
                 <div
                   key={f.key}
                   onMouseEnter={() => setHoveredField(f.key)}
@@ -824,18 +907,9 @@ function SlideOver({ row, config, options, patch, remove, onFechar }: {
                 </button>
               )}
             </div>
-          </div>
-
-          {descField && (
-            <div style={{ marginBottom: 24 }}>
-              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7, fontSize: 12.5, color: 'var(--fe-text-muted)', marginBottom: 8 }}>
-                <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2.5 3.5H11.5M2.5 7H11.5M2.5 10.5H8" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" /></svg>
-                Descrição
-              </span>
-              <RichTextEditor key={row.id} value={(row[config.descriptionField!] as string) ?? null} onChange={onDesc} />
-            </div>
           )}
 
+          <TaskChecklists taskId={String(row.id)} taskTable={config.table} />
           <TaskAttachments taskId={String(row.id)} taskTable={config.table} />
           <TaskActivity taskId={String(row.id)} taskTable={config.table} config={config} />
           <TaskComments taskId={String(row.id)} taskTable={config.table} />
@@ -849,6 +923,14 @@ const iconBtn: React.CSSProperties = { width: 30, height: 30, borderRadius: 'var
 
 function DefaultEmptyIcon() {
   return <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><rect x="3" y="5" width="18" height="16" rx="2" stroke="currentColor" strokeWidth="1.5" /><path d="M8 9h8M8 13h5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /></svg>
+}
+
+function DateGlyph() {
+  return <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" /></svg>
+}
+
+function PersonGlyph() {
+  return <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
 }
 
 // dataLonga re-export p/ conveniência das páginas de detalhe

@@ -153,37 +153,42 @@ export function RelationMenu({ options, value, onChange, semLabel, children, fil
 
 // ─── Multiselect (array de strings) ───────────────────────────────────────────
 
-export function MultiMenu({ options, value, onChange, children, fill = false }: {
+export function MultiMenu({ options, colored, value, onChange, children, fill = false }: {
   options: readonly string[]
+  colored?: SelectOption[]              // se presente, opções coloridas (value/label/cor) em vez de strings simples
   value: string[]
   onChange: (v: string[]) => void
   children: (props: { toggle: (e: React.MouseEvent) => void }) => React.ReactNode
   fill?: boolean
 }) {
   const [busca, setBusca] = useState('')
-  const filtrados = busca.trim() ? options.filter((o) => o.toLowerCase().includes(busca.trim().toLowerCase())) : options
+  const items: { value: string; label: string; opt?: SelectOption }[] = colored
+    ? colored.map((o) => ({ value: o.value, label: o.label, opt: o }))
+    : options.map((s) => ({ value: s, label: s }))
+  const filtrados = busca.trim() ? items.filter((o) => o.label.toLowerCase().includes(busca.trim().toLowerCase())) : items
   function toggle(opt: string) { onChange(value.includes(opt) ? value.filter((x) => x !== opt) : [...value, opt]) }
   return (
     <Dropdown align="left" width={260} fill={fill} onOpenChange={(o) => { if (!o) setBusca('') }} trigger={({ toggle: t }) => children({ toggle: t })}>
       {() => (
         <div>
-          <input autoFocus value={busca} onChange={(e) => setBusca(e.target.value)} placeholder="Buscar categoria" onClick={(e) => e.stopPropagation()}
+          <input autoFocus value={busca} onChange={(e) => setBusca(e.target.value)} placeholder="Buscar" onClick={(e) => e.stopPropagation()}
             style={{ width: '100%', height: 30, padding: '0 9px', marginBottom: 4, borderRadius: 6, border: '1px solid var(--fe-border)', background: 'var(--fe-surface)', fontSize: 12.5, outline: 'none' }} />
           <div style={{ maxHeight: 260, overflowY: 'auto' }}>
             {filtrados.map((o) => {
-              const on = value.includes(o)
+              const on = value.includes(o.value)
               return (
-                <button key={o} onClick={(e) => { e.stopPropagation(); toggle(o) }}
+                <button key={o.value} onClick={(e) => { e.stopPropagation(); toggle(o.value) }}
                   style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '7px 8px', border: 'none', background: 'transparent', borderRadius: 6, cursor: 'pointer', textAlign: 'left', fontSize: 12.5, color: 'var(--fe-text)' }}
                   onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--fe-hover)')}
                   onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}>
                   <span style={{ width: 15, height: 15, flexShrink: 0, borderRadius: 4, border: `1.5px solid ${on ? 'var(--fe-accent)' : 'var(--fe-border)'}`, background: on ? 'var(--fe-accent)' : 'transparent', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
                     {on && <svg width="9" height="9" viewBox="0 0 12 12" fill="none"><path d="M2.5 6.2L5 8.5L9.5 3.5" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>}
                   </span>
-                  <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{o}</span>
+                  {o.opt ? <OptionPill opt={o.opt} /> : <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{o.label}</span>}
                 </button>
               )
             })}
+            {filtrados.length === 0 && <div style={{ padding: 8, fontSize: 12, color: 'var(--fe-text-faint)' }}>Nenhum resultado</div>}
           </div>
         </div>
       )}

@@ -10,11 +10,10 @@ import { SpaceBadge, dataLonga, useHiddenFields } from './kit'
 import { SelectMenu, OptionPill } from './inline'
 import { InlineField, optionOf } from './cells'
 import { RichTextEditor } from './RichText'
-import { TaskComments } from './TaskComments'
 import { TaskChecklists } from './TaskChecklists'
-import { TaskActivity } from './TaskActivity'
 import { TaskAttachments } from './TaskAttachments'
 import { TaskRelationships } from './TaskRelationships'
+import { TaskActivityPanel } from './TaskActivityPanel'
 
 export function FullRecord({ config, row: rowProp, options, embeds }: {
   config: ListConfig; row: Row; options: OptionsMap; embeds: EmbedMap
@@ -24,6 +23,7 @@ export function FullRecord({ config, row: rowProp, options, embeds }: {
   const [row, setRow] = useState<Row>(rowProp)
   const [salvando, setSalvando] = useState<'idle' | 'saving' | 'saved'>('idle')
   const [excluindo, setExcluindo] = useState(false)
+  const [panelOpen, setPanelOpen] = useState(true)
   const savedTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const statusField = config.statusField ? config.fields.find((f) => f.key === config.statusField) : null
@@ -40,6 +40,11 @@ export function FullRecord({ config, row: rowProp, options, embeds }: {
   }, [router, config.basePath])
   const [hoveredField, setHoveredField] = useState<string | null>(null)
   const visibleFields = detailFields.filter((f) => !hidden.has(f.key))
+  // Datas mostradas logo abaixo do nome (estilo ClickUp); os demais campos vão abaixo da descrição.
+  const startField = config.startDateField ? config.fields.find((f) => f.key === config.startDateField) ?? null : null
+  const endField = config.endDateField ? config.fields.find((f) => f.key === config.endDateField) ?? null : null
+  const assigneeField = config.assigneeField ? config.fields.find((f) => f.key === config.assigneeField) ?? null : null
+  const customFields = visibleFields.filter((f) => f.key !== config.statusField && f.key !== config.startDateField && f.key !== config.endDateField && f.key !== config.assigneeField)
 
   function marcarSalvo() { setSalvando('saved'); if (savedTimer.current) clearTimeout(savedTimer.current); savedTimer.current = setTimeout(() => setSalvando('idle'), 1600) }
 
@@ -89,6 +94,11 @@ export function FullRecord({ config, row: rowProp, options, embeds }: {
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <SaveIndicator estado={salvando} />
+          <button onClick={() => setPanelOpen((v) => !v)} title={panelOpen ? 'Esconder atividade' : 'Mostrar atividade'} aria-label="Atividade e comentários" aria-pressed={panelOpen} style={{ width: 32, height: 32, borderRadius: 'var(--fe-radius-md)', border: 'none', background: panelOpen ? 'var(--fe-accent-dim)' : 'transparent', color: panelOpen ? 'var(--fe-accent-dark)' : 'var(--fe-text-soft)', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
+            onMouseEnter={(e) => { if (!panelOpen) e.currentTarget.style.background = 'var(--fe-hover)' }}
+            onMouseLeave={(e) => { if (!panelOpen) e.currentTarget.style.background = 'transparent' }}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /></svg>
+          </button>
           <Link href={`${config.basePath}?sel=${row.id}`} style={{ height: 32, padding: '0 12px', borderRadius: 'var(--fe-radius-md)', border: '1px solid var(--fe-border)', background: 'transparent', fontSize: 12.5, fontWeight: 500, color: 'var(--fe-text)', display: 'inline-flex', alignItems: 'center', gap: 6, textDecoration: 'none' }}>
             <svg width="13" height="13" viewBox="0 0 14 14" fill="none"><path d="M5.5 2H2V5.5M2 2L6 6M8.5 12H12V8.5M12 12L8 8" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" /></svg>Recolher
           </Link>
@@ -96,9 +106,9 @@ export function FullRecord({ config, row: rowProp, options, embeds }: {
         </div>
       </div>
 
-      <div style={{ flex: 1, overflowY: 'auto' }}>
-        <div style={{ maxWidth: 1080, margin: '0 auto', padding: '36px 32px', display: 'grid', gridTemplateColumns: 'minmax(0,1fr) 332px', gap: 36, alignItems: 'start' }}>
-          <div style={{ minWidth: 0 }}>
+      <div style={{ flex: 1, display: 'flex', minHeight: 0 }}>
+        <div style={{ flex: 1, minWidth: 0, overflowY: 'auto' }}>
+          <div style={{ maxWidth: 880, margin: '0 auto', padding: '32px 36px 80px' }}>
             {statusField && (
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 18 }}>
                 {doneOpt && openOpt && (
@@ -116,68 +126,106 @@ export function FullRecord({ config, row: rowProp, options, embeds }: {
               onInput={(e) => { const el = e.currentTarget; el.style.height = 'auto'; el.style.height = el.scrollHeight + 'px' }}
               style={{ width: '100%', resize: 'none', border: 'none', outline: 'none', background: 'transparent', fontFamily: 'var(--font-geist), sans-serif', fontWeight: 600, fontSize: 29, lineHeight: 1.2, letterSpacing: '-0.02em', color: 'var(--fe-text-strong)', margin: '0 0 24px', padding: 0, overflow: 'hidden' }} />
 
+            {/* Responsável + datas — empilhados verticalmente sob o nome (menos poluição) */}
+            {(assigneeField || startField || endField) && (
+              <div style={{ display: 'flex', flexDirection: 'column', marginBottom: 22 }}>
+                {assigneeField && (
+                  <div style={{ display: 'grid', gridTemplateColumns: 'minmax(110px,150px) minmax(0,1fr)', alignItems: 'center', minHeight: 34 }}>
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7, fontSize: 'var(--fe-text-sm)', color: 'var(--fe-text-muted)' }}><PersonIcon />{assigneeField.label}</span>
+                    <span style={{ minWidth: 0 }}><InlineField field={assigneeField} row={row} options={options} patch={patch} variant="panel" /></span>
+                  </div>
+                )}
+                {startField && (
+                  <div style={{ display: 'grid', gridTemplateColumns: 'minmax(110px,150px) minmax(0,1fr)', alignItems: 'center', minHeight: 34 }}>
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7, fontSize: 'var(--fe-text-sm)', color: 'var(--fe-text-muted)' }}><CalIcon />{startField.label}</span>
+                    <span style={{ minWidth: 0 }}><InlineField field={startField} row={row} options={options} patch={patch} variant="panel" /></span>
+                  </div>
+                )}
+                {endField && (
+                  <div style={{ display: 'grid', gridTemplateColumns: 'minmax(110px,150px) minmax(0,1fr)', alignItems: 'center', minHeight: 34 }}>
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7, fontSize: 'var(--fe-text-sm)', color: 'var(--fe-text-muted)' }}><CalIcon />{endField.label}</span>
+                    <span style={{ minWidth: 0 }}><InlineField field={endField} row={row} options={options} patch={patch} variant="panel" /></span>
+                  </div>
+                )}
+              </div>
+            )}
+
+            <div style={{ height: 1, background: 'var(--fe-divider)', margin: '2px 0 24px' }} />
+
             {descField ? <RichTextEditor key={row.id} value={(row[config.descriptionField!] as string) ?? null} onChange={onDesc} minHeight={200} /> : null}
 
-            <TaskRelationships config={config} rowId={String(row.id)} />
+            {/* Custom fields — abaixo da descrição (estilo ClickUp) */}
+            {(customFields.length > 0 || hidden.size > 0) && (
+              <div style={{ marginTop: 30 }}>
+                <div style={{ fontSize: 'var(--fe-text-xs)', fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--fe-text-muted)', marginBottom: 6 }}>Campos</div>
+                {customFields.map((f) => (
+                  <div
+                    key={f.key}
+                    onMouseEnter={() => setHoveredField(f.key)}
+                    onMouseLeave={() => setHoveredField(null)}
+                    style={{ display: 'grid', gridTemplateColumns: 'minmax(120px,170px) minmax(0,1fr) 20px', alignItems: 'center', minHeight: 38 }}
+                  >
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 'var(--fe-text-sm)', color: 'var(--fe-text-muted)' }}>{f.panelIcon}{f.label}</span>
+                    <span style={{ minWidth: 0 }}><InlineField field={f} row={row} options={options} patch={patch} variant="panel" /></span>
+                    <button
+                      onClick={() => toggleField(f.key)}
+                      title="Ocultar campo"
+                      aria-label={`Ocultar campo ${f.label}`}
+                      style={{ width: 18, height: 18, borderRadius: 4, border: 'none', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: hoveredField === f.key ? 0.45 : 0, color: 'var(--fe-text-muted)', transition: 'opacity 100ms', padding: 0 }}
+                    >
+                      <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 2L8 8M8 2L2 8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /></svg>
+                    </button>
+                  </div>
+                ))}
+                {hidden.size > 0 && (
+                  <button
+                    onClick={showAllFields}
+                    style={{ marginTop: 8, fontSize: 12, color: 'var(--fe-text-faint)', background: 'transparent', border: 'none', cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center', gap: 5 }}
+                    onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--fe-text-muted)')}
+                    onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--fe-text-faint)')}
+                  >
+                    <svg width="11" height="11" viewBox="0 0 12 12" fill="none"><path d="M1.5 6C1.5 6 3 2.5 6 2.5C9 2.5 10.5 6 10.5 6C10.5 6 9 9.5 6 9.5C3 9.5 1.5 6 1.5 6Z" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round" /><circle cx="6" cy="6" r="1.5" stroke="currentColor" strokeWidth="1.2" /></svg>
+                    Mostrar {hidden.size} campo{hidden.size > 1 ? 's' : ''} oculto{hidden.size > 1 ? 's' : ''}
+                  </button>
+                )}
+              </div>
+            )}
 
             <TaskChecklists taskId={String(row.id)} taskTable={config.table} />
 
             <TaskAttachments taskId={String(row.id)} taskTable={config.table} />
 
-            <TaskActivity taskId={String(row.id)} taskTable={config.table} config={config} />
+            <TaskRelationships config={config} rowId={String(row.id)} />
 
-            <TaskComments taskId={String(row.id)} taskTable={config.table} />
-
-            <div style={{ marginTop: 20 }}>
+            <div style={{ marginTop: 28, display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
               <button type="button" onClick={excluir} disabled={excluindo} style={{ fontSize: 12.5, fontWeight: 500, color: 'var(--fe-prio-urgent)', background: 'transparent', border: 'none', cursor: 'pointer', padding: 0, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
                 <svg width="13" height="13" viewBox="0 0 14 14" fill="none"><path d="M2.5 3.5H11.5M5 3.5V2.5C5 2.2 5.2 2 5.5 2H8.5C8.8 2 9 2.2 9 2.5V3.5M3.5 3.5L4 11.5C4 11.8 4.2 12 4.5 12H9.5C9.8 12 10 11.8 10 11.5L10.5 3.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" /></svg>{excluindo ? 'Excluindo…' : 'Excluir'}
               </button>
+              {row.criado_em ? <span style={{ fontSize: 11.5, color: 'var(--fe-text-faint)' }}>Criado em {dataLonga(String(row.criado_em).slice(0, 10))}</span> : null}
             </div>
           </div>
-
-          <aside style={{ position: 'sticky', top: 0, background: 'var(--fe-surface)', border: '1px solid var(--fe-border-soft)', borderRadius: 'var(--fe-radius-lg)', boxShadow: 'var(--fe-shadow-card)' }}>
-            {/* Header */}
-            <div style={{ padding: '10px 18px', borderBottom: '1px solid var(--fe-divider)', borderRadius: 'var(--fe-radius-lg) var(--fe-radius-lg) 0 0', overflow: 'hidden' }}>
-              <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--fe-text-faint)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Detalhes</span>
-            </div>
-
-            {/* Campos visíveis */}
-            <div style={{ padding: '4px 18px 14px' }}>
-              {visibleFields.map((f, i) => (
-                <div
-                  key={f.key}
-                  onMouseEnter={() => setHoveredField(f.key)}
-                  onMouseLeave={() => setHoveredField(null)}
-                  style={{ display: 'grid', gridTemplateColumns: 'minmax(80px,140px) minmax(0,1fr) 20px', alignItems: 'center', minHeight: 40, borderBottom: i === visibleFields.length - 1 ? 'none' : '1px solid var(--fe-divider)' }}
-                >
-                  <span style={{ fontSize: 12.5, color: 'var(--fe-text-muted)' }}>{f.label}</span>
-                  <span style={{ minWidth: 0 }}><InlineField field={f} row={row} options={options} patch={patch} variant="panel" /></span>
-                  <button
-                    onClick={() => toggleField(f.key)}
-                    title="Ocultar campo"
-                    style={{ width: 18, height: 18, borderRadius: 4, border: 'none', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: hoveredField === f.key ? 0.45 : 0, color: 'var(--fe-text-muted)', transition: 'opacity 100ms', padding: 0 }}
-                  >
-                    <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 2L8 8M8 2L2 8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /></svg>
-                  </button>
-                </div>
-              ))}
-              {hidden.size > 0 && (
-                <button
-                  onClick={showAllFields}
-                  style={{ marginTop: 6, fontSize: 12, color: 'var(--fe-text-faint)', background: 'transparent', border: 'none', cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center', gap: 5 }}
-                  onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--fe-text-muted)')}
-                  onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--fe-text-faint)')}
-                >
-                  <svg width="11" height="11" viewBox="0 0 12 12" fill="none"><path d="M1.5 6C1.5 6 3 2.5 6 2.5C9 2.5 10.5 6 10.5 6C10.5 6 9 9.5 6 9.5C3 9.5 1.5 6 1.5 6Z" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round" /><circle cx="6" cy="6" r="1.5" stroke="currentColor" strokeWidth="1.2" /></svg>
-                  Mostrar {hidden.size} campo{hidden.size > 1 ? 's' : ''} oculto{hidden.size > 1 ? 's' : ''}
-                </button>
-              )}
-            </div>
-            <div style={{ padding: '10px 18px', borderTop: '1px solid var(--fe-divider)' }}><span style={{ fontSize: 11.5, color: 'var(--fe-text-faint)' }}>Criado em {dataLonga(String(row.criado_em).slice(0, 10))}</span></div>
-          </aside>
         </div>
+        {panelOpen && (
+          <TaskActivityPanel taskId={String(row.id)} taskTable={config.table} config={config} onClose={() => setPanelOpen(false)} />
+        )}
       </div>
     </div>
+  )
+}
+
+function CalIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <rect x="3" y="4" width="18" height="18" rx="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" />
+    </svg>
+  )
+}
+
+function PersonIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" />
+    </svg>
   )
 }
 

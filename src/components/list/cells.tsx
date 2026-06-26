@@ -35,7 +35,11 @@ export function displayLabel(f: FieldDef, row: Row, options: OptionsMap): string
       return emb && f.relation ? String(emb[f.relation.labelField] ?? '') || null : null
     }
     case 'date': return dataCurta(String(v))
-    case 'multiselect': return Array.isArray(v) ? (v as string[]).join(', ') : null
+    case 'multiselect': {
+      if (!Array.isArray(v) || v.length === 0) return null
+      const arr = v as string[]
+      return f.options ? arr.map((x) => optionOf(f, x)?.label ?? x).join(', ') : arr.join(', ')
+    }
     default: return String(v)
   }
 }
@@ -122,7 +126,7 @@ export function InlineField({
       const lbl = displayLabel(field, row, options)
       const isAvatar = field.column?.display === 'avatar'
       return (
-        <RelationMenu options={options[field.key] ?? []} value={value} semLabel={`Sem ${field.label.toLowerCase()}`} fill={variant === 'cell' && !isAvatar} onChange={(id) => patch({ [field.key]: id })}>
+        <RelationMenu options={options[field.key] ?? []} value={value} semLabel={`Sem ${field.label.toLowerCase()}`} fill={!isAvatar} onChange={(id) => patch({ [field.key]: id })}>
           {({ toggle }) => (
             isAvatar ? (
               <button onClick={toggle} title={`Alterar ${field.label.toLowerCase()}`} style={{ border: 'none', background: 'transparent', padding: 2, borderRadius: '50%', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
@@ -131,7 +135,7 @@ export function InlineField({
               </button>
             ) : (
               <HoverBtn onClick={toggle} title={`Alterar ${field.label.toLowerCase()}`}>
-                <span style={{ fontSize: variant === 'cell' ? 12.5 : 13, color: lbl ? muted : 'var(--fe-text-faint)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{lbl ?? '—'}</span>
+                <span style={{ fontSize: variant === 'cell' ? 12.5 : 13, color: lbl ? muted : 'var(--fe-text-faint)', textAlign: 'left', overflow: variant === 'cell' ? 'hidden' : 'visible', textOverflow: 'ellipsis', whiteSpace: variant === 'cell' ? 'nowrap' : 'normal', wordBreak: 'break-word' }}>{lbl ?? '—'}</span>
               </HoverBtn>
             )
           )}
@@ -140,14 +144,22 @@ export function InlineField({
     }
 
     case 'multiselect': {
-      const arr = (row[field.key] as string[]) ?? []
+      // Defensivo: aceita array ou valor único legado (pré-migração enum→text[]).
+      const raw = row[field.key]
+      const arr: string[] = Array.isArray(raw) ? (raw as string[]) : raw != null && raw !== '' ? [String(raw)] : []
+      const colored = field.options
       return (
-        <MultiMenu options={field.multiOptions ?? []} value={arr} fill={variant === 'cell'} onChange={(v) => patch({ [field.key]: v })}>
+        <MultiMenu options={field.multiOptions ?? []} colored={colored} value={arr} fill={variant === 'cell'} onChange={(v) => patch({ [field.key]: v })}>
           {({ toggle }) => (
             <HoverBtn onClick={toggle} title={`Alterar ${field.label.toLowerCase()}`}>
               {arr.length === 0 ? <span style={{ color: 'var(--fe-text-faint)', fontSize: 12.5 }}>—</span> : (
                 <span style={{ display: 'inline-flex', gap: 5, flexWrap: variant === 'panel' ? 'wrap' : 'nowrap', overflow: 'hidden' }}>
-                  {arr.slice(0, variant === 'panel' ? 99 : 2).map((t) => <Tag key={t} label={t.split(' — ')[0]} />)}
+                  {arr.slice(0, variant === 'panel' ? 99 : 2).map((t) => {
+                    const opt = colored?.find((o) => o.value === t)
+                    return opt
+                      ? <span key={t} style={{ display: 'inline-flex', alignItems: 'center', height: 22, padding: '0 9px', borderRadius: 'var(--fe-radius-sm)', background: opt.bg ?? 'var(--fe-track)', color: opt.text ?? 'var(--fe-text-soft)', fontSize: 12, fontWeight: 500, whiteSpace: 'nowrap' }}>{opt.label}</span>
+                      : <Tag key={t} label={t.split(' — ')[0]} />
+                  })}
                   {variant === 'cell' && arr.length > 2 && <span style={{ fontSize: 11, color: 'var(--fe-text-muted)' }}>+{arr.length - 2}</span>}
                 </span>
               )}

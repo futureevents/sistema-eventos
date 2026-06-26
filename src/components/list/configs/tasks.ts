@@ -40,6 +40,9 @@ export function tasksConfig(tipo: TipoTask): ListConfig {
     titlePlaceholder: 'Nome da tarefa',
     descriptionField: 'descricao',
     statusField: 'status',
+    startDateField: 'data_inicio',
+    endDateField: 'data_fim',
+    assigneeField: 'responsavel_id',
     defaultGroupBy: 'status',
     baseFilter: { col: 'tipo', value: tipo },
     fields: [

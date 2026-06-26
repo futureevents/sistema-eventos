@@ -43,6 +43,9 @@ export function projetosFolderConfig(): ListConfig {
     titlePlaceholder: 'Nome da tarefa',
     descriptionField: 'descricao',
     statusField: 'status',
+    startDateField: 'data_inicio',
+    endDateField: 'data_fim',
+    assigneeField: 'responsavel_id',
     defaultGroupBy: 'evento_id',
     baseFilterIn: { col: 'tipo', values: ['pre_evento', 'intra_evento', 'pos_evento'] },
     fields: [

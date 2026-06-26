@@ -19,6 +19,8 @@ export const eventosConfig: ListConfig = {
   titlePlaceholder: 'Nome do evento',
   descriptionField: 'descricao',
   statusField: 'status',
+  startDateField: 'data_realizacao_inicio',
+  endDateField: 'data_realizacao_fim',
   defaultGroupBy: 'status',
   fields: [
     { key: 'nome', label: 'Nome do evento', type: 'text', required: true, column: { width: 'minmax(0,1fr)', primary: true, header: 'Nome do evento' } },
