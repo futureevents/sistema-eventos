@@ -25,6 +25,12 @@ export function NewRecordForm({ config, options }: { config: ListConfig; options
   })
   const [salvando, setSalvando] = useState(false)
   const [erro, setErro] = useState<string | null>(null)
+  const [editorKey, setEditorKey] = useState(0)
+
+  function applyTemplate(tpl: import('./types').TaskTemplate) {
+    setForm((prev) => ({ ...prev, ...tpl.defaults }))
+    setEditorKey((k) => k + 1)
+  }
 
   const formFields = config.fields.filter((f) => !isDerived(f) && f.key !== config.titleField && f.key !== config.descriptionField && f.type !== 'richtext')
 
@@ -67,6 +73,16 @@ export function NewRecordForm({ config, options }: { config: ListConfig; options
 
       <div style={{ flex: 1, overflowY: 'auto', padding: '32px 0' }}>
         <form id="novo-registro" onSubmit={submit} style={{ maxWidth: 640, margin: '0 auto', padding: '0 24px', display: 'flex', flexDirection: 'column', gap: 18 }}>
+          {config.templates && config.templates.length > 0 && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+              <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--fe-text-muted)', flexShrink: 0 }}>Usar modelo:</span>
+              {config.templates.map((tpl) => (
+                <button key={tpl.label} type="button" onClick={() => applyTemplate(tpl)} style={{ height: 28, padding: '0 12px', borderRadius: 'var(--fe-radius-md)', border: '1px solid var(--fe-accent)', background: 'var(--fe-accent-dim)', color: 'var(--fe-accent)', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
+                  {tpl.label}
+                </button>
+              ))}
+            </div>
+          )}
           {erro && <div style={{ padding: '10px 14px', borderRadius: 'var(--fe-radius-md)', background: 'rgba(220,61,67,0.08)', color: 'var(--fe-prio-urgent)', fontSize: 13 }}>{erro}</div>}
           <Field label={primaryLabel(config)} required>
             <input type="text" value={String(form[config.titleField] ?? '')} onChange={(e) => set(config.titleField, e.target.value)} style={inputStyle} autoFocus />
@@ -74,7 +90,7 @@ export function NewRecordForm({ config, options }: { config: ListConfig; options
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
             {formFields.map((f) => <Field key={f.key} label={f.label}><FormInput field={f} value={form[f.key]} onChange={(v) => set(f.key, v)} options={options} /></Field>)}
           </div>
-          {config.descriptionField && <Field label="Descrição"><RichTextEditor value="" onChange={(html) => set(config.descriptionField!, html)} /></Field>}
+          {config.descriptionField && <Field label="Descrição"><RichTextEditor key={editorKey} value={String(form[config.descriptionField] ?? '')} onChange={(html) => set(config.descriptionField!, html)} /></Field>}
         </form>
       </div>
     </div>

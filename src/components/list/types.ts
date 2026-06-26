@@ -62,6 +62,11 @@ export type FieldDef = {
   labelPath?: (row: Row) => string | null
 }
 
+export type TaskTemplate = {
+  label: string
+  defaults: Record<string, unknown>
+}
+
 export type ListConfig = {
   table: string
   space: Space
@@ -86,6 +91,7 @@ export type ListConfig = {
   emptyIcon?: ReactNode
   addLabel?: string
   hideBreadcrumb?: boolean
+  templates?: TaskTemplate[]
 }
 
 // Opções carregadas no servidor para campos relation

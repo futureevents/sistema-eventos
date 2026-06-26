@@ -1,4 +1,4 @@
-import { type ListConfig, type SelectOption } from '../types'
+import { type ListConfig, type SelectOption, type TaskTemplate } from '../types'
 import { SPACE_MARKETING } from '../spaces'
 
 export type TipoListaMkt = 'copy' | 'design' | 'publicacao' | 'landing' | 'formulario'
@@ -55,6 +55,17 @@ const PRIORIDADE: SelectOption[] = [
   { value: 'baixa',   label: 'Baixa',   flag: 'var(--fe-prio-low)' },
 ]
 
+const TEMPLATES_COPY: TaskTemplate[] = [
+  {
+    label: 'Post',
+    defaults: {
+      nome: 'Post | ',
+      tipo_conteudo: 'post',
+      descricao: '<h2>Briefing</h2><ul><li><br></li><li><br></li><li><br></li></ul><h2>Copy</h2><h3>Headline</h3><p><br></p><h3>Corpo/Script</h3><p><br></p><h3>Legenda</h3><p><br></p>',
+    },
+  },
+]
+
 const META: Record<TipoListaMkt, { singular: string; plural: string; breadcrumb: string[]; basePath: string }> = {
   copy:       { singular: 'Conteúdo', plural: 'Processo de copy',        breadcrumb: ['Marketing', 'Criação', 'Processo de copy'],            basePath: '/marketing/criacao/copy' },
   design:     { singular: 'Conteúdo', plural: 'Design e criação',        breadcrumb: ['Marketing', 'Criação', 'Design e criação'],            basePath: '/marketing/criacao/design' },
@@ -82,6 +93,7 @@ export function marketingConfig(tipo: TipoListaMkt): ListConfig {
     statusField: 'status',
     defaultGroupBy: 'status',
     baseFilter: { col: 'tipo', value: tipo },
+    templates: tipo === 'copy' ? TEMPLATES_COPY : undefined,
     fields: [
       { key: 'nome', label: 'Nome do conteúdo', type: 'text', required: true, column: { width: 'minmax(0,1fr)', primary: true, header: 'Nome do conteúdo' } },
       { key: 'status', label: 'Status', type: 'select', options: statusOptions, groupOrder: statusValues, alwaysGroups: statusValues.filter((v) => v !== 'descartado' && v !== 'finalizado'), column: { width: '170px', display: 'pill' }, groupable: true, filterable: true },
