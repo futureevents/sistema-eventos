@@ -153,7 +153,7 @@ export function InlineField({
           {({ toggle }) => (
             <HoverBtn onClick={toggle} title={`Alterar ${field.label.toLowerCase()}`}>
               {arr.length === 0 ? <span style={{ color: 'var(--fe-text-faint)', fontSize: 12.5 }}>—</span> : (
-                <span style={{ display: 'inline-flex', gap: 5, flexWrap: variant === 'panel' ? 'wrap' : 'nowrap', overflow: 'hidden' }}>
+                <span style={{ display: 'inline-flex', gap: 5, flexWrap: 'nowrap', overflow: variant === 'panel' ? 'visible' : 'hidden' }}>
                   {arr.slice(0, variant === 'panel' ? 99 : 2).map((t) => {
                     const opt = colored?.find((o) => o.value === t)
                     return opt
