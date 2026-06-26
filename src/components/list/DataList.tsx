@@ -25,6 +25,7 @@ export function DataList({ config, rows: rowsProp, options, embeds }: {
   const router = useRouter()
   const [rows, setRows] = useState<Row[]>(rowsProp)
   const [sel, setSel] = useState<string | null>(null)
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
 
   // Abre SlideOver se ?sel=id estiver na URL (vindo do FullRecord "Recolher")
   useEffect(() => {
@@ -44,7 +45,6 @@ export function DataList({ config, rows: rowsProp, options, embeds }: {
   }
 
   async function patch(id: string, partial: Record<string, unknown>) {
-    // mantém relações embed coerentes (ex.: evento → cliente derivado)
     const augmented = { ...partial }
     for (const k of Object.keys(partial)) {
       const f = config.fields.find((x) => x.key === k)
@@ -61,26 +61,71 @@ export function DataList({ config, rows: rowsProp, options, embeds }: {
     marcarSalvo()
   }
 
+  async function patchMany(ids: string[], partial: Record<string, unknown>) {
+    setRows((prev) => prev.map((r) => (ids.includes(r.id) ? { ...r, ...partial } : r)))
+    setSalvando('saving')
+    const { error } = await supabase.from(config.table).update(partial).in('id', ids)
+    if (error) { setSalvando('idle'); return }
+    marcarSalvo()
+  }
+
   async function remove(id: string) {
     setRows((prev) => prev.filter((r) => r.id !== id))
     if (sel === id) setSel(null)
+    setSelectedIds((prev) => { const next = new Set(prev); next.delete(id); return next })
     setSalvando('saving')
     const { error } = await supabase.from(config.table).delete().eq('id', id)
     if (error) { setSalvando('idle'); return }
     marcarSalvo()
   }
 
+  async function removeMany(ids: string[]) {
+    setRows((prev) => prev.filter((r) => !ids.includes(r.id)))
+    if (sel && ids.includes(sel)) setSel(null)
+    setSelectedIds(new Set())
+    setSalvando('saving')
+    const { error } = await supabase.from(config.table).delete().in('id', ids)
+    if (error) { setSalvando('idle'); return }
+    marcarSalvo()
+  }
+
+  function toggleSelect(id: string) {
+    setSelectedIds((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id); else next.add(id)
+      return next
+    })
+  }
+
+  function toggleSelectAll(visibleIds: string[]) {
+    const allSelected = visibleIds.every((id) => selectedIds.has(id))
+    if (allSelected) {
+      setSelectedIds((prev) => {
+        const next = new Set(prev)
+        visibleIds.forEach((id) => next.delete(id))
+        return next
+      })
+    } else {
+      setSelectedIds((prev) => new Set([...prev, ...visibleIds]))
+    }
+  }
+
   const columns = useMemo(() => config.fields.filter((f) => f.column), [config])
   const groupable = useMemo(() => config.fields.filter((f) => f.groupable), [config])
   const filterable = useMemo(() => config.fields.filter((f) => f.filterable), [config])
-  const grid = useMemo(() => columns.map((c) => c.column!.width).join(' ') + ' 30px', [columns])
+  const grid = useMemo(() => '20px ' + columns.map((c) => c.column!.width).join(' ') + ' 30px', [columns])
 
   const filtradas = useMemo(() => aplicarFiltros(rows, busca, filtros, config), [rows, busca, filtros, config])
   const grupos = useMemo(() => agrupar(filtradas, groupBy ? config.fields.find((f) => f.key === groupBy) ?? null : null, options), [filtradas, groupBy, config, options])
   const nFiltros = contarFiltros(filtros)
+  const visibleIds = useMemo(() => filtradas.map((r) => r.id), [filtradas])
+  const allVisibleSelected = visibleIds.length > 0 && visibleIds.every((id) => selectedIds.has(id))
+  const someSelected = visibleIds.some((id) => selectedIds.has(id))
 
   const aberto = sel ? rows.find((r) => r.id === sel) ?? null : null
   const addHref = `${config.basePath}/novo`
+
+  const selectedArr = useMemo(() => [...selectedIds], [selectedIds])
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: 'var(--fe-surface)' }}>
@@ -93,15 +138,14 @@ export function DataList({ config, rows: rowsProp, options, embeds }: {
       />
       <div className="fe-list-pad" style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
         <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', background: 'var(--fe-surface)', border: '1px solid var(--fe-border)', borderRadius: 'var(--fe-radius-xl)', boxShadow: 'var(--fe-shadow-card)', overflow: 'hidden' }}>
-          {/* Scroll vertical e horizontal contidos no card (tabela larga rola dentro da borda) */}
           <div style={{ flex: 1, minHeight: 0, overflow: 'auto' }}>
             {rows.length === 0 ? (
               <EmptyState icon={config.emptyIcon ?? <DefaultEmptyIcon />} titulo={`Nenhum registro em ${config.plural}`} descricao={`Crie o primeiro ${config.singular.toLowerCase()} para começar.`} addHref={addHref} addLabel={config.addLabel ?? `Adicionar ${config.singular}`} />
             ) : (
               <div style={{ minWidth: 'var(--fe-list-min-w)' }}>
-                <Header columns={columns} grid={grid} config={config} />
+                <Header columns={columns} grid={grid} config={config} allSelected={allVisibleSelected} someSelected={someSelected} onToggleAll={() => toggleSelectAll(visibleIds)} />
                 {grupos.map((g, i) => (
-                  <Grupo key={g.key} grupo={g} grid={grid} columns={columns} config={config} options={options} patch={patch} remove={remove} onAbrir={setSel} addHref={addHref} grouped={!!groupBy} first={i === 0} />
+                  <Grupo key={g.key} grupo={g} grid={grid} columns={columns} config={config} options={options} patch={patch} remove={remove} onAbrir={setSel} addHref={addHref} grouped={!!groupBy} first={i === 0} selectedIds={selectedIds} onToggle={toggleSelect} />
                 ))}
                 {grupos.every((g) => g.itens.length === 0) && (
                   <div style={{ padding: '40px 24px', textAlign: 'center', fontSize: 13, color: 'var(--fe-text-muted)' }}>Nenhum registro corresponde aos filtros.</div>
@@ -115,6 +159,17 @@ export function DataList({ config, rows: rowsProp, options, embeds }: {
 
       {aberto && (
         <SlideOver key={aberto.id} row={aberto} config={config} options={options} patch={patch} remove={remove} onFechar={() => setSel(null)} />
+      )}
+
+      {selectedArr.length > 0 && (
+        <BulkBar
+          selectedIds={selectedArr}
+          config={config}
+          options={options}
+          onPatch={(partial) => patchMany(selectedArr, partial)}
+          onRemove={() => { if (confirm(`Excluir ${selectedArr.length} tarefa${selectedArr.length !== 1 ? 's' : ''}? Esta ação não pode ser desfeita.`)) removeMany(selectedArr) }}
+          onClear={() => setSelectedIds(new Set())}
+        />
       )}
     </div>
   )
@@ -205,7 +260,6 @@ function agrupar(rows: Row[], field: FieldDef | null, options: OptionsMap): Grup
     return [...buckets.entries()].sort((a, b) => a[1].ordem - b[1].ordem).map(([key, v]) => ({ key, itens: v.itens, label: v.label }))
   }
 
-  // relation / derived / text → agrupa por rótulo
   const map = new Map<string, { label: string; itens: Row[] }>()
   for (const r of rows) {
     const k = groupKey(field, r) ?? '__sem'
@@ -379,20 +433,54 @@ function Chip({ children, ativo, onClick }: { children: React.ReactNode; ativo: 
 
 // ─── Cabeçalho de colunas ─────────────────────────────────────────────────────
 
-function Header({ columns, grid, config }: { columns: FieldDef[]; grid: string; config: ListConfig }) {
+function Header({ columns, grid, config, allSelected, someSelected, onToggleAll }: {
+  columns: FieldDef[]; grid: string; config: ListConfig
+  allSelected: boolean; someSelected: boolean; onToggleAll: () => void
+}) {
   return (
-    <div style={{ position: 'sticky', top: 0, zIndex: 2, display: 'grid', gridTemplateColumns: grid, gap: 12, padding: '0 24px 0 52px', height: 36, alignItems: 'center', background: 'var(--fe-surface)', borderBottom: '1px solid var(--fe-border)' }}>
+    <div style={{ position: 'sticky', top: 0, zIndex: 2, display: 'grid', gridTemplateColumns: grid, gap: 12, padding: '0 24px', height: 36, alignItems: 'center', background: 'var(--fe-surface)', borderBottom: '1px solid var(--fe-border)' }}>
+      {/* Checkbox select-all */}
+      <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+        <Checkbox checked={allSelected} indeterminate={someSelected && !allSelected} onChange={onToggleAll} />
+      </span>
       {columns.map((c) => <span key={c.key} style={{ fontSize: 11, fontWeight: 600, color: 'var(--fe-text-faint)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{c.column!.header ?? (c.column!.primary ? `Nome (${config.singular.toLowerCase()})` : c.label)}</span>)}
       <span />
     </div>
   )
 }
 
+// ─── Checkbox ────────────────────────────────────────────────────────────────
+
+function Checkbox({ checked, indeterminate = false, onChange, visible = true }: {
+  checked: boolean; indeterminate?: boolean; onChange: () => void; visible?: boolean
+}) {
+  const ref = useRef<HTMLInputElement>(null)
+  useEffect(() => {
+    if (ref.current) ref.current.indeterminate = indeterminate
+  }, [indeterminate])
+
+  return (
+    <input
+      ref={ref}
+      type="checkbox"
+      checked={checked}
+      onChange={onChange}
+      style={{
+        width: 14, height: 14, cursor: 'pointer', accentColor: 'var(--fe-accent)',
+        opacity: visible || checked || indeterminate ? 1 : 0,
+        transition: 'opacity 80ms',
+        flexShrink: 0,
+      }}
+    />
+  )
+}
+
 // ─── Grupo ─────────────────────────────────────────────────────────────────────
 
-function Grupo({ grupo, grid, columns, config, options, patch, remove, onAbrir, addHref, grouped, first }: {
+function Grupo({ grupo, grid, columns, config, options, patch, remove, onAbrir, addHref, grouped, first, selectedIds, onToggle }: {
   grupo: GrupoView; grid: string; columns: FieldDef[]; config: ListConfig; options: OptionsMap
   patch: (id: string, p: Record<string, unknown>) => void; remove: (id: string) => void; onAbrir: (id: string) => void; addHref: string; grouped: boolean; first?: boolean
+  selectedIds: Set<string>; onToggle: (id: string) => void
 }) {
   const [aberto, setAberto] = useState(true)
   return (
@@ -410,7 +498,7 @@ function Grupo({ grupo, grid, columns, config, options, patch, remove, onAbrir, 
         </div>
       )}
       {aberto && grupo.itens.map((r) => (
-        <RowLine key={r.id} row={r} grid={grid} columns={columns} config={config} options={options} patch={patch} remove={remove} onAbrir={onAbrir} />
+        <RowLine key={r.id} row={r} grid={grid} columns={columns} config={config} options={options} patch={patch} remove={remove} onAbrir={onAbrir} selected={selectedIds.has(r.id)} onToggle={() => onToggle(r.id)} anySelected={selectedIds.size > 0} />
       ))}
       {aberto && grouped && grupo.itens.length === 0 && (
         <div style={{ padding: '0 24px 0 52px', height: 38, display: 'flex', alignItems: 'center', fontSize: 12.5, color: 'var(--fe-text-faint)', borderBottom: '1px solid var(--fe-divider)' }}>Nenhum registro</div>
@@ -419,11 +507,13 @@ function Grupo({ grupo, grid, columns, config, options, patch, remove, onAbrir, 
   )
 }
 
-function RowLine({ row, grid, columns, config, options, patch, remove, onAbrir }: {
+function RowLine({ row, grid, columns, config, options, patch, remove, onAbrir, selected, onToggle, anySelected }: {
   row: Row; grid: string; columns: FieldDef[]; config: ListConfig; options: OptionsMap
   patch: (id: string, p: Record<string, unknown>) => void; remove: (id: string) => void; onAbrir: (id: string) => void
+  selected: boolean; onToggle: () => void; anySelected: boolean
 }) {
   const [pop, setPop] = useState(false)
+  const [hovered, setHovered] = useState(false)
   const statusField = config.statusField ? config.fields.find((f) => f.key === config.statusField) : null
   const titulo = String(row[config.titleField] ?? '')
   const doneOpt = statusField ? optionOf(statusField, String(row[config.statusField!] ?? '')) : undefined
@@ -432,11 +522,16 @@ function RowLine({ row, grid, columns, config, options, patch, remove, onAbrir }
   const twoLine = !!primaryCol?.subtitle
 
   return (
-    <div className="fe-row" role="button" tabIndex={0} aria-label={`Abrir ${titulo || 'registro sem título'}`} style={{ display: 'grid', gridTemplateColumns: grid, gap: 12, alignItems: 'center', minHeight: twoLine ? 58 : 46, padding: '0 24px', borderBottom: '1px solid var(--fe-divider)', cursor: 'pointer', transition: 'background var(--fe-dur-fast)', background: 'var(--fe-surface)' }}
+    <div className="fe-row" role="button" tabIndex={0} aria-label={`Abrir ${titulo || 'registro sem título'}`}
+      style={{ display: 'grid', gridTemplateColumns: grid, gap: 12, alignItems: 'center', minHeight: twoLine ? 58 : 46, padding: '0 24px', borderBottom: '1px solid var(--fe-divider)', cursor: 'pointer', transition: 'background var(--fe-dur-fast)', background: selected ? 'var(--fe-accent-dim)' : 'var(--fe-surface)' }}
       onClick={() => { if (!pop) onAbrir(row.id) }}
       onKeyDown={(e) => { if ((e.key === 'Enter' || e.key === ' ') && e.target === e.currentTarget) { e.preventDefault(); if (!pop) onAbrir(row.id) } }}
-      onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--fe-warm-white)')}
-      onMouseLeave={(e) => (e.currentTarget.style.background = 'var(--fe-surface)')}>
+      onMouseEnter={(e) => { setHovered(true); if (!selected) e.currentTarget.style.background = 'var(--fe-warm-white)' }}
+      onMouseLeave={(e) => { setHovered(false); if (!selected) e.currentTarget.style.background = 'var(--fe-surface)' }}>
+      {/* Checkbox */}
+      <span onClick={(e) => { e.stopPropagation(); onToggle() }} style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+        <Checkbox checked={selected} onChange={onToggle} visible={hovered || selected || anySelected} />
+      </span>
       {columns.map((f) => (
         <span key={f.key} onClick={(e) => { if (!f.column!.primary) e.stopPropagation() }} style={{ minWidth: 0, display: 'flex', alignItems: 'center' }}>
           {f.column!.primary ? (
@@ -460,6 +555,164 @@ function RowLine({ row, grid, columns, config, options, patch, remove, onAbrir }
       <span className="fe-row-actions" onClick={(e) => e.stopPropagation()} style={{ display: 'inline-flex', justifyContent: 'flex-end' }}>
         <RowMenu onExcluir={() => { if (confirm(`Excluir "${titulo}"?`)) remove(row.id) }} />
       </span>
+    </div>
+  )
+}
+
+// ─── Bulk Action Bar ──────────────────────────────────────────────────────────
+
+function BulkBar({ selectedIds, config, options, onPatch, onRemove, onClear }: {
+  selectedIds: string[]
+  config: ListConfig
+  options: OptionsMap
+  onPatch: (partial: Record<string, unknown>) => void
+  onRemove: () => void
+  onClear: () => void
+}) {
+  const n = selectedIds.length
+  const statusField = config.statusField ? config.fields.find((f) => f.key === config.statusField) : null
+  const actionFields = config.fields.filter((f) =>
+    (f.type === 'select' || f.type === 'date') &&
+    f.key !== config.statusField &&
+    (f.column || f.inPanel)
+  ).slice(0, 3)
+
+  const bulkBtnStyle: React.CSSProperties = {
+    height: 34, padding: '0 12px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.14)',
+    background: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.88)',
+    fontSize: 12.5, fontWeight: 500, cursor: 'pointer',
+    display: 'inline-flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap',
+  }
+
+  const panelStyle: React.CSSProperties = {
+    position: 'absolute', bottom: 'calc(100% + 8px)', zIndex: 40,
+    background: 'var(--fe-surface)', border: '1px solid var(--fe-border)',
+    borderRadius: 'var(--fe-radius-lg)', boxShadow: 'var(--fe-shadow-pop)', padding: 5,
+    minWidth: 180,
+  }
+
+  return (
+    <div style={{ position: 'fixed', bottom: 28, left: '50%', transform: 'translateX(-50%)', zIndex: 90, animation: 'feBulkIn 180ms var(--fe-ease) both' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '0 8px', height: 50, background: '#1a1a2e', borderRadius: 14, boxShadow: '0 8px 40px rgba(0,0,0,0.45), 0 2px 8px rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.1)', whiteSpace: 'nowrap' }}>
+
+        {/* Contador + limpar */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '0 8px 0 4px', marginRight: 4, borderRight: '1px solid rgba(255,255,255,0.1)' }}>
+          <span style={{ fontSize: 13, fontWeight: 600, color: 'rgba(255,255,255,0.95)' }}>
+            {n} selecionada{n !== 1 ? 's' : ''}
+          </span>
+          <button onClick={onClear} title="Cancelar seleção"
+            style={{ width: 20, height: 20, borderRadius: 5, border: 'none', background: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.6)', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: 0 }}
+            onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.18)')}
+            onMouseLeave={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.1)')}>
+            <svg width="9" height="9" viewBox="0 0 9 9" fill="none"><path d="M1.5 1.5L7.5 7.5M7.5 1.5L1.5 7.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /></svg>
+          </button>
+        </div>
+
+        {/* Status */}
+        {statusField && (
+          <BulkDropdown
+            label={<><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><circle cx="6" cy="6" r="4.5" stroke="currentColor" strokeWidth="1.3" /><path d="M4 6.2L5.5 7.5L8 4.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" /></svg>Status</>}
+            btnStyle={bulkBtnStyle}
+            panelStyle={panelStyle}
+          >
+            {(close) => (statusField.options ?? []).map((o) => {
+              const opt = o as SelectOption
+              return (
+                <button key={opt.value}
+                  onClick={() => { close(); onPatch({ [config.statusField!]: opt.value }) }}
+                  style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '7px 8px', border: 'none', background: 'transparent', borderRadius: 6, cursor: 'pointer', fontSize: 13, color: 'var(--fe-text)' }}
+                  onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--fe-hover)')}
+                  onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}>
+                  <OptionPill opt={opt} />
+                </button>
+              )
+            })}
+          </BulkDropdown>
+        )}
+
+        {/* Campos select adicionais */}
+        {actionFields.map((f) => f.type === 'select' ? (
+          <BulkDropdown
+            key={f.key}
+            label={<>{f.label}</>}
+            btnStyle={bulkBtnStyle}
+            panelStyle={panelStyle}
+          >
+            {(close) => (f.options ?? []).map((o) => (
+              <button key={o.value}
+                onClick={() => { close(); onPatch({ [f.key]: o.value }) }}
+                style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '7px 8px', border: 'none', background: 'transparent', borderRadius: 6, cursor: 'pointer', fontSize: 13, color: 'var(--fe-text)' }}
+                onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--fe-hover)')}
+                onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}>
+                <OptionPill opt={o} />
+              </button>
+            ))}
+          </BulkDropdown>
+        ) : f.type === 'date' ? (
+          <BulkDropdown
+            key={f.key}
+            label={<><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><rect x="1.5" y="2.5" width="9" height="8.5" rx="1.5" stroke="currentColor" strokeWidth="1.2" /><path d="M1.5 5.5H10.5M4 1.5V3.5M8 1.5V3.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" /></svg>{f.label}</>}
+            btnStyle={bulkBtnStyle}
+            panelStyle={{ ...panelStyle, minWidth: 220, padding: 12 }}
+          >
+            {(close) => (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--fe-text-faint)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{f.label}</span>
+                <input type="date"
+                  style={{ width: '100%', height: 34, padding: '0 8px', borderRadius: 6, border: '1px solid var(--fe-border)', background: 'var(--fe-surface)', fontSize: 13, color: 'var(--fe-text)', outline: 'none', fontFamily: 'var(--font-geist-mono), monospace' }}
+                  onChange={(e) => { if (e.target.value) { close(); onPatch({ [f.key]: e.target.value }) } }} />
+              </div>
+            )}
+          </BulkDropdown>
+        ) : null)}
+
+        <div style={{ width: 1, height: 22, background: 'rgba(255,255,255,0.1)', margin: '0 4px' }} />
+
+        {/* Excluir */}
+        <button
+          onClick={onRemove}
+          style={{ ...bulkBtnStyle, color: '#ff7b7b', border: '1px solid rgba(255,100,100,0.25)', background: 'rgba(255,80,80,0.1)' }}
+          onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,80,80,0.2)' }}
+          onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255,80,80,0.1)' }}>
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 3H10M4.5 3V2C4.5 1.7 4.7 1.5 5 1.5H7C7.3 1.5 7.5 1.7 7.5 2V3M3 3L3.5 9.5C3.5 9.8 3.7 10 4 10H8C8.3 10 8.5 9.8 8.5 9.5L9 3" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" /></svg>
+          Excluir
+        </button>
+      </div>
+    </div>
+  )
+}
+
+function BulkDropdown({ label, btnStyle, panelStyle, children }: {
+  label: React.ReactNode
+  btnStyle: React.CSSProperties
+  panelStyle: React.CSSProperties
+  children: (close: () => void) => React.ReactNode
+}) {
+  const [open, setOpen] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!open) return
+    function onDoc(e: MouseEvent) { if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false) }
+    function onKey(e: KeyboardEvent) { if (e.key === 'Escape') setOpen(false) }
+    document.addEventListener('mousedown', onDoc)
+    document.addEventListener('keydown', onKey)
+    return () => { document.removeEventListener('mousedown', onDoc); document.removeEventListener('keydown', onKey) }
+  }, [open])
+
+  return (
+    <div ref={ref} style={{ position: 'relative', display: 'inline-flex' }}>
+      <button onClick={() => setOpen((v) => !v)} style={btnStyle}
+        onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.14)')}
+        onMouseLeave={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.08)')}>
+        {label}
+        <svg width="9" height="9" viewBox="0 0 9 9" fill="none" style={{ opacity: 0.6 }}><path d="M2 3.5L4.5 6L7 3.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" /></svg>
+      </button>
+      {open && (
+        <div style={panelStyle}>
+          {children(() => setOpen(false))}
+        </div>
+      )}
     </div>
   )
 }
@@ -539,7 +792,6 @@ function SlideOver({ row, config, options, patch, remove, onFechar }: {
             style={{ width: '100%', resize: 'none', border: 'none', outline: 'none', background: 'transparent', fontFamily: 'var(--font-geist), sans-serif', fontWeight: 600, fontSize: 24, lineHeight: 1.25, letterSpacing: '-0.01em', color: 'var(--fe-text-strong)', margin: '0 0 20px', padding: 0, overflow: 'hidden' }} />
 
           <div style={{ marginBottom: descField ? 22 : 0 }}>
-            {/* Campos visíveis */}
             <div style={{ display: 'flex', flexDirection: 'column' }}>
               {panelFields.map((f) => (
                 <div

@@ -141,6 +141,10 @@
 @keyframes feSpin {
   to { transform: rotate(360deg); }
 }
+@keyframes feBulkIn {
+  from { opacity: 0; transform: translateX(-50%) translateY(12px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
 
 .fe-slide-in  { animation: feSlideIn var(--fe-dur-panel) var(--fe-ease) both; }
 .fe-fade-in   { animation: feFadeIn var(--fe-dur-fast) var(--fe-ease) both; }
