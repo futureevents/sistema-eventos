@@ -1,4 +1,4 @@
-import { type ListConfig, type SelectOption, type TaskTemplate } from '../types'
+import { type ListConfig, type FieldDef, type SelectOption, type TaskTemplate } from '../types'
 import { SPACE_MARKETING } from '../spaces'
 
 export type TipoListaMkt = 'copy' | 'design' | 'publicacao' | 'landing' | 'formulario'
@@ -78,6 +78,41 @@ export function marketingConfig(tipo: TipoListaMkt): ListConfig {
   const meta = META[tipo]
   const statusValues = STATUS_POR_LISTA[tipo]
   const statusOptions = statusValues.map((v) => ST[v])
+  const isCriacao = tipo === 'copy' || tipo === 'design' || tipo === 'publicacao'
+
+  // Pasta Criação: colunas fixas (Nome · Responsável · Formato · Publicação ·
+  // Prioridade), nessa ordem. Os demais custom fields ficam fora das colunas
+  // (continuam editáveis no painel da task). Desenvolvimento web mantém o layout
+  // completo.
+  const fields: FieldDef[] = isCriacao
+    ? [
+        { key: 'nome', label: 'Nome do conteúdo', type: 'text', required: true, column: { width: 'minmax(0,1fr)', primary: true, header: 'Nome do conteúdo' } },
+        { key: 'responsavel_id', label: 'Responsável', type: 'relation', relation: { table: 'membros', labelField: 'nome' }, column: { width: '140px', display: 'avatar' }, groupable: true, filterable: true },
+        { key: 'formato_conteudo', label: 'Formato de conteúdo', type: 'multiselect', options: FORMATO_CONTEUDO, column: { width: '190px', display: 'tags' }, filterable: true },
+        { key: 'data_publicacao', label: 'Data de publicação', type: 'date', column: { width: '150px', header: 'Data de publicação' }, groupable: true, filterable: true },
+        { key: 'prioridade', label: 'Prioridade', type: 'select', options: PRIORIDADE, groupOrder: ['urgente', 'alta', 'media', 'baixa'], column: { width: '122px', display: 'flag' }, groupable: true, filterable: true },
+        { key: 'status', label: 'Status', type: 'select', options: statusOptions, groupOrder: statusValues, groupable: true, filterable: true },
+        { key: 'tipo_conteudo', label: 'Tipo de conteúdo', type: 'select', options: TIPO_CONTEUDO, groupable: true, filterable: true },
+        { key: 'canais_publicacao', label: 'Canais de publicação', type: 'multiselect', multiOptions: CANAIS, filterable: true },
+        { key: 'designer_id', label: 'Designer / Editor de vídeos', type: 'relation', relation: { table: 'membros', labelField: 'nome' }, groupable: true, filterable: true },
+        { key: 'data_inicio', label: 'Início', type: 'date', groupable: true, filterable: true },
+        { key: 'data_fim', label: 'Término', type: 'date', groupable: true, filterable: true },
+        { key: 'descricao', label: 'Descrição', type: 'richtext' },
+      ]
+    : [
+        { key: 'nome', label: 'Nome do conteúdo', type: 'text', required: true, column: { width: 'minmax(0,1fr)', primary: true, header: 'Nome do conteúdo' } },
+        { key: 'status', label: 'Status', type: 'select', options: statusOptions, groupOrder: statusValues, column: { width: '170px', display: 'pill' }, groupable: true, filterable: true },
+        { key: 'tipo_conteudo', label: 'Tipo de conteúdo', type: 'select', options: TIPO_CONTEUDO, column: { width: '150px', display: 'pill' }, groupable: true, filterable: true },
+        { key: 'formato_conteudo', label: 'Formato de conteúdo', type: 'multiselect', options: FORMATO_CONTEUDO, column: { width: '190px', display: 'tags' }, filterable: true },
+        { key: 'canais_publicacao', label: 'Canais de publicação', type: 'multiselect', multiOptions: CANAIS, column: { width: '200px', display: 'tags' }, filterable: true },
+        { key: 'designer_id', label: 'Designer / Editor de vídeos', type: 'relation', relation: { table: 'membros', labelField: 'nome' }, column: { width: '120px', display: 'avatar' }, groupable: true, filterable: true },
+        { key: 'data_publicacao', label: 'Data de publicação', type: 'date', column: { width: '150px', header: 'Publicação' }, groupable: true, filterable: true },
+        { key: 'responsavel_id', label: 'Responsável', type: 'relation', relation: { table: 'membros', labelField: 'nome' }, column: { width: '120px', display: 'avatar' }, groupable: true, filterable: true },
+        { key: 'prioridade', label: 'Prioridade', type: 'select', options: PRIORIDADE, groupOrder: ['urgente', 'alta', 'media', 'baixa'], column: { width: '122px', display: 'flag' }, groupable: true, filterable: true },
+        { key: 'data_inicio', label: 'Início', type: 'date', groupable: true, filterable: true },
+        { key: 'data_fim', label: 'Término', type: 'date', groupable: true, filterable: true },
+        { key: 'descricao', label: 'Descrição', type: 'richtext' },
+      ]
 
   return {
     table: 'task_marketing',
@@ -97,19 +132,6 @@ export function marketingConfig(tipo: TipoListaMkt): ListConfig {
     defaultGroupBy: 'status',
     baseFilter: { col: 'tipo', value: tipo },
     templates: tipo === 'copy' ? TEMPLATES_COPY : undefined,
-    fields: [
-      { key: 'nome', label: 'Nome do conteúdo', type: 'text', required: true, column: { width: 'minmax(0,1fr)', primary: true, header: 'Nome do conteúdo' } },
-      { key: 'status', label: 'Status', type: 'select', options: statusOptions, groupOrder: statusValues, alwaysGroups: statusValues.filter((v) => v !== 'descartado' && v !== 'finalizado'), column: { width: '170px', display: 'pill' }, groupable: true, filterable: true },
-      { key: 'tipo_conteudo', label: 'Tipo de conteúdo', type: 'select', options: TIPO_CONTEUDO, column: { width: '150px', display: 'pill' }, groupable: true, filterable: true },
-      { key: 'formato_conteudo', label: 'Formato de conteúdo', type: 'multiselect', options: FORMATO_CONTEUDO, column: { width: '190px', display: 'tags' }, filterable: true },
-      { key: 'canais_publicacao', label: 'Canais de publicação', type: 'multiselect', multiOptions: CANAIS, column: { width: '200px', display: 'tags' }, filterable: true },
-      { key: 'designer_id', label: 'Designer / Editor de vídeos', type: 'relation', relation: { table: 'membros', labelField: 'nome' }, column: { width: '120px', display: 'avatar' }, groupable: true, filterable: true },
-      { key: 'data_publicacao', label: 'Data de publicação', type: 'date', column: { width: '150px', header: 'Publicação' }, groupable: true, filterable: true },
-      { key: 'responsavel_id', label: 'Responsável', type: 'relation', relation: { table: 'membros', labelField: 'nome' }, column: { width: '120px', display: 'avatar' }, groupable: true, filterable: true },
-      { key: 'prioridade', label: 'Prioridade', type: 'select', options: PRIORIDADE, groupOrder: ['urgente', 'alta', 'media', 'baixa'], column: { width: '122px', display: 'flag' }, groupable: true, filterable: true },
-      { key: 'data_inicio', label: 'Início', type: 'date', groupable: true, filterable: true },
-      { key: 'data_fim', label: 'Término', type: 'date', groupable: true, filterable: true },
-      { key: 'descricao', label: 'Descrição', type: 'richtext' },
-    ],
+    fields,
   }
 }

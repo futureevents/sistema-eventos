@@ -169,7 +169,7 @@ export function DataList({ config, rows: rowsProp, options, embeds }: {
       <div className="fe-list-pad" style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
         <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', background: 'var(--fe-surface)', border: '1px solid var(--fe-border)', borderRadius: 'var(--fe-radius-xl)', boxShadow: 'var(--fe-shadow-card)', overflow: 'hidden' }}>
           <div style={{ flex: 1, minHeight: 0, overflow: 'auto' }}>
-            {rows.length === 0 && grupos.length <= 1 ? (
+            {rows.length === 0 && !(groupByField?.type === 'select' && groupByField.options) ? (
               <EmptyState icon={config.emptyIcon ?? <DefaultEmptyIcon />} titulo={`Nenhum registro em ${config.plural}`} descricao={`Crie o primeiro ${config.singular.toLowerCase()} para começar.`} addHref={addHref} addLabel={config.addLabel ?? `Adicionar ${config.singular}`} />
             ) : (
               <div style={{ minWidth: 'var(--fe-list-min-w)' }}>
@@ -273,11 +273,14 @@ function agrupar(rows: Row[], field: FieldDef | null, options: OptionsMap): Grup
 
   if (field.type === 'select' && field.options) {
     const order = field.groupOrder ?? field.options.map((o) => o.value)
-    const always = field.alwaysGroups ?? []
-    return order.map((val) => {
+    const grupos = order.map((val) => {
       const itens = rows.filter((r) => String(r[field.key] ?? '') === val)
       return { key: val, itens, option: optionOf(field, val) }
-    }).filter((g) => g.itens.length > 0 || always.includes(g.key))
+    })
+    // Só aparecem os status que têm alguma task. Se nenhum tem, mostra apenas o
+    // status inicial (primeiro da ordem) para a pessoa poder adicionar uma task.
+    const comTasks = grupos.filter((g) => g.itens.length > 0)
+    return comTasks.length > 0 ? comTasks : grupos.slice(0, 1)
   }
 
   if (field.type === 'date') {
