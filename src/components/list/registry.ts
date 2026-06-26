@@ -3,6 +3,7 @@ import { eventosConfig } from './configs/eventos'
 import { clientesConfig } from './configs/clientes'
 import { fornecedoresConfig } from './configs/fornecedores'
 import { tasksConfig } from './configs/tasks'
+import { marketingConfig } from './configs/marketing-criacao'
 
 /**
  * Registro de Lists. As páginas (servidor) e os wrappers (cliente) resolvem a
@@ -17,6 +18,11 @@ export const LIST_CONFIGS: Record<string, ListConfig> = {
   'tasks:pre_evento': tasksConfig('pre_evento'),
   'tasks:intra_evento': tasksConfig('intra_evento'),
   'tasks:pos_evento': tasksConfig('pos_evento'),
+  'mkt:copy': marketingConfig('copy'),
+  'mkt:design': marketingConfig('design'),
+  'mkt:publicacao': marketingConfig('publicacao'),
+  'mkt:landing': marketingConfig('landing'),
+  'mkt:formulario': marketingConfig('formulario'),
 }
 
 export type ListKey = keyof typeof LIST_CONFIGS
