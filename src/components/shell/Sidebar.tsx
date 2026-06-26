@@ -160,17 +160,17 @@ export function Sidebar({ mobileOpen = false, onClose }: { mobileOpen?: boolean;
         {/* Atalhos pessoais */}
         <nav style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
           <QuickLink href="/inbox" label="Inbox" pathname={pathname}>
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
               <path d="M22 12h-6l-2 3h-4l-2-3H2" /><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z" />
             </svg>
           </QuickLink>
           <QuickLink href="/updates" label="Updates do dia" pathname={pathname}>
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
               <rect x="3" y="4" width="18" height="18" rx="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" />
             </svg>
           </QuickLink>
           <QuickLink href="/minhas-atividades" label="Minhas atividades" pathname={pathname}>
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
               <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
             </svg>
           </QuickLink>
@@ -257,9 +257,9 @@ function SpaceSection({
         style={{
           display: 'flex',
           alignItems: 'center',
-          gap: 8,
+          gap: 9,
           width: '100%',
-          height: 32,
+          height: 34,
           padding: '0 10px',
           border: 'none',
           background: 'transparent',
@@ -275,10 +275,10 @@ function SpaceSection({
         >
           <polyline points="9 18 15 12 9 6" />
         </svg>
-        <span style={{ width: 18, height: 18, flexShrink: 0, borderRadius: 5, background: space.color, color: '#fff', fontSize: 10.5, fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <span style={{ width: 19, height: 19, flexShrink: 0, borderRadius: 5, background: space.color, color: '#fff', fontSize: 11, fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           {space.label[0]}
         </span>
-        <span style={{ fontSize: 13.5, color: isOpen ? 'var(--fe-text-strong)' : 'var(--fe-text)', fontWeight: isOpen ? 600 : 500 }}>{space.label}</span>
+        <span style={{ fontSize: 'var(--fe-text-base)', color: isOpen ? 'var(--fe-text-strong)' : 'var(--fe-text)', fontWeight: isOpen ? 600 : 500 }}>{space.label}</span>
       </button>
 
       {/* Folders */}
@@ -326,7 +326,7 @@ function FolderSection({
           display: 'flex',
           alignItems: 'center',
           gap: 4,
-          height: 32,
+          height: 34,
           padding: '0 10px 0 4px',
           borderRadius: 'var(--fe-radius-md)',
           background: isFolderActive ? 'var(--fe-accent-dim)' : 'transparent',
@@ -334,7 +334,7 @@ function FolderSection({
       >
         <button
           onClick={onToggle}
-          style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 18, height: 32, flexShrink: 0, border: 'none', background: 'transparent', cursor: 'pointer', padding: 0, color: 'var(--fe-text-muted)' }}
+          style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 18, height: 34, flexShrink: 0, border: 'none', background: 'transparent', cursor: 'pointer', padding: 0, color: 'var(--fe-text-muted)' }}
         >
           <svg
             width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"
@@ -345,27 +345,27 @@ function FolderSection({
         </button>
         <button
           onClick={onToggle}
-          style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 18, height: 32, flexShrink: 0, border: 'none', background: 'transparent', cursor: 'pointer', padding: 0, color: 'var(--fe-text-soft)' }}
+          style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 18, height: 34, flexShrink: 0, border: 'none', background: 'transparent', cursor: 'pointer', padding: 0, color: 'var(--fe-text-soft)' }}
         >
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
             <path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2z" />
           </svg>
         </button>
         {folder.href ? (
           <Link
             href={folder.href}
-            style={{ display: 'flex', alignItems: 'center', flex: 1, height: 32, padding: '0 6px', textDecoration: 'none', overflow: 'hidden', borderRadius: 'var(--fe-radius-md)' }}
+            style={{ display: 'flex', alignItems: 'center', flex: 1, height: 34, padding: '0 6px', textDecoration: 'none', overflow: 'hidden', borderRadius: 'var(--fe-radius-md)' }}
           >
-            <span style={{ fontSize: 13.5, fontWeight: isFolderActive ? 600 : 500, color: isFolderActive ? 'var(--fe-accent-dark)' : 'var(--fe-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            <span style={{ fontSize: 'var(--fe-text-base)', fontWeight: isFolderActive ? 600 : 500, color: isFolderActive ? 'var(--fe-accent-dark)' : 'var(--fe-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
               {folder.label}
             </span>
           </Link>
         ) : (
           <button
             onClick={onToggle}
-            style={{ display: 'flex', alignItems: 'center', flex: 1, height: 32, padding: '0 6px', border: 'none', background: 'transparent', cursor: 'pointer', overflow: 'hidden' }}
+            style={{ display: 'flex', alignItems: 'center', flex: 1, height: 34, padding: '0 6px', border: 'none', background: 'transparent', cursor: 'pointer', overflow: 'hidden' }}
           >
-            <span style={{ fontSize: 13.5, fontWeight: 500, color: 'var(--fe-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            <span style={{ fontSize: 'var(--fe-text-base)', fontWeight: 500, color: 'var(--fe-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
               {folder.label}
             </span>
           </button>
@@ -386,10 +386,10 @@ function FolderSection({
                   display: 'flex',
                   alignItems: 'center',
                   gap: 9,
-                  height: 31,
+                  height: 34,
                   padding: '0 10px',
                   borderRadius: 'var(--fe-radius-md)',
-                  fontSize: 13.5,
+                  fontSize: 'var(--fe-text-base)',
                   fontWeight: isActive ? 600 : 400,
                   color: isActive ? 'var(--fe-accent-dark)' : 'var(--fe-text-soft)',
                   background: isActive ? 'var(--fe-accent-dim)' : 'transparent',
@@ -402,7 +402,7 @@ function FolderSection({
                 onMouseEnter={(e) => !isActive && ((e.currentTarget as HTMLElement).style.background = 'var(--fe-hover)')}
                 onMouseLeave={(e) => !isActive && ((e.currentTarget as HTMLElement).style.background = 'transparent')}
               >
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke={isActive ? 'var(--fe-accent)' : 'var(--fe-text-muted)'} strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={isActive ? 'var(--fe-accent)' : 'var(--fe-text-muted)'} strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
                   <line x1="8" y1="6" x2="21" y2="6" /><line x1="8" y1="12" x2="21" y2="12" /><line x1="8" y1="18" x2="21" y2="18" /><line x1="3" y1="6" x2="3.01" y2="6" /><line x1="3" y1="12" x2="3.01" y2="12" /><line x1="3" y1="18" x2="3.01" y2="18" />
                 </svg>
                 <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{list.label}</span>
@@ -422,12 +422,12 @@ function QuickLink({ href, label, pathname, children }: { href: string; label: s
       href={href}
       className="fe-nav-row"
       style={{
-        display: 'flex', alignItems: 'center', gap: 10,
+        display: 'flex', alignItems: 'center', gap: 9,
         height: 34, padding: '0 10px', borderRadius: 'var(--fe-radius-md)',
         textDecoration: 'none',
         background: isActive ? 'var(--fe-accent-dim)' : 'transparent',
         color: isActive ? 'var(--fe-accent-dark)' : 'var(--fe-text-soft)',
-        fontSize: 13.5,
+        fontSize: 'var(--fe-text-base)',
         fontWeight: isActive ? 600 : 400,
       }}
       onMouseEnter={(e) => !isActive && ((e.currentTarget as HTMLElement).style.background = 'var(--fe-hover)')}
