@@ -149,9 +149,11 @@
 .fe-slide-in  { animation: feSlideIn var(--fe-dur-panel) var(--fe-ease) both; }
 .fe-fade-in   { animation: feFadeIn var(--fe-dur-fast) var(--fe-ease) both; }
 
-/* ── Rich text (descrição de tarefas) ──────────────────── */
+/* ── Rich text (descrição de tarefas e comentários) ──────────────────── */
+.fe-richtext h1 { font-family: var(--font-geist), sans-serif; font-size: var(--fe-text-2xl); font-weight: 700; letter-spacing: -0.02em; line-height: 1.2; color: var(--fe-text-strong); margin: 24px 0 8px; }
 .fe-richtext h2 { font-family: var(--font-geist), sans-serif; font-size: var(--fe-text-xl); font-weight: 600; letter-spacing: -0.012em; line-height: 1.25; color: var(--fe-text-strong); margin: 18px 0 6px; }
 .fe-richtext h3 { font-size: var(--fe-text-lg); font-weight: 600; letter-spacing: -0.006em; line-height: 1.35; color: var(--fe-text-strong); margin: 14px 0 4px; }
+.fe-richtext h4 { font-size: var(--fe-text-base); font-weight: 600; letter-spacing: -0.002em; line-height: 1.4; color: var(--fe-text-strong); margin: 12px 0 3px; }
 .fe-richtext p { margin: 0 0 12px; line-height: 1.6; }
 .fe-richtext ul { list-style: disc; padding-left: 20px; margin: 4px 0 12px; }
 .fe-richtext ol { list-style: decimal; padding-left: 20px; margin: 4px 0 12px; }
@@ -160,6 +162,7 @@
 .fe-richtext a { color: var(--fe-status-prog-text); text-decoration: underline; }
 .fe-richtext > *:first-child { margin-top: 0; }
 .fe-richtext > *:last-child { margin-bottom: 0; }
+.fe-comment-input:empty:before { content: attr(data-placeholder); color: var(--fe-text-faint); pointer-events: none; }
 
 /* Ações de linha visíveis só no hover da linha */
 .fe-row .fe-row-actions { opacity: 0; transition: opacity var(--fe-dur-fast); }

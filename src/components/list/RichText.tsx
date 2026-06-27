@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 
-const CORES = ['var(--fe-text-strong)', 'var(--fe-prio-urgent)', 'var(--fe-prio-high)', 'var(--fe-status-done-text)', 'var(--fe-status-prog-text)', 'var(--fe-accent)', '#D6409F', 'var(--fe-text-muted)']
+export const RICHTEXT_CORES = ['var(--fe-text-strong)', 'var(--fe-prio-urgent)', 'var(--fe-prio-high)', 'var(--fe-status-done-text)', 'var(--fe-status-prog-text)', 'var(--fe-accent)', '#D6409F', 'var(--fe-text-muted)']
 
 function execCmd(cmd: string, value?: string) { document.execCommand(cmd, false, value) }
 
@@ -10,10 +10,72 @@ function normalize(s: string) {
   return s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
 }
 
+function inlineFmt(text: string): string {
+  return text
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/__(.+?)__/g, '<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g, '<em>$1</em>')
+    .replace(/_(.+?)_/g, '<em>$1</em>')
+    .replace(/`(.+?)`/g, '<code>$1</code>')
+}
+
+export function markdownToHtml(md: string): string {
+  const lines = md.split('\n')
+  const out: string[] = []
+  let inUl = false
+  let inOl = false
+
+  function closeList() {
+    if (inUl) { out.push('</ul>'); inUl = false }
+    if (inOl) { out.push('</ol>'); inOl = false }
+  }
+
+  for (const raw of lines) {
+    const line = raw.trimEnd()
+
+    const hm = line.match(/^(#{1,4})\s+(.+)/)
+    if (hm) {
+      closeList()
+      out.push(`<h${hm[1].length}>${inlineFmt(hm[2])}</h${hm[1].length}>`)
+      continue
+    }
+
+    const ulm = line.match(/^[\s]*[-*+]\s+(.+)/)
+    if (ulm) {
+      if (inOl) { out.push('</ol>'); inOl = false }
+      if (!inUl) { out.push('<ul>'); inUl = true }
+      out.push(`<li>${inlineFmt(ulm[1])}</li>`)
+      continue
+    }
+
+    const olm = line.match(/^[\s]*\d+\.\s+(.+)/)
+    if (olm) {
+      if (inUl) { out.push('</ul>'); inUl = false }
+      if (!inOl) { out.push('<ol>'); inOl = true }
+      out.push(`<li>${inlineFmt(olm[1])}</li>`)
+      continue
+    }
+
+    if (!line.trim()) {
+      closeList()
+      out.push('<p><br></p>')
+      continue
+    }
+
+    closeList()
+    out.push(`<p>${inlineFmt(line)}</p>`)
+  }
+
+  closeList()
+  return out.join('')
+}
+
 const SLASH_ITEMS = [
   { label: 'Título 1',       icon: 'H1',  cmd: () => execCmd('formatBlock', 'H1') },
   { label: 'Título 2',       icon: 'H2',  cmd: () => execCmd('formatBlock', 'H2') },
   { label: 'Título 3',       icon: 'H3',  cmd: () => execCmd('formatBlock', 'H3') },
+  { label: 'Título 4',       icon: 'H4',  cmd: () => execCmd('formatBlock', 'H4') },
   { label: 'Texto normal',   icon: 'P',   cmd: () => execCmd('formatBlock', 'P') },
   { label: 'Lista de itens', icon: '•',   cmd: () => execCmd('insertUnorderedList') },
   { label: 'Lista numerada', icon: '1.',  cmd: () => execCmd('insertOrderedList') },
@@ -21,11 +83,57 @@ const SLASH_ITEMS = [
 
 interface Pos { x: number; y: number }
 
+export function FtBtn({ onClick, children }: { onClick: () => void; children: React.ReactNode }) {
+  return (
+    <button
+      type="button"
+      onMouseDown={(e) => e.preventDefault()}
+      onClick={onClick}
+      style={{
+        minWidth: 24, height: 24, padding: '0 4px',
+        borderRadius: 4, border: 'none',
+        background: 'transparent', color: 'var(--fe-text-soft)',
+        cursor: 'pointer',
+        display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+      }}
+    >
+      {children}
+    </button>
+  )
+}
+
+export function FtSep() {
+  return <span style={{ width: 1, height: 14, background: 'var(--fe-border-soft)', margin: '0 2px', flexShrink: 0 }} />
+}
+
+function BulletIcon() {
+  return (
+    <svg width="13" height="13" viewBox="0 0 16 16" fill="none">
+      <circle cx="3" cy="4.5" r="1.2" fill="currentColor" />
+      <circle cx="3" cy="8"   r="1.2" fill="currentColor" />
+      <circle cx="3" cy="11.5" r="1.2" fill="currentColor" />
+      <path d="M6 4.5H13M6 8H13M6 11.5H13" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
+    </svg>
+  )
+}
+
+function OrderedIcon() {
+  return (
+    <svg width="13" height="13" viewBox="0 0 16 16" fill="none">
+      <path d="M6 4.5H13M6 8H13M6 11.5H13" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
+      <text x="1.5" y="6"    fontSize="5" fill="currentColor" fontWeight="700">1</text>
+      <text x="1.5" y="9.6"  fontSize="5" fill="currentColor" fontWeight="700">2</text>
+      <text x="1.5" y="13.2" fontSize="5" fill="currentColor" fontWeight="700">3</text>
+    </svg>
+  )
+}
+
 /**
  * Editor rich text clean: sem toolbar fixa.
  * - Barra flutuante aparece ao selecionar texto
  * - Slash commands com /
  * - Markdown inline: "- " → bullet, "1. " → numerada
+ * - Paste de markdown converte automaticamente
  */
 export function RichTextEditor({
   value, onChange, placeholder = 'Adicione uma descrição…', minHeight = 120,
@@ -71,7 +179,6 @@ export function RichTextEditor({
     onChange(html)
   }
 
-  // Texto do início do nó de texto atual até o cursor
   function getLinePrefix(): string {
     const sel = window.getSelection()
     if (!sel || sel.rangeCount === 0) return ''
@@ -81,7 +188,6 @@ export function RichTextEditor({
     return (node.textContent || '').substring(0, range.startOffset)
   }
 
-  // Posição abaixo do cursor para o slash menu
   function getCursorBottomLeft(): Pos | null {
     const sel = window.getSelection()
     if (!sel || sel.rangeCount === 0) return null
@@ -95,7 +201,7 @@ export function RichTextEditor({
   function handleInput() {
     const prefix = getLinePrefix()
 
-    // ── Slash command ────────────────────────────────────────────────────────
+    // ── Slash command ──────────────────────────────────────────────────────
     if (prefix.startsWith('/') && !prefix.includes(' ')) {
       const pos = getCursorBottomLeft()
       if (pos) {
@@ -110,8 +216,7 @@ export function RichTextEditor({
       setSlashPos(null)
     }
 
-    // ── Markdown inline ──────────────────────────────────────────────────────
-    // Usa prefix (texto antes do cursor) para detectar trigger e apaga apenas ele
+    // ── Markdown inline ────────────────────────────────────────────────────
     if (prefix === '- ' || prefix === '– ') {
       const sel2 = window.getSelection()
       if (sel2 && sel2.rangeCount > 0) {
@@ -148,9 +253,21 @@ export function RichTextEditor({
     emitir()
   }
 
+  function handlePaste(e: React.ClipboardEvent) {
+    // Se não há HTML no clipboard, converter o texto plain como markdown
+    const hasHtml = e.clipboardData.types.includes('text/html')
+    if (!hasHtml) {
+      const plain = e.clipboardData.getData('text/plain')
+      if (plain) {
+        e.preventDefault()
+        execCmd('insertHTML', markdownToHtml(plain))
+        emitir()
+      }
+    }
+  }
+
   function applySlashItem(item: typeof SLASH_ITEMS[0]) {
     if (!editorRef.current) return
-    // Remove o texto do slash command antes de aplicar
     const sel = window.getSelection()
     if (sel && sel.rangeCount > 0) {
       const range = sel.getRangeAt(0)
@@ -227,11 +344,12 @@ export function RichTextEditor({
           <FtBtn onClick={() => applyFmt('formatBlock', 'H1')}><span style={{ fontWeight: 700, fontSize: 11 }}>H1</span></FtBtn>
           <FtBtn onClick={() => applyFmt('formatBlock', 'H2')}><span style={{ fontWeight: 700, fontSize: 11 }}>H2</span></FtBtn>
           <FtBtn onClick={() => applyFmt('formatBlock', 'H3')}><span style={{ fontWeight: 700, fontSize: 11 }}>H3</span></FtBtn>
+          <FtBtn onClick={() => applyFmt('formatBlock', 'H4')}><span style={{ fontWeight: 700, fontSize: 11 }}>H4</span></FtBtn>
           <FtSep />
           <FtBtn onClick={() => applyFmt('insertUnorderedList')}><BulletIcon /></FtBtn>
           <FtBtn onClick={() => applyFmt('insertOrderedList')}><OrderedIcon /></FtBtn>
           <FtSep />
-          {CORES.map((c) => (
+          {RICHTEXT_CORES.map((c) => (
             <button key={c} type="button" onMouseDown={(e) => e.preventDefault()}
               onClick={() => applyFmt('foreColor', c)}
               style={{ width: 13, height: 13, borderRadius: 3, border: '1px solid rgba(0,0,0,0.1)', background: c, cursor: 'pointer', flexShrink: 0 }} />
@@ -316,6 +434,7 @@ export function RichTextEditor({
             suppressContentEditableWarning
             onInput={handleInput}
             onKeyDown={handleKeyDown}
+            onPaste={handlePaste}
             onFocus={() => setFocado(true)}
             onBlur={() => { setFocado(false); setSlashPos(null); emitir() }}
             className="fe-richtext"
@@ -324,51 +443,6 @@ export function RichTextEditor({
         </div>
       </div>
     </>
-  )
-}
-
-function FtBtn({ onClick, children }: { onClick: () => void; children: React.ReactNode }) {
-  return (
-    <button
-      type="button"
-      onMouseDown={(e) => e.preventDefault()}
-      onClick={onClick}
-      style={{
-        minWidth: 24, height: 24, padding: '0 4px',
-        borderRadius: 4, border: 'none',
-        background: 'transparent', color: 'var(--fe-text-soft)',
-        cursor: 'pointer',
-        display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-      }}
-    >
-      {children}
-    </button>
-  )
-}
-
-function FtSep() {
-  return <span style={{ width: 1, height: 14, background: 'var(--fe-border-soft)', margin: '0 2px', flexShrink: 0 }} />
-}
-
-function BulletIcon() {
-  return (
-    <svg width="13" height="13" viewBox="0 0 16 16" fill="none">
-      <circle cx="3" cy="4.5" r="1.2" fill="currentColor" />
-      <circle cx="3" cy="8"   r="1.2" fill="currentColor" />
-      <circle cx="3" cy="11.5" r="1.2" fill="currentColor" />
-      <path d="M6 4.5H13M6 8H13M6 11.5H13" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
-    </svg>
-  )
-}
-
-function OrderedIcon() {
-  return (
-    <svg width="13" height="13" viewBox="0 0 16 16" fill="none">
-      <path d="M6 4.5H13M6 8H13M6 11.5H13" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
-      <text x="1.5" y="6"    fontSize="5" fill="currentColor" fontWeight="700">1</text>
-      <text x="1.5" y="9.6"  fontSize="5" fill="currentColor" fontWeight="700">2</text>
-      <text x="1.5" y="13.2" fontSize="5" fill="currentColor" fontWeight="700">3</text>
-    </svg>
   )
 }
 

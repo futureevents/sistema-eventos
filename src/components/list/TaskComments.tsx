@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { markdownToHtml, RICHTEXT_CORES, FtBtn, FtSep } from './RichText'
 
 interface Comment {
   id: string
@@ -31,20 +32,13 @@ function horaRelativa(iso: string) {
   return new Date(iso).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })
 }
 
-// Renderiza o body destacando @menções em azul
-function RenderBody({ body }: { body: string }) {
-  const parts = body.split(/(@\S+)/g)
-  return (
-    <span>
-      {parts.map((part, i) =>
-        part.startsWith('@') ? (
-          <span key={i} style={{ color: 'var(--fe-accent)', fontWeight: 600 }}>{part}</span>
-        ) : (
-          <span key={i}>{part}</span>
-        )
-      )}
-    </span>
-  )
+function safeRenderBody(body: string): string {
+  // Se parece HTML, renderizar como HTML; senão, tratar como plain text preservando quebras
+  if (/<[a-z][\s\S]*>/i.test(body)) return body
+  return body
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/(@\S+)/g, '<span style="color:var(--fe-accent);font-weight:600">$1</span>')
+    .replace(/\n/g, '<br>')
 }
 
 function CommentRow({ comment: c, isOwn, onDelete }: { comment: Comment; isOwn: boolean; onDelete: () => void }) {
@@ -74,85 +68,242 @@ function CommentRow({ comment: c, isOwn, onDelete }: { comment: Comment; isOwn: 
             </button>
           )}
         </div>
-        <div style={{ fontSize: 13.5, color: 'var(--fe-text)', lineHeight: 1.6, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
-          <RenderBody body={c.body} />
-        </div>
+        <div
+          className="fe-richtext"
+          style={{ fontSize: 13.5, color: 'var(--fe-text)', lineHeight: 1.6, wordBreak: 'break-word' }}
+          dangerouslySetInnerHTML={{ __html: safeRenderBody(c.body) }}
+        />
       </div>
     </div>
   )
 }
 
-// Dropdown de sugestões de @menção
-function MentionDropdown({
+// Editor rich text para comentários com suporte a @mentions
+function RichCommentInput({
   membros,
-  query,
-  onSelect,
-  anchorRef,
+  onSend,
 }: {
   membros: Membro[]
-  query: string
-  onSelect: (m: Membro) => void
-  anchorRef: React.RefObject<HTMLTextAreaElement | null>
+  onSend: (html: string) => void
 }) {
-  const filtered = membros.filter((m) =>
-    m.nome.toLowerCase().includes(query.toLowerCase()) ||
-    m.email.toLowerCase().includes(query.toLowerCase())
-  ).slice(0, 6)
+  const editorRef = useRef<HTMLDivElement>(null)
+  const [empty, setEmpty] = useState(true)
+  const [floatPos, setFloatPos] = useState<{ x: number; y: number } | null>(null)
+  const [mentionQuery, setMentionQuery] = useState<string | null>(null)
+  const [mentionPos, setMentionPos]     = useState<{ x: number; y: number } | null>(null)
 
-  if (filtered.length === 0) return null
+  useEffect(() => {
+    function onSelChange() {
+      if (!editorRef.current) return
+      const sel = window.getSelection()
+      if (!sel || sel.isCollapsed || !editorRef.current.contains(sel.anchorNode)) {
+        setFloatPos(null)
+        return
+      }
+      const rect = sel.getRangeAt(0).getBoundingClientRect()
+      if (!rect || rect.width === 0) { setFloatPos(null); return }
+      setFloatPos({ x: rect.left + rect.width / 2, y: rect.top })
+    }
+    document.addEventListener('selectionchange', onSelChange)
+    return () => document.removeEventListener('selectionchange', onSelChange)
+  }, [])
 
-  // Posicionar o dropdown logo abaixo do textarea
-  const rect = anchorRef.current?.getBoundingClientRect()
-  if (!rect) return null
+  function getTextBeforeCursor(): string {
+    const sel = window.getSelection()
+    if (!sel || !sel.rangeCount) return ''
+    const range = sel.getRangeAt(0)
+    const node = range.startContainer
+    if (node.nodeType === Node.TEXT_NODE) return (node.textContent || '').substring(0, range.startOffset)
+    return ''
+  }
+
+  function getCursorBottomLeft(): { x: number; y: number } | null {
+    const sel = window.getSelection()
+    if (!sel || !sel.rangeCount) return null
+    const range = sel.getRangeAt(0).cloneRange()
+    range.collapse(true)
+    const rect = range.getBoundingClientRect()
+    if (!rect.height) return null
+    return { x: rect.left, y: rect.bottom + 4 }
+  }
+
+  function exec(cmd: string, val?: string) { document.execCommand(cmd, false, val) }
+
+  function applyFmt(cmd: string, val?: string) {
+    editorRef.current?.focus()
+    exec(cmd, val)
+    checkEmpty()
+  }
+
+  function checkEmpty() {
+    if (!editorRef.current) return
+    setEmpty((editorRef.current.textContent || '').trim() === '')
+  }
+
+  function handleInput() {
+    checkEmpty()
+    const textBefore = getTextBeforeCursor()
+    const match = textBefore.match(/@(\S*)$/)
+    if (match) {
+      setMentionQuery(match[1])
+      setMentionPos(getCursorBottomLeft())
+    } else {
+      setMentionQuery(null)
+    }
+  }
+
+  function handleSelectMention(m: Membro) {
+    const sel = window.getSelection()
+    if (sel && sel.rangeCount > 0) {
+      const range = sel.getRangeAt(0)
+      const node = range.startContainer
+      if (node.nodeType === Node.TEXT_NODE) {
+        const text = node.textContent || ''
+        const cursor = range.startOffset
+        const before = text.substring(0, cursor)
+        const matchAt = before.match(/@(\S*)$/)
+        if (matchAt) {
+          const start = cursor - matchAt[0].length
+          const replacement = `@${m.nome.replace(/\s+/g, '')} `
+          node.textContent = text.substring(0, start) + replacement + text.substring(cursor)
+          const newRange = document.createRange()
+          newRange.setStart(node, start + replacement.length)
+          newRange.collapse(true)
+          sel.removeAllRanges()
+          sel.addRange(newRange)
+        }
+      }
+    }
+    setMentionQuery(null)
+    editorRef.current?.focus()
+    checkEmpty()
+  }
+
+  function handleKeyDown(e: React.KeyboardEvent) {
+    if (e.key === 'Escape' && mentionQuery !== null) {
+      e.preventDefault()
+      setMentionQuery(null)
+      return
+    }
+    if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+      e.preventDefault()
+      send()
+    }
+  }
+
+  function handlePaste(e: React.ClipboardEvent) {
+    const hasHtml = e.clipboardData.types.includes('text/html')
+    if (!hasHtml) {
+      const plain = e.clipboardData.getData('text/plain')
+      if (plain) {
+        e.preventDefault()
+        exec('insertHTML', markdownToHtml(plain))
+        checkEmpty()
+      }
+    }
+  }
+
+  function send() {
+    if (!editorRef.current) return
+    const html = editorRef.current.innerHTML
+    if (!html || (editorRef.current.textContent || '').trim() === '') return
+    onSend(html)
+    editorRef.current.innerHTML = ''
+    setEmpty(true)
+    setFloatPos(null)
+    setMentionQuery(null)
+  }
+
+  const mentionFiltered = mentionQuery !== null
+    ? membros.filter(m =>
+        m.nome.toLowerCase().includes(mentionQuery.toLowerCase()) ||
+        m.email.toLowerCase().includes(mentionQuery.toLowerCase())
+      ).slice(0, 6)
+    : []
 
   return (
-    <div
-      style={{
-        position: 'fixed',
-        top: rect.bottom + 4,
-        left: rect.left,
-        width: Math.max(220, rect.width),
-        background: 'var(--fe-surface)',
-        border: '1px solid var(--fe-border)',
-        borderRadius: 'var(--fe-radius-md)',
-        boxShadow: '0 4px 16px rgba(0,0,0,0.12)',
-        zIndex: 9999,
-        overflow: 'hidden',
-      }}
-    >
-      {filtered.map((m) => (
-        <button
-          key={m.id}
-          onMouseDown={(e) => { e.preventDefault(); onSelect(m) }}
-          style={{
-            display: 'flex', alignItems: 'center', gap: 10,
-            width: '100%', padding: '8px 12px',
-            border: 'none', background: 'transparent', cursor: 'pointer',
-            textAlign: 'left',
-          }}
-          onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.background = 'var(--fe-hover)')}
-          onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.background = 'transparent')}
+    <>
+      {/* Barra flutuante na seleção */}
+      {floatPos && (
+        <div
+          onMouseDown={(e) => e.preventDefault()}
+          style={{ position: 'fixed', left: floatPos.x, top: floatPos.y, transform: 'translate(-50%, calc(-100% - 8px))', zIndex: 9999, display: 'flex', alignItems: 'center', gap: 1, padding: '3px 5px', background: 'var(--fe-bg)', border: '1px solid var(--fe-border-soft)', borderRadius: 8, boxShadow: '0 4px 16px rgba(0,0,0,0.14)', pointerEvents: 'auto' }}
         >
-          <div style={{
-            width: 26, height: 26, borderRadius: '50%', background: 'var(--fe-accent)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: 10, fontWeight: 700, color: 'var(--fe-accent-fg)', flexShrink: 0,
-          }}>
-            {initials(m.nome)}
+          <FtBtn onClick={() => applyFmt('bold')}><b style={{ fontSize: 13 }}>B</b></FtBtn>
+          <FtBtn onClick={() => applyFmt('italic')}><i style={{ fontFamily: 'Georgia,serif', fontSize: 13 }}>I</i></FtBtn>
+          <FtBtn onClick={() => applyFmt('underline')}><u style={{ fontSize: 12 }}>U</u></FtBtn>
+          <FtBtn onClick={() => applyFmt('strikeThrough')}><s style={{ fontSize: 12 }}>S</s></FtBtn>
+          <FtSep />
+          {RICHTEXT_CORES.map((c) => (
+            <button key={c} type="button" onMouseDown={(e) => e.preventDefault()}
+              onClick={() => applyFmt('foreColor', c)}
+              style={{ width: 13, height: 13, borderRadius: 3, border: '1px solid rgba(0,0,0,0.1)', background: c, cursor: 'pointer', flexShrink: 0 }} />
+          ))}
+        </div>
+      )}
+
+      {/* Dropdown de @menção */}
+      {mentionQuery !== null && mentionFiltered.length > 0 && mentionPos && (
+        <div style={{ position: 'fixed', top: mentionPos.y, left: mentionPos.x, background: 'var(--fe-surface)', border: '1px solid var(--fe-border)', borderRadius: 'var(--fe-radius-md)', boxShadow: '0 4px 16px rgba(0,0,0,0.12)', zIndex: 9999, overflow: 'hidden', minWidth: 200 }}>
+          {mentionFiltered.map((m) => (
+            <button key={m.id} onMouseDown={(e) => { e.preventDefault(); handleSelectMention(m) }}
+              style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%', padding: '8px 12px', border: 'none', background: 'transparent', cursor: 'pointer', textAlign: 'left' }}
+              onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.background = 'var(--fe-hover)')}
+              onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.background = 'transparent')}
+            >
+              <div style={{ width: 26, height: 26, borderRadius: '50%', background: 'var(--fe-accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700, color: 'var(--fe-accent-fg)', flexShrink: 0 }}>
+                {initials(m.nome)}
+              </div>
+              <div style={{ minWidth: 0 }}>
+                <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--fe-text-strong)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{m.nome}</div>
+                <div style={{ fontSize: 11.5, color: 'var(--fe-text-faint)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{m.email}</div>
+              </div>
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* Wrapper do input */}
+      <div
+        style={{ flex: 1, border: '1px solid var(--fe-border)', borderRadius: 'var(--fe-radius-md)', background: 'var(--fe-surface)', overflow: 'hidden', transition: 'border-color 150ms' }}
+        onFocusCapture={(e) => (e.currentTarget.style.borderColor = 'var(--fe-accent)')}
+        onBlurCapture={(e) => { e.currentTarget.style.borderColor = 'var(--fe-border)'; setTimeout(() => setMentionQuery(null), 150) }}
+      >
+        <div
+          ref={editorRef}
+          contentEditable
+          suppressContentEditableWarning
+          onInput={handleInput}
+          onKeyDown={handleKeyDown}
+          onPaste={handlePaste}
+          data-placeholder="Escreva um comentário… use @ para mencionar alguém (⌘↵ para enviar)"
+          className="fe-richtext fe-comment-input"
+          style={{ outline: 'none', padding: '10px 12px', fontSize: 13.5, color: 'var(--fe-text)', lineHeight: 1.55, minHeight: 40, boxSizing: 'border-box' as const }}
+        />
+        {!empty && (
+          <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '6px 10px', borderTop: '1px solid var(--fe-divider)' }}>
+            <button
+              onMouseDown={(e) => { e.preventDefault(); send() }}
+              style={{ height: 28, padding: '0 14px', borderRadius: 'var(--fe-radius-md)', border: 'none', background: 'var(--fe-accent)', color: 'var(--fe-accent-fg)', fontSize: 12.5, fontWeight: 600, cursor: 'pointer' }}
+            >
+              Comentar
+            </button>
           </div>
-          <div style={{ minWidth: 0 }}>
-            <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--fe-text-strong)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{m.nome}</div>
-            <div style={{ fontSize: 11.5, color: 'var(--fe-text-faint)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{m.email}</div>
-          </div>
-        </button>
-      ))}
-    </div>
+        )}
+      </div>
+    </>
   )
 }
 
-// Extrai os IDs dos membros mencionados no texto com base no mapa nome→id
 function extractMentionIds(body: string, membros: Membro[]): string[] {
-  const matches = body.match(/@(\S+)/g) ?? []
+  // body pode ser HTML — extrair texto para encontrar @mentions
+  let text = body
+  if (/<[a-z][\s\S]*>/i.test(body)) {
+    const parser = new DOMParser()
+    const doc = parser.parseFromString(body, 'text/html')
+    text = doc.body.textContent || ''
+  }
+  const matches = text.match(/@(\S+)/g) ?? []
   const ids: string[] = []
   for (const match of matches) {
     const name = match.slice(1).toLowerCase()
@@ -165,16 +316,11 @@ function extractMentionIds(body: string, membros: Membro[]): string[] {
 export function TaskComments({ taskId, taskTable }: { taskId: string; taskTable: string }) {
   const supabase = useRef(createClient()).current
   const [comments, setComments] = useState<Comment[]>([])
-  const [draft, setDraft] = useState('')
   const [sending, setSending] = useState(false)
   const [author, setAuthor] = useState('Usuário')
   const [membros, setMembros] = useState<Membro[]>([])
 
-  // Estado do dropdown de menção
-  const [mentionQuery, setMentionQuery] = useState<string | null>(null) // null = fechado
-
   const bottomRef = useRef<HTMLDivElement>(null)
-  const textareaRef = useRef<HTMLTextAreaElement>(null)
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
@@ -200,81 +346,18 @@ export function TaskComments({ taskId, taskTable }: { taskId: string; taskTable:
       .then(({ data }) => setMembros((data as Membro[]) ?? []))
   }, [supabase])
 
-  // Detecta @query na posição do cursor
-  const detectMention = useCallback((value: string, cursorPos: number) => {
-    const textBeforeCursor = value.slice(0, cursorPos)
-    const match = textBeforeCursor.match(/@(\S*)$/)
-    if (match) {
-      setMentionQuery(match[1])
-    } else {
-      setMentionQuery(null)
-    }
-  }, [])
-
-  function handleChange(e: React.ChangeEvent<HTMLTextAreaElement>) {
-    const val = e.target.value
-    setDraft(val)
-    // Auto-resize
-    e.target.style.height = 'auto'
-    e.target.style.height = Math.min(e.target.scrollHeight, 200) + 'px'
-    detectMention(val, e.target.selectionStart ?? val.length)
-  }
-
-  function handleKeyUp(e: React.KeyboardEvent<HTMLTextAreaElement>) {
-    const el = e.currentTarget
-    detectMention(draft, el.selectionStart ?? draft.length)
-  }
-
-  function handleSelectMention(m: Membro) {
-    const ta = textareaRef.current
-    if (!ta) return
-    const cursor = ta.selectionStart ?? draft.length
-    const before = draft.slice(0, cursor)
-    const after = draft.slice(cursor)
-    // Substitui o @query pelo @nome (sem espaços)
-    const replaced = before.replace(/@(\S*)$/, `@${m.nome.replace(/\s+/g, '')} `)
-    const newDraft = replaced + after
-    setDraft(newDraft)
-    setMentionQuery(null)
-    // Reposiciona o cursor após a menção
-    setTimeout(() => {
-      ta.focus()
-      ta.setSelectionRange(replaced.length, replaced.length)
-      ta.style.height = 'auto'
-      ta.style.height = Math.min(ta.scrollHeight, 200) + 'px'
-    }, 0)
-  }
-
-  function onKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
-    if (e.key === 'Escape' && mentionQuery !== null) {
-      e.preventDefault()
-      setMentionQuery(null)
-      return
-    }
-    if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
-      e.preventDefault()
-      send()
-    }
-  }
-
-  async function send() {
-    const body = draft.trim()
-    if (!body || sending) return
+  async function handleSend(html: string) {
+    if (sending) return
     setSending(true)
-    const mentions = extractMentionIds(body, membros)
+    const mentions = extractMentionIds(html, membros)
     const { data, error } = await supabase
       .from('task_comment')
-      .insert({ task_id: taskId, task_table: taskTable, author, body, mentions })
+      .insert({ task_id: taskId, task_table: taskTable, author, body: html, mentions })
       .select()
       .single()
     setSending(false)
     if (!error && data) {
       setComments((prev) => [...prev, data as Comment])
-      setDraft('')
-      setMentionQuery(null)
-      if (textareaRef.current) {
-        textareaRef.current.style.height = 'auto'
-      }
       setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' }), 50)
     }
   }
@@ -304,49 +387,13 @@ export function TaskComments({ taskId, taskTable }: { taskId: string; taskTable:
         <div ref={bottomRef} />
       </div>
 
-      {/* Input */}
-      <div style={{ display: 'flex', gap: 10, alignItems: 'flex-end', marginTop: comments.length > 0 ? 20 : 8 }}>
-        <div style={{ width: 30, height: 30, borderRadius: '50%', background: 'var(--fe-accent-dim)', color: 'var(--fe-accent)', fontSize: 11, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+      {/* Input de comentário rich text */}
+      <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start', marginTop: comments.length > 0 ? 20 : 8 }}>
+        <div style={{ width: 30, height: 30, borderRadius: '50%', background: 'var(--fe-accent-dim)', color: 'var(--fe-accent)', fontSize: 11, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 5 }}>
           {initials(author)}
         </div>
-        <div style={{ flex: 1, border: '1px solid var(--fe-border)', borderRadius: 'var(--fe-radius-md)', background: 'var(--fe-surface)', overflow: 'hidden', transition: 'border-color 150ms' }}
-          onFocusCapture={(e) => (e.currentTarget.style.borderColor = 'var(--fe-accent)')}
-          onBlurCapture={(e) => { e.currentTarget.style.borderColor = 'var(--fe-border)'; setTimeout(() => setMentionQuery(null), 150) }}
-        >
-          <textarea
-            ref={textareaRef}
-            value={draft}
-            onChange={handleChange}
-            onKeyDown={onKeyDown}
-            onKeyUp={handleKeyUp}
-            onClick={(e) => detectMention(draft, e.currentTarget.selectionStart ?? draft.length)}
-            placeholder="Escreva um comentário… use @ para mencionar alguém (⌘↵ para enviar)"
-            rows={1}
-            style={{ display: 'block', width: '100%', resize: 'none', border: 'none', outline: 'none', background: 'transparent', padding: '10px 12px', fontSize: 13.5, color: 'var(--fe-text)', lineHeight: 1.55, minHeight: 40, boxSizing: 'border-box' }}
-          />
-          {draft.trim() && (
-            <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '6px 10px', borderTop: '1px solid var(--fe-divider)' }}>
-              <button
-                onClick={send}
-                disabled={sending}
-                style={{ height: 28, padding: '0 14px', borderRadius: 'var(--fe-radius-md)', border: 'none', background: 'var(--fe-accent)', color: 'var(--fe-accent-fg)', fontSize: 12.5, fontWeight: 600, cursor: sending ? 'default' : 'pointer', opacity: sending ? 0.6 : 1 }}
-              >
-                {sending ? 'Enviando…' : 'Comentar'}
-              </button>
-            </div>
-          )}
-        </div>
+        <RichCommentInput membros={membros} onSend={handleSend} />
       </div>
-
-      {/* Dropdown de menção */}
-      {mentionQuery !== null && (
-        <MentionDropdown
-          membros={membros}
-          query={mentionQuery}
-          onSelect={handleSelectMention}
-          anchorRef={textareaRef}
-        />
-      )}
     </div>
   )
 }
