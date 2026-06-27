@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import {
-  type ListConfig, type FieldDef, type Row, type OptionsMap, type SelectOption, parseISO,
+  type ListConfig, type FieldDef, type Row, type OptionsMap, type SelectOption, type ViewPreset, parseISO,
 } from './types'
 import { type EmbedMap } from './load'
 import { Breadcrumb, SpaceBadge, Avatar, EmptyState, dataLonga, useHiddenFields } from './kit'
@@ -35,8 +35,10 @@ export function DataList({ config, rows: rowsProp, options, embeds }: {
     if (p) { setSel(p); router.replace(window.location.pathname, { scroll: false }) }
   }, []) // eslint-disable-line
   const [busca, setBusca] = useState('')
-  const [groupBy, setGroupBy] = useState<string | null>(config.defaultGroupBy ?? config.statusField ?? null)
-  const [filtros, setFiltros] = useState<FilterState>({})
+  const firstPreset = config.viewPresets?.[0]
+  const [activeViewKey, setActiveViewKey] = useState<string | null>(firstPreset?.key ?? null)
+  const [groupBy, setGroupBy] = useState<string | null>(firstPreset?.groupBy !== undefined ? (firstPreset.groupBy ?? null) : (config.defaultGroupBy ?? config.statusField ?? null))
+  const [filtros, setFiltros] = useState<FilterState>(firstPreset?.filter ?? {})
   const [salvando, setSalvando] = useState<'idle' | 'saving' | 'saved'>('idle')
   const savedTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -152,6 +154,13 @@ export function DataList({ config, rows: rowsProp, options, embeds }: {
   const allVisibleSelected = visibleIds.length > 0 && visibleIds.every((id) => selectedIds.has(id))
   const someSelected = visibleIds.some((id) => selectedIds.has(id))
 
+  function applyView(preset: ViewPreset) {
+    setActiveViewKey(preset.key)
+    setFiltros(preset.filter ?? {})
+    if (preset.groupBy !== undefined) setGroupBy(preset.groupBy ?? null)
+    setBusca('')
+  }
+
   const aberto = sel ? rows.find((r) => r.id === sel) ?? null : null
   const addHref = `${config.basePath}/novo`
 
@@ -165,6 +174,7 @@ export function DataList({ config, rows: rowsProp, options, embeds }: {
         groupable={groupable} groupBy={groupBy} onGroupBy={setGroupBy}
         filterable={filterable} filtros={filtros} onFiltros={setFiltros} nFiltros={nFiltros}
         rows={rows} options={options} salvando={salvando} addHref={addHref} addLabel={config.addLabel ?? `Adicionar ${config.singular}`}
+        viewPresets={config.viewPresets} activeViewKey={activeViewKey} onViewChange={applyView}
       />
       <div className="fe-list-pad" style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
         <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', background: 'var(--fe-surface)', border: '1px solid var(--fe-border)', borderRadius: 'var(--fe-radius-xl)', boxShadow: 'var(--fe-shadow-card)', overflow: 'hidden' }}>
@@ -310,21 +320,34 @@ function agrupar(rows: Row[], field: FieldDef | null, options: OptionsMap): Grup
 // ─── Toolbar ──────────────────────────────────────────────────────────────────
 
 function Toolbar({
-  config, busca, onBusca, groupable, groupBy, onGroupBy, filterable, filtros, onFiltros, nFiltros, rows, options, salvando, addHref, addLabel,
+  config, busca, onBusca, groupable, groupBy, onGroupBy, filterable, filtros, onFiltros, nFiltros, rows, options, salvando, addHref, addLabel, viewPresets, activeViewKey, onViewChange,
 }: {
   config: ListConfig; busca: string; onBusca: (v: string) => void
   groupable: FieldDef[]; groupBy: string | null; onGroupBy: (k: string | null) => void
   filterable: FieldDef[]; filtros: FilterState; onFiltros: (f: FilterState) => void; nFiltros: number
   rows: Row[]; options: OptionsMap; salvando: 'idle' | 'saving' | 'saved'; addHref: string; addLabel: string
+  viewPresets?: ViewPreset[]; activeViewKey?: string | null; onViewChange?: (p: ViewPreset) => void
 }) {
   const groupLabel = groupBy ? (config.fields.find((f) => f.key === groupBy)?.label ?? 'Nenhum') : 'Nenhum'
   return (
     <div className="fe-bar-pad" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 44, padding: '0 18px 0 22px', flexShrink: 0, gap: 12, background: 'var(--fe-surface)' }}>
       <div style={{ display: 'flex', alignItems: 'center', height: '100%' }}>
-        <span style={{ height: '100%', padding: '0 12px', borderBottom: '2px solid var(--fe-black)', fontSize: 13, fontWeight: 600, color: 'var(--fe-black)', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 4H12M2 7H12M2 10H9" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" /></svg>
-          Lista
-        </span>
+        {viewPresets && viewPresets.length > 0 ? (
+          viewPresets.map((p) => {
+            const active = p.key === activeViewKey
+            return (
+              <button key={p.key} onClick={() => onViewChange?.(p)}
+                style={{ height: '100%', padding: '0 12px', borderTop: 'none', borderLeft: 'none', borderRight: 'none', borderBottom: active ? '2px solid var(--fe-black)' : '2px solid transparent', fontSize: 13, fontWeight: active ? 600 : 500, color: active ? 'var(--fe-black)' : 'var(--fe-text-soft)', background: 'none', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap' }}>
+                {p.label}
+              </button>
+            )
+          })
+        ) : (
+          <span style={{ height: '100%', padding: '0 12px', borderBottom: '2px solid var(--fe-black)', fontSize: 13, fontWeight: 600, color: 'var(--fe-black)', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 4H12M2 7H12M2 10H9" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" /></svg>
+            Lista
+          </span>
+        )}
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
         <SaveIndicator estado={salvando} />

@@ -67,6 +67,13 @@ export type TaskTemplate = {
   defaults: Record<string, unknown>
 }
 
+export type ViewPreset = {
+  key: string
+  label: string
+  groupBy?: string | null
+  filter?: Record<string, string[]>
+}
+
 export type ListConfig = {
   table: string
   space: Space
@@ -95,6 +102,7 @@ export type ListConfig = {
   addLabel?: string
   hideBreadcrumb?: boolean
   templates?: TaskTemplate[]
+  viewPresets?: ViewPreset[]
 }
 
 // Opções carregadas no servidor para campos relation

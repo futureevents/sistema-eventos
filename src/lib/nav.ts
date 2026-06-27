@@ -123,6 +123,18 @@ export const NAV: NavSpace[] = [
           { label: 'Tarefas jurídico', slug: 'tarefas', href: '/gestao/juridico/tarefas' },
         ],
       },
+      {
+        label: 'Processos',
+        slug: 'processos',
+        lists: [
+          { label: 'Entrada de cliente', slug: 'entrada-de-cliente', href: '/gestao/processos/entrada-de-cliente' },
+          { label: 'Projetos', slug: 'projetos', href: '/gestao/processos/projetos' },
+          { label: 'Científico/Conteúdo', slug: 'cientifico', href: '/gestao/processos/cientifico' },
+          { label: 'Marketing', slug: 'marketing', href: '/gestao/processos/marketing' },
+          { label: 'Comercial', slug: 'comercial', href: '/gestao/processos/comercial' },
+          { label: 'Jurídico', slug: 'juridico', href: '/gestao/processos/juridico' },
+        ],
+      },
     ],
   },
   {
