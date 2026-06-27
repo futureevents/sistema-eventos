@@ -184,8 +184,26 @@ export function RichTextEditor({
     if (!sel || sel.rangeCount === 0) return ''
     const range = sel.getRangeAt(0)
     const node  = range.startContainer
-    if (node.nodeType !== Node.TEXT_NODE) return ''
-    return (node.textContent || '').substring(0, range.startOffset)
+
+    if (node.nodeType === Node.TEXT_NODE) {
+      const text = (node.textContent || '').substring(0, range.startOffset)
+      const nl = text.lastIndexOf('\n')
+      return nl >= 0 ? text.substring(nl + 1) : text
+    }
+
+    // Cursor em element node (editor vazio ou entre blocos)
+    if (node.nodeType === Node.ELEMENT_NODE) {
+      let text = ''
+      const el = node as HTMLElement
+      for (let i = 0; i < range.startOffset; i++) {
+        const child = el.childNodes[i]
+        if (child) text += child.textContent || ''
+      }
+      const nl = text.lastIndexOf('\n')
+      return nl >= 0 ? text.substring(nl + 1) : text
+    }
+
+    return ''
   }
 
   function getCursorBottomLeft(): Pos | null {
@@ -193,9 +211,44 @@ export function RichTextEditor({
     if (!sel || sel.rangeCount === 0) return null
     const range = sel.getRangeAt(0).cloneRange()
     range.collapse(true)
-    const rect = range.getBoundingClientRect()
-    if (!rect.height) return null
-    return { x: rect.left, y: rect.bottom + 6 }
+    let rect = range.getBoundingClientRect()
+
+    // getBoundingClientRect retorna height=0 em alguns contextos fixos/scrolláveis
+    if (!rect.height && editorRef.current) {
+      const span = document.createElement('span')
+      span.appendChild(document.createTextNode('​'))
+      range.insertNode(span)
+      rect = span.getBoundingClientRect()
+      const parent = span.parentNode
+      if (parent) { parent.removeChild(span); parent.normalize?.() }
+      range.collapse(true)
+      sel.removeAllRanges()
+      sel.addRange(range)
+    }
+
+    if (!rect.height && editorRef.current) {
+      const edRect = editorRef.current.getBoundingClientRect()
+      return { x: edRect.left + 20, y: edRect.bottom + 6 }
+    }
+
+    return rect.height ? { x: rect.left, y: rect.bottom + 6 } : null
+  }
+
+  // Deleta N caracteres do início da linha atual e reposiciona o cursor
+  function deletePrefix(len: number) {
+    const sel = window.getSelection()
+    if (!sel || sel.rangeCount === 0) return
+    const range = sel.getRangeAt(0)
+    const node  = range.startContainer
+    if (node.nodeType !== Node.TEXT_NODE) return
+    const r = document.createRange()
+    r.setStart(node, 0)
+    r.setEnd(node, Math.min(len, (node.textContent || '').length))
+    r.deleteContents()
+    // Reposiciona cursor após a deleção
+    r.collapse(true)
+    sel.removeAllRanges()
+    sel.addRange(r)
   }
 
   function handleInput() {
@@ -218,33 +271,15 @@ export function RichTextEditor({
 
     // ── Markdown inline ────────────────────────────────────────────────────
     if (prefix === '- ' || prefix === '– ') {
-      const sel2 = window.getSelection()
-      if (sel2 && sel2.rangeCount > 0) {
-        const range2 = sel2.getRangeAt(0)
-        const node = range2.startContainer
-        if (node.nodeType === Node.TEXT_NODE) {
-          const r = document.createRange()
-          r.setStart(node, 0)
-          r.setEnd(node, prefix.length)
-          r.deleteContents()
-        }
-      }
+      deletePrefix(prefix.length)
+      editorRef.current?.focus()
       execCmd('insertUnorderedList')
       emitir()
       return
     }
     if (/^\d+\. $/.test(prefix)) {
-      const sel2 = window.getSelection()
-      if (sel2 && sel2.rangeCount > 0) {
-        const range2 = sel2.getRangeAt(0)
-        const node = range2.startContainer
-        if (node.nodeType === Node.TEXT_NODE) {
-          const r = document.createRange()
-          r.setStart(node, 0)
-          r.setEnd(node, prefix.length)
-          r.deleteContents()
-        }
-      }
+      deletePrefix(prefix.length)
+      editorRef.current?.focus()
       execCmd('insertOrderedList')
       emitir()
       return
