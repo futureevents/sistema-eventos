@@ -93,68 +93,91 @@ export function Sidebar({ mobileOpen = false, onClose, collapsed = false, onTogg
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
       </button>
 
-      {/* Workspace switcher */}
-      <div style={{ margin: '14px 12px 6px', height: 52, display: 'flex', alignItems: 'center', gap: 11, flexShrink: 0, position: 'relative' }}>
-        <button
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 11,
-            padding: '0 10px',
-            height: 52,
-            flex: 1,
-            minWidth: 0,
-            background: 'transparent',
-            border: 'none',
-            borderRadius: 'var(--fe-radius-lg)',
-            cursor: 'pointer',
-            textAlign: 'left',
-            overflow: 'hidden',
-          }}
-          onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.background = 'var(--fe-hover)')}
-          onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.background = 'transparent')}
-        >
-          <span
+      {/* Workspace header */}
+      {collapsed ? (
+        /* Modo recolhido: avatar centralizado, clicável para expandir */
+        <div style={{ padding: '14px 0 6px', display: 'flex', justifyContent: 'center', flexShrink: 0 }}>
+          <button
+            onClick={onToggleCollapse}
+            title="Expandir sidebar"
+            aria-label="Expandir sidebar"
             style={{
-              width: 32,
-              height: 32,
-              flexShrink: 0,
-              borderRadius: 9,
-              background: 'var(--fe-accent)',
-              color: '#fff',
-              fontWeight: 700,
-              fontSize: 14,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              letterSpacing: '-0.3px',
+              width: 36, height: 36, flexShrink: 0, borderRadius: 9,
+              background: 'var(--fe-accent)', color: '#fff',
+              fontWeight: 700, fontSize: 14, letterSpacing: '-0.3px',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              border: 'none', cursor: 'pointer',
+              boxShadow: '0 0 0 2px transparent',
+              transition: 'box-shadow 150ms ease',
             }}
+            onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.boxShadow = '0 0 0 2px var(--fe-accent)33' }}
+            onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.boxShadow = '0 0 0 2px transparent' }}
           >
             FE
-          </span>
-          {!collapsed && (
-            <>
-              <span style={{ display: 'flex', flexDirection: 'column', minWidth: 0, flex: 1 }}>
-                <span style={{ fontSize: 15, fontWeight: 600, color: 'var(--fe-text-strong)', lineHeight: 1.2 }}>Future Events</span>
-                <span style={{ fontSize: 12, color: 'var(--fe-text-muted)', lineHeight: 1.3 }}>Workspace</span>
-              </span>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--fe-text-muted)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9" /></svg>
-            </>
-          )}
-        </button>
-        {!collapsed && (
+          </button>
+        </div>
+      ) : (
+        /* Modo expandido: workspace + botão de recolher sempre visível */
+        <div style={{ padding: '10px 10px 6px', display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
+          <button
+            style={{
+              flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', gap: 10,
+              height: 44, padding: '0 8px',
+              background: 'transparent', border: 'none',
+              borderRadius: 'var(--fe-radius-md)', cursor: 'pointer', textAlign: 'left',
+              transition: 'background 150ms ease',
+            }}
+            onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.background = 'var(--fe-hover)')}
+            onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.background = 'transparent')}
+          >
+            <span style={{
+              width: 28, height: 28, flexShrink: 0, borderRadius: 7,
+              background: 'var(--fe-accent)', color: '#fff',
+              fontWeight: 700, fontSize: 12, letterSpacing: '-0.3px',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}>
+              FE
+            </span>
+            <span style={{ display: 'flex', flexDirection: 'column', minWidth: 0, flex: 1 }}>
+              <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--fe-text-strong)', lineHeight: 1.25, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>Future Events</span>
+              <span style={{ fontSize: 11.5, color: 'var(--fe-text-muted)', lineHeight: 1.3 }}>Workspace</span>
+            </span>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--fe-text-muted)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}><polyline points="6 9 12 15 18 9" /></svg>
+          </button>
+          {/* Botão recolher — sempre visível, nunca fora dos bounds */}
           <button
             onClick={onToggleCollapse}
             title="Recolher sidebar"
             aria-label="Recolher sidebar"
-            style={{ position: 'absolute', right: -10, top: '50%', transform: 'translateY(-50%)', width: 20, height: 20, borderRadius: '50%', border: '1px solid var(--fe-border)', background: 'var(--fe-surface)', color: 'var(--fe-text-muted)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10, flexShrink: 0 }}
-            onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = 'var(--fe-hover)'; (e.currentTarget as HTMLElement).style.color = 'var(--fe-text-strong)' }}
-            onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = 'var(--fe-surface)'; (e.currentTarget as HTMLElement).style.color = 'var(--fe-text-muted)' }}
+            style={{
+              width: 28, height: 28, flexShrink: 0,
+              borderRadius: 'var(--fe-radius-md)',
+              border: '1px solid var(--fe-border)',
+              background: 'transparent',
+              color: 'var(--fe-text-muted)',
+              cursor: 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              transition: 'background 150ms ease, color 150ms ease, border-color 150ms ease',
+            }}
+            onMouseEnter={(e) => {
+              const el = e.currentTarget as HTMLElement
+              el.style.background = 'var(--fe-hover)'
+              el.style.color = 'var(--fe-text-strong)'
+              el.style.borderColor = 'var(--fe-text-muted)'
+            }}
+            onMouseLeave={(e) => {
+              const el = e.currentTarget as HTMLElement
+              el.style.background = 'transparent'
+              el.style.color = 'var(--fe-text-muted)'
+              el.style.borderColor = 'var(--fe-border)'
+            }}
           >
-            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6" /></svg>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="15 18 9 12 15 6" />
+            </svg>
           </button>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* Busca */}
       {collapsed ? (
@@ -217,17 +240,6 @@ export function Sidebar({ mobileOpen = false, onClose, collapsed = false, onTogg
                 </span>
               </CollapsedIconLink>
             ))}
-            {/* Botão expandir no modo recolhido */}
-            <button
-              onClick={onToggleCollapse}
-              title="Expandir sidebar"
-              aria-label="Expandir sidebar"
-              style={{ marginTop: 4, width: 36, height: 36, borderRadius: 'var(--fe-radius-md)', border: 'none', background: 'transparent', color: 'var(--fe-text-muted)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-              onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.background = 'var(--fe-hover)')}
-              onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.background = 'transparent')}
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6" /></svg>
-            </button>
           </nav>
         ) : (
           <>
