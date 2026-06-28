@@ -103,7 +103,7 @@ export function oportunidadeConfig(tipo: TipoOportunidade): ListConfig {
     { key: 'qualidade_lead',    label: 'Qualidade do lead',    type: 'select', options: QUALIDADE_LEAD,    column: { width: '158px', display: 'pill', header: 'Qual. lead' }, groupable: true, filterable: true },
     { key: 'reuniao_realizada', label: 'Reunião realizada',    type: 'select', options: REUNIAO_REALIZADA, column: { width: '104px', display: 'pill', header: 'Reunião' },   groupable: true, filterable: true },
     { key: 'qualidade_reuniao', label: 'Qualidade da reunião', type: 'select', options: QUALIDADE_REUNIAO, groupable: true, filterable: true },
-    { key: 'data_reuniao',      label: 'Data da reunião',      type: 'date',   column: { width: '148px', header: 'Data da reunião' }, groupable: true, filterable: true },
+    { key: 'data_reuniao',      label: 'Data da reunião',      type: 'date',   withTime: true, column: { width: '148px', header: 'Data da reunião' }, groupable: true, filterable: true },
     { key: 'nome_contato', label: 'Nome do contato', type: 'text', filterable: true },
     { key: 'whatsapp', label: 'WhatsApp', type: 'tel', column: { width: '150px' } },
     { key: 'telefone', label: 'Telefone', type: 'tel' },

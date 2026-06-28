@@ -281,9 +281,16 @@ export function MoneyInline({ value, onChange, dense = false }: {
 const DOW = ['D', 'S', 'T', 'Q', 'Q', 'S', 'S']
 const MESES_LONGOS = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro']
 
-export function CalendarPopover({ value, onChange, onClose }: { value: string | null; onChange: (iso: string | null) => void; onClose: () => void }) {
+export function CalendarPopover({ value, onChange, onClose, withTime = false }: { value: string | null; onChange: (iso: string | null) => void; onClose: () => void; withTime?: boolean }) {
   const hoje = new Date(); hoje.setHours(0, 0, 0, 0)
   const sel = value ? parseISO(value) : null
+
+  // pendingDate: data clicada mas ainda não confirmada (só usada em modo withTime).
+  // Em modo sem hora confirma imediatamente no clique.
+  const [pendingDate, setPendingDate] = useState<string | null>(() => sel ? toISODate(sel) : null)
+  const [hh, setHh] = useState(() => sel ? sel.getHours() : new Date().getHours())
+  const [mm, setMm] = useState(() => sel ? sel.getMinutes() : 0)
+
   const [cursor, setCursor] = useState(() => { const d = sel ?? new Date(); return new Date(d.getFullYear(), d.getMonth(), 1) })
   const ano = cursor.getFullYear(), mes = cursor.getMonth()
   const primeiroDia = new Date(ano, mes, 1).getDay()
@@ -292,6 +299,14 @@ export function CalendarPopover({ value, onChange, onClose }: { value: string | 
   for (let i = 0; i < primeiroDia; i++) celulas.push(null)
   for (let d = 1; d <= diasNoMes; d++) celulas.push(new Date(ano, mes, d))
   const navBtn: React.CSSProperties = { width: 26, height: 26, borderRadius: 6, border: 'none', background: 'transparent', color: 'var(--fe-text-soft)', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }
+
+  function confirmar(date: string, h: number, m: number) {
+    const pad = (n: number) => String(n).padStart(2, '0')
+    onChange(withTime ? `${date}T${pad(h)}:${pad(m)}:00` : date)
+    onClose()
+  }
+
+  function clampNum(n: number, min: number, max: number) { return isNaN(n) ? min : Math.min(max, Math.max(min, n)) }
 
   return (
     <div style={{ width: 252, padding: 4 }}>
@@ -307,10 +322,14 @@ export function CalendarPopover({ value, onChange, onClose }: { value: string | 
         {celulas.map((d, i) => {
           if (!d) return <span key={i} />
           const iso = toISODate(d)
-          const isSel = sel && toISODate(sel) === iso
+          const isSel = withTime ? pendingDate === iso : (sel && toISODate(sel) === iso)
           const isHoje = toISODate(hoje) === iso
           return (
-            <button key={i} onClick={(e) => { e.stopPropagation(); onChange(iso); onClose() }}
+            <button key={i} onClick={(e) => {
+              e.stopPropagation()
+              if (withTime) { setPendingDate(iso) }
+              else { confirmar(iso, hh, mm) }
+            }}
               style={{ height: 30, borderRadius: 6, border: 'none', cursor: 'pointer', fontSize: 12.5, fontWeight: isSel ? 700 : isHoje ? 600 : 400, background: isSel ? 'var(--fe-accent)' : 'transparent', color: isSel ? 'var(--fe-accent-fg)' : isHoje ? 'var(--fe-accent-dark)' : 'var(--fe-text)', boxShadow: isHoje && !isSel ? 'inset 0 0 0 1px var(--fe-accent)' : 'none' }}
               onMouseEnter={(e) => { if (!isSel) e.currentTarget.style.background = 'var(--fe-hover)' }}
               onMouseLeave={(e) => { if (!isSel) e.currentTarget.style.background = 'transparent' }}>
@@ -319,8 +338,51 @@ export function CalendarPopover({ value, onChange, onClose }: { value: string | 
           )
         })}
       </div>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 8, paddingTop: 8, borderTop: '1px solid var(--fe-divider)' }}>
-        <button onClick={(e) => { e.stopPropagation(); onChange(toISODate(hoje)); onClose() }} style={{ fontSize: 12, fontWeight: 600, color: 'var(--fe-accent-dark)', background: 'transparent', border: 'none', cursor: 'pointer', padding: '4px 6px' }}>Hoje</button>
+
+      {/* Seleção de hora — só quando withTime=true */}
+      {withTime && (
+        <div style={{ marginTop: 8, paddingTop: 8, borderTop: '1px solid var(--fe-divider)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '0 4px 8px' }}>
+            <svg width="13" height="13" viewBox="0 0 14 14" fill="none" style={{ flexShrink: 0, color: 'var(--fe-text-muted)' }}>
+              <circle cx="7" cy="7" r="5.5" stroke="currentColor" strokeWidth="1.2" />
+              <path d="M7 4V7.2L9 9" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            <span style={{ fontSize: 12, color: 'var(--fe-text-soft)', fontWeight: 500 }}>Horário</span>
+            <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 3 }}>
+              <input
+                type="text" inputMode="numeric" value={String(hh).padStart(2, '0')} onClick={(e) => e.stopPropagation()}
+                onChange={(e) => setHh(clampNum(parseInt(e.target.value.replace(/\D/g, ''), 10), 0, 23))}
+                style={{ width: 36, height: 26, textAlign: 'center', border: '1px solid var(--fe-border)', borderRadius: 5, background: 'var(--fe-surface)', fontSize: 12.5, fontVariantNumeric: 'tabular-nums', outline: 'none' }}
+                onFocus={(e) => { e.currentTarget.style.borderColor = 'var(--fe-accent)'; e.currentTarget.select() }}
+                onBlur={(e) => { e.currentTarget.style.borderColor = 'var(--fe-border)' }}
+              />
+              <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--fe-text-muted)' }}>:</span>
+              <input
+                type="text" inputMode="numeric" value={String(mm).padStart(2, '0')} onClick={(e) => e.stopPropagation()}
+                onChange={(e) => setMm(clampNum(parseInt(e.target.value.replace(/\D/g, ''), 10), 0, 59))}
+                style={{ width: 36, height: 26, textAlign: 'center', border: '1px solid var(--fe-border)', borderRadius: 5, background: 'var(--fe-surface)', fontSize: 12.5, fontVariantNumeric: 'tabular-nums', outline: 'none' }}
+                onFocus={(e) => { e.currentTarget.style.borderColor = 'var(--fe-accent)'; e.currentTarget.select() }}
+                onBlur={(e) => { e.currentTarget.style.borderColor = 'var(--fe-border)' }}
+              />
+            </div>
+          </div>
+          {pendingDate && (
+            <button
+              onClick={(e) => { e.stopPropagation(); confirmar(pendingDate, hh, mm) }}
+              style={{ width: '100%', height: 30, borderRadius: 6, border: 'none', background: 'var(--fe-accent)', color: 'var(--fe-accent-fg)', fontSize: 12.5, fontWeight: 600, cursor: 'pointer', marginBottom: 4 }}>
+              Confirmar
+            </button>
+          )}
+        </div>
+      )}
+
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: withTime ? 4 : 8, paddingTop: withTime ? 4 : 8, borderTop: withTime ? 'none' : '1px solid var(--fe-divider)' }}>
+        <button onClick={(e) => {
+          e.stopPropagation()
+          const now = new Date()
+          if (withTime) { setPendingDate(toISODate(hoje)); setHh(now.getHours()); setMm(now.getMinutes()) }
+          else { confirmar(toISODate(hoje), hh, mm) }
+        }} style={{ fontSize: 12, fontWeight: 600, color: 'var(--fe-accent-dark)', background: 'transparent', border: 'none', cursor: 'pointer', padding: '4px 6px' }}>Hoje</button>
         {value && <button onClick={(e) => { e.stopPropagation(); onChange(null); onClose() }} style={{ fontSize: 12, fontWeight: 500, color: 'var(--fe-prio-urgent)', background: 'transparent', border: 'none', cursor: 'pointer', padding: '4px 6px' }}>Remover data</button>}
       </div>
     </div>

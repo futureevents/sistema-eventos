@@ -106,7 +106,7 @@ export function InlineField({
               </span>
             </HoverBtn>
           )}>
-          {(close) => <CalendarPopover value={iso} onChange={(v) => patch({ [field.key]: v })} onClose={close} />}
+          {(close) => <CalendarPopover value={iso} withTime={field.withTime} onChange={(v) => patch({ [field.key]: v })} onClose={close} />}
         </Dropdown>
       )
     }

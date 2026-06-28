@@ -22,8 +22,13 @@ export { SPACE_ENTREGAS, SPACE_COMERCIAL, SPACE_GESTAO, SPACE_MARKETING }
 // ─── Datas ──────────────────────────────────────────────────────────────────
 
 export function dataCurta(iso: string): string {
-  const d = new Date(iso + 'T00:00:00')
-  return `${d.getDate()} ${MESES[d.getMonth()]}`
+  const isTimestamp = iso.includes('T') || iso.endsWith('Z') || /[+-]\d{2}:\d{2}$/.test(iso)
+  const d = isTimestamp ? new Date(iso) : new Date(iso + 'T00:00:00')
+  const base = `${d.getDate()} ${MESES[d.getMonth()]}`
+  if (!isTimestamp) return base
+  const hh = String(d.getHours()).padStart(2, '0')
+  const mm = String(d.getMinutes()).padStart(2, '0')
+  return `${base} ${hh}:${mm}`
 }
 
 export function dataLonga(iso: string): string {

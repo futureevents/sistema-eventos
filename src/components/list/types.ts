@@ -41,6 +41,9 @@ export type FieldDef = {
   inPanel?: boolean                  // default: true p/ campos não-primary e não-richtext
   panelIcon?: ReactNode
 
+  // Para campos date: se true, o picker mostra seleção de hora além da data.
+  withTime?: boolean
+
   // Filtro / grupo
   groupable?: boolean
   filterable?: boolean
