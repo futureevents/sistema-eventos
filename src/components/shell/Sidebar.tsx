@@ -6,7 +6,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { NAV, type NavSpace, type NavFolder } from '@/lib/nav'
 
-export function Sidebar({ mobileOpen = false, onClose }: { mobileOpen?: boolean; onClose?: () => void } = {}) {
+export function Sidebar({ mobileOpen = false, onClose, collapsed = false, onToggleCollapse }: { mobileOpen?: boolean; onClose?: () => void; collapsed?: boolean; onToggleCollapse?: () => void } = {}) {
   const pathname = usePathname()
   const router = useRouter()
 
@@ -77,6 +77,10 @@ export function Sidebar({ mobileOpen = false, onClose }: { mobileOpen?: boolean;
         display: 'flex',
         flexDirection: 'column',
         overflow: 'hidden',
+        width: collapsed ? 56 : undefined,
+        minWidth: collapsed ? 56 : undefined,
+        maxWidth: collapsed ? 56 : undefined,
+        transition: 'width var(--fe-dur-fast) var(--fe-ease), min-width var(--fe-dur-fast) var(--fe-ease), max-width var(--fe-dur-fast) var(--fe-ease)',
       }}
     >
       {/* Fechar gaveta (só na barra móvel) */}
@@ -90,73 +94,103 @@ export function Sidebar({ mobileOpen = false, onClose }: { mobileOpen?: boolean;
       </button>
 
       {/* Workspace switcher */}
-      <button
-        style={{
-          margin: '14px 12px 6px',
-          height: 52,
-          display: 'flex',
-          alignItems: 'center',
-          gap: 11,
-          padding: '0 10px',
-          background: 'transparent',
-          border: 'none',
-          borderRadius: 'var(--fe-radius-lg)',
-          cursor: 'pointer',
-          textAlign: 'left',
-          flexShrink: 0,
-        }}
-        onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.background = 'var(--fe-hover)')}
-        onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.background = 'transparent')}
-      >
-        <span
-          style={{
-            width: 32,
-            height: 32,
-            flexShrink: 0,
-            borderRadius: 9,
-            background: 'var(--fe-accent)',
-            color: '#fff',
-            fontWeight: 700,
-            fontSize: 14,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            letterSpacing: '-0.3px',
-          }}
-        >
-          FE
-        </span>
-        <span style={{ display: 'flex', flexDirection: 'column', minWidth: 0, flex: 1 }}>
-          <span style={{ fontSize: 15, fontWeight: 600, color: 'var(--fe-text-strong)', lineHeight: 1.2 }}>Future Events</span>
-          <span style={{ fontSize: 12, color: 'var(--fe-text-muted)', lineHeight: 1.3 }}>Workspace</span>
-        </span>
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--fe-text-muted)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9" /></svg>
-      </button>
-
-      {/* Busca */}
-      <div style={{ padding: '8px 12px 10px', flexShrink: 0 }}>
+      <div style={{ margin: '14px 12px 6px', height: 52, display: 'flex', alignItems: 'center', gap: 11, flexShrink: 0, position: 'relative' }}>
         <button
           style={{
             display: 'flex',
             alignItems: 'center',
-            gap: 10,
-            width: '100%',
-            height: 38,
-            padding: '0 11px',
-            borderRadius: 'var(--fe-radius-md)',
-            border: '1px solid var(--fe-border)',
-            background: 'var(--fe-surface)',
+            gap: 11,
+            padding: '0 10px',
+            height: 52,
+            flex: 1,
+            minWidth: 0,
+            background: 'transparent',
+            border: 'none',
+            borderRadius: 'var(--fe-radius-lg)',
             cursor: 'pointer',
+            textAlign: 'left',
+            overflow: 'hidden',
           }}
+          onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.background = 'var(--fe-hover)')}
+          onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.background = 'transparent')}
         >
-          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--fe-text-muted)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="7" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
-          <span style={{ flex: 1, fontSize: 13.5, color: 'var(--fe-text-muted)', textAlign: 'left' }}>Buscar</span>
-          <kbd style={{ fontFamily: 'inherit', fontSize: 11, color: 'var(--fe-text-muted)', background: 'var(--fe-track)', border: '1px solid var(--fe-border)', borderRadius: 5, padding: '1px 6px' }}>⌘K</kbd>
+          <span
+            style={{
+              width: 32,
+              height: 32,
+              flexShrink: 0,
+              borderRadius: 9,
+              background: 'var(--fe-accent)',
+              color: '#fff',
+              fontWeight: 700,
+              fontSize: 14,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              letterSpacing: '-0.3px',
+            }}
+          >
+            FE
+          </span>
+          {!collapsed && (
+            <>
+              <span style={{ display: 'flex', flexDirection: 'column', minWidth: 0, flex: 1 }}>
+                <span style={{ fontSize: 15, fontWeight: 600, color: 'var(--fe-text-strong)', lineHeight: 1.2 }}>Future Events</span>
+                <span style={{ fontSize: 12, color: 'var(--fe-text-muted)', lineHeight: 1.3 }}>Workspace</span>
+              </span>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--fe-text-muted)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9" /></svg>
+            </>
+          )}
         </button>
+        {!collapsed && (
+          <button
+            onClick={onToggleCollapse}
+            title="Recolher sidebar"
+            aria-label="Recolher sidebar"
+            style={{ position: 'absolute', right: -10, top: '50%', transform: 'translateY(-50%)', width: 20, height: 20, borderRadius: '50%', border: '1px solid var(--fe-border)', background: 'var(--fe-surface)', color: 'var(--fe-text-muted)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10, flexShrink: 0 }}
+            onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = 'var(--fe-hover)'; (e.currentTarget as HTMLElement).style.color = 'var(--fe-text-strong)' }}
+            onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = 'var(--fe-surface)'; (e.currentTarget as HTMLElement).style.color = 'var(--fe-text-muted)' }}
+          >
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6" /></svg>
+          </button>
+        )}
       </div>
 
+      {/* Busca */}
+      {collapsed ? (
+        <div style={{ padding: '8px 0 10px', display: 'flex', justifyContent: 'center', flexShrink: 0 }}>
+          <button
+            title="Buscar (⌘K)"
+            style={{ width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 'var(--fe-radius-md)', border: '1px solid var(--fe-border)', background: 'var(--fe-surface)', cursor: 'pointer' }}
+          >
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--fe-text-muted)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="7" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
+          </button>
+        </div>
+      ) : (
+        <div style={{ padding: '8px 12px 10px', flexShrink: 0 }}>
+          <button
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 10,
+              width: '100%',
+              height: 38,
+              padding: '0 11px',
+              borderRadius: 'var(--fe-radius-md)',
+              border: '1px solid var(--fe-border)',
+              background: 'var(--fe-surface)',
+              cursor: 'pointer',
+            }}
+          >
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--fe-text-muted)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="7" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
+            <span style={{ flex: 1, fontSize: 13.5, color: 'var(--fe-text-muted)', textAlign: 'left' }}>Buscar</span>
+            <kbd style={{ fontFamily: 'inherit', fontSize: 11, color: 'var(--fe-text-muted)', background: 'var(--fe-track)', border: '1px solid var(--fe-border)', borderRadius: 5, padding: '1px 6px' }}>⌘K</kbd>
+          </button>
+        </div>
+      )}
+
       {/* Scroll area */}
-      <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: '6px 10px 12px' }}>
+      <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: collapsed ? '6px 0 12px' : '6px 10px 12px' }}>
         {/* Atalhos pessoais */}
         <nav style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
           <QuickLink href="/inbox" label="Inbox" pathname={pathname}>
