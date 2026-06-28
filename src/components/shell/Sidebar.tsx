@@ -92,12 +92,12 @@ export function Sidebar({ mobileOpen = false, onClose }: { mobileOpen?: boolean;
       {/* Workspace switcher */}
       <button
         style={{
-          margin: '12px 10px 4px',
-          height: 48,
+          margin: '14px 12px 6px',
+          height: 52,
           display: 'flex',
           alignItems: 'center',
-          gap: 10,
-          padding: '0 8px',
+          gap: 11,
+          padding: '0 10px',
           background: 'transparent',
           border: 'none',
           borderRadius: 'var(--fe-radius-lg)',
@@ -110,14 +110,14 @@ export function Sidebar({ mobileOpen = false, onClose }: { mobileOpen?: boolean;
       >
         <span
           style={{
-            width: 30,
-            height: 30,
+            width: 32,
+            height: 32,
             flexShrink: 0,
-            borderRadius: 8,
+            borderRadius: 9,
             background: 'var(--fe-accent)',
             color: '#fff',
             fontWeight: 700,
-            fontSize: 13,
+            fontSize: 14,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -127,57 +127,57 @@ export function Sidebar({ mobileOpen = false, onClose }: { mobileOpen?: boolean;
           FE
         </span>
         <span style={{ display: 'flex', flexDirection: 'column', minWidth: 0, flex: 1 }}>
-          <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--fe-text-strong)', lineHeight: 1.2 }}>Future Events</span>
-          <span style={{ fontSize: 11.5, color: 'var(--fe-text-muted)', lineHeight: 1.3 }}>Workspace</span>
+          <span style={{ fontSize: 15, fontWeight: 600, color: 'var(--fe-text-strong)', lineHeight: 1.2 }}>Future Events</span>
+          <span style={{ fontSize: 12, color: 'var(--fe-text-muted)', lineHeight: 1.3 }}>Workspace</span>
         </span>
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--fe-text-muted)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9" /></svg>
       </button>
 
       {/* Busca */}
-      <div style={{ padding: '6px 12px 8px', flexShrink: 0 }}>
+      <div style={{ padding: '8px 12px 10px', flexShrink: 0 }}>
         <button
           style={{
             display: 'flex',
             alignItems: 'center',
-            gap: 8,
+            gap: 10,
             width: '100%',
-            height: 34,
-            padding: '0 10px',
+            height: 38,
+            padding: '0 11px',
             borderRadius: 'var(--fe-radius-md)',
             border: '1px solid var(--fe-border)',
             background: 'var(--fe-surface)',
             cursor: 'pointer',
           }}
         >
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--fe-text-muted)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="7" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
-          <span style={{ flex: 1, fontSize: 13, color: 'var(--fe-text-muted)', textAlign: 'left' }}>Buscar</span>
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--fe-text-muted)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="7" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
+          <span style={{ flex: 1, fontSize: 13.5, color: 'var(--fe-text-muted)', textAlign: 'left' }}>Buscar</span>
           <kbd style={{ fontFamily: 'inherit', fontSize: 11, color: 'var(--fe-text-muted)', background: 'var(--fe-track)', border: '1px solid var(--fe-border)', borderRadius: 5, padding: '1px 6px' }}>⌘K</kbd>
         </button>
       </div>
 
       {/* Scroll area */}
-      <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: '4px 8px 8px' }}>
+      <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: '6px 10px 12px' }}>
         {/* Atalhos pessoais */}
-        <nav style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+        <nav style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
           <QuickLink href="/inbox" label="Inbox" pathname={pathname}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
               <path d="M22 12h-6l-2 3h-4l-2-3H2" /><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z" />
             </svg>
           </QuickLink>
           <QuickLink href="/updates" label="Updates do dia" pathname={pathname}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
               <rect x="3" y="4" width="18" height="18" rx="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" />
             </svg>
           </QuickLink>
           <QuickLink href="/minhas-atividades" label="Minhas atividades" pathname={pathname}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
               <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
             </svg>
           </QuickLink>
         </nav>
 
         {/* Espaços label */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 10px 6px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '22px 10px 8px' }}>
           <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.06em', color: 'var(--fe-text-muted)', textTransform: 'uppercase' }}>Espaços</span>
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--fe-icon)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>
         </div>
@@ -197,7 +197,7 @@ export function Sidebar({ mobileOpen = false, onClose }: { mobileOpen?: boolean;
       </div>
 
       {/* Rodapé: usuário */}
-      <div style={{ borderTop: '1px solid var(--fe-border)', padding: '8px 12px', display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
+      <div style={{ borderTop: '1px solid var(--fe-border)', padding: '10px 12px', display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
         <span style={{ width: 28, height: 28, flexShrink: 0, borderRadius: '50%', background: '#6B59C9', color: '#fff', fontSize: 11, fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>FE</span>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--fe-text-strong)', lineHeight: 1.2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>Future Events</div>
@@ -215,7 +215,7 @@ export function Sidebar({ mobileOpen = false, onClose }: { mobileOpen?: boolean;
               onMouseEnter={(e) => !isConfigActive && ((e.currentTarget as HTMLElement).style.background = 'var(--fe-hover)')}
               onMouseLeave={(e) => !isConfigActive && ((e.currentTarget as HTMLElement).style.background = 'transparent')}
             >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" /></svg>
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" /></svg>
             </Link>
           )
         })()}
@@ -226,7 +226,7 @@ export function Sidebar({ mobileOpen = false, onClose }: { mobileOpen?: boolean;
           onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.background = 'var(--fe-hover)')}
           onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.background = 'transparent')}
         >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--fe-text-muted)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" /></svg>
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--fe-text-muted)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" /></svg>
         </button>
       </div>
     </aside>
@@ -257,9 +257,9 @@ function SpaceSection({
         style={{
           display: 'flex',
           alignItems: 'center',
-          gap: 9,
+          gap: 10,
           width: '100%',
-          height: 34,
+          height: 38,
           padding: '0 10px',
           border: 'none',
           background: 'transparent',
@@ -275,10 +275,10 @@ function SpaceSection({
         >
           <polyline points="9 18 15 12 9 6" />
         </svg>
-        <span style={{ width: 19, height: 19, flexShrink: 0, borderRadius: 5, background: space.color, color: '#fff', fontSize: 11, fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <span style={{ width: 20, height: 20, flexShrink: 0, borderRadius: 5, background: space.color, color: '#fff', fontSize: 11, fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           {space.label[0]}
         </span>
-        <span style={{ fontSize: 'var(--fe-text-base)', color: isOpen ? 'var(--fe-text-strong)' : 'var(--fe-text)', fontWeight: isOpen ? 600 : 500 }}>{space.label}</span>
+        <span style={{ fontSize: 'var(--fe-text-md)', color: isOpen ? 'var(--fe-text-strong)' : 'var(--fe-text)', fontWeight: isOpen ? 600 : 500 }}>{space.label}</span>
       </button>
 
       {/* Folders */}
@@ -326,7 +326,7 @@ function FolderSection({
           display: 'flex',
           alignItems: 'center',
           gap: 4,
-          height: 34,
+          height: 38,
           padding: '0 10px 0 4px',
           borderRadius: 'var(--fe-radius-md)',
           background: isFolderActive ? 'var(--fe-accent-dim)' : 'transparent',
@@ -334,7 +334,7 @@ function FolderSection({
       >
         <button
           onClick={onToggle}
-          style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 18, height: 34, flexShrink: 0, border: 'none', background: 'transparent', cursor: 'pointer', padding: 0, color: 'var(--fe-text-muted)' }}
+          style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 18, height: 38, flexShrink: 0, border: 'none', background: 'transparent', cursor: 'pointer', padding: 0, color: 'var(--fe-text-muted)' }}
         >
           <svg
             width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"
@@ -345,27 +345,27 @@ function FolderSection({
         </button>
         <button
           onClick={onToggle}
-          style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 18, height: 34, flexShrink: 0, border: 'none', background: 'transparent', cursor: 'pointer', padding: 0, color: 'var(--fe-text-soft)' }}
+          style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 18, height: 38, flexShrink: 0, border: 'none', background: 'transparent', cursor: 'pointer', padding: 0, color: 'var(--fe-text-soft)' }}
         >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
             <path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2z" />
           </svg>
         </button>
         {folder.href ? (
           <Link
             href={folder.href}
-            style={{ display: 'flex', alignItems: 'center', flex: 1, height: 34, padding: '0 6px', textDecoration: 'none', overflow: 'hidden', borderRadius: 'var(--fe-radius-md)' }}
+            style={{ display: 'flex', alignItems: 'center', flex: 1, height: 38, padding: '0 6px', textDecoration: 'none', overflow: 'hidden', borderRadius: 'var(--fe-radius-md)' }}
           >
-            <span style={{ fontSize: 'var(--fe-text-base)', fontWeight: isFolderActive ? 600 : 500, color: isFolderActive ? 'var(--fe-accent-dark)' : 'var(--fe-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            <span style={{ fontSize: 'var(--fe-text-md)', fontWeight: isFolderActive ? 600 : 500, color: isFolderActive ? 'var(--fe-accent-dark)' : 'var(--fe-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
               {folder.label}
             </span>
           </Link>
         ) : (
           <button
             onClick={onToggle}
-            style={{ display: 'flex', alignItems: 'center', flex: 1, height: 34, padding: '0 6px', border: 'none', background: 'transparent', cursor: 'pointer', overflow: 'hidden' }}
+            style={{ display: 'flex', alignItems: 'center', flex: 1, height: 38, padding: '0 6px', border: 'none', background: 'transparent', cursor: 'pointer', overflow: 'hidden' }}
           >
-            <span style={{ fontSize: 'var(--fe-text-base)', fontWeight: 500, color: 'var(--fe-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            <span style={{ fontSize: 'var(--fe-text-md)', fontWeight: 500, color: 'var(--fe-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
               {folder.label}
             </span>
           </button>
@@ -398,11 +398,11 @@ function ListNavLink({ href, label, isActive }: { href: string; label: string; i
       style={{
         display: 'flex',
         alignItems: 'center',
-        gap: 9,
-        height: 34,
+        gap: 10,
+        height: 38,
         padding: '0 10px',
         borderRadius: 'var(--fe-radius-md)',
-        fontSize: 'var(--fe-text-base)',
+        fontSize: 'var(--fe-text-md)',
         fontWeight: isActive ? 600 : 400,
         color: isActive ? 'var(--fe-accent-dark)' : 'var(--fe-text-soft)',
         background: isActive ? 'var(--fe-accent-dim)' : 'transparent',
@@ -415,7 +415,7 @@ function ListNavLink({ href, label, isActive }: { href: string; label: string; i
       onMouseEnter={(e) => { setPrefetchOn(true); if (!isActive) (e.currentTarget as HTMLElement).style.background = 'var(--fe-hover)' }}
       onMouseLeave={(e) => { if (!isActive) (e.currentTarget as HTMLElement).style.background = 'transparent' }}
     >
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={isActive ? 'var(--fe-accent)' : 'var(--fe-text-muted)'} strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke={isActive ? 'var(--fe-accent)' : 'var(--fe-text-muted)'} strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
         <line x1="8" y1="6" x2="21" y2="6" /><line x1="8" y1="12" x2="21" y2="12" /><line x1="8" y1="18" x2="21" y2="18" /><line x1="3" y1="6" x2="3.01" y2="6" /><line x1="3" y1="12" x2="3.01" y2="12" /><line x1="3" y1="18" x2="3.01" y2="18" />
       </svg>
       <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{label}</span>
@@ -430,12 +430,12 @@ function QuickLink({ href, label, pathname, children }: { href: string; label: s
       href={href}
       className="fe-nav-row"
       style={{
-        display: 'flex', alignItems: 'center', gap: 9,
-        height: 34, padding: '0 10px', borderRadius: 'var(--fe-radius-md)',
+        display: 'flex', alignItems: 'center', gap: 10,
+        height: 38, padding: '0 10px', borderRadius: 'var(--fe-radius-md)',
         textDecoration: 'none',
         background: isActive ? 'var(--fe-accent-dim)' : 'transparent',
         color: isActive ? 'var(--fe-accent-dark)' : 'var(--fe-text-soft)',
-        fontSize: 'var(--fe-text-base)',
+        fontSize: 'var(--fe-text-md)',
         fontWeight: isActive ? 600 : 400,
       }}
       onMouseEnter={(e) => !isActive && ((e.currentTarget as HTMLElement).style.background = 'var(--fe-hover)')}

@@ -80,7 +80,7 @@
   --fe-shadow-pop:        0 8px 28px rgba(22,24,29,0.12);
   --fe-backdrop:          rgba(22,24,29,0.28);
 
-  --fe-sidebar-w:   264px;
+  --fe-sidebar-w:   284px;
   --fe-panel-w:     600px;
   --fe-kanban-col:  290px;
   --fe-list-min-w:  760px;  /* piso de legibilidade da tabela; abaixo disso rola na horizontal */
@@ -264,11 +264,11 @@ select:focus-visible,
   .fe-mobile-only { display: inline-flex; }
 
   /* Alvos de toque maiores na navegação da gaveta */
-  .fe-nav-row { height: auto !important; min-height: 42px; }
+  .fe-nav-row { height: auto !important; min-height: 44px; }
 }
 
 /* Padding do contêiner da lista (card) — aperta os gutters no celular */
-.fe-list-pad { padding: 14px 24px 24px; }
+.fe-list-pad { padding: 18px 28px 28px; }
 
 /* Página cheia de detalhe: empilha em coluna única em telas estreitas */
 @media (max-width: 900px) {
