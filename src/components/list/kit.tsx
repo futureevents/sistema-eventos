@@ -66,7 +66,7 @@ export function Avatar({ nome, size = 24 }: { nome: string | null; size?: number
 export function Pill({ label, dot, bg, text, chevron = false }: { label: string; dot?: string; bg: string; text: string; chevron?: boolean }) {
   return (
     <span style={{ display: 'inline-flex', alignItems: 'center', gap: dot ? 7 : 0, height: 24, padding: '0 10px', borderRadius: 'var(--fe-radius-md)', background: bg, color: text, fontSize: 12.5, fontWeight: 500, whiteSpace: 'nowrap' }}>
-      {dot && <span style={{ width: 7, height: 7, borderRadius: '50%', background: dot, flexShrink: 0 }} />}
+      {dot && <span style={{ width: 7, height: 7, borderRadius: 2, background: dot, flexShrink: 0 }} />}
       {label}
       {chevron && <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: 0.55, marginLeft: 1 }}><polyline points="6 9 12 15 18 9" /></svg>}
     </span>

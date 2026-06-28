@@ -605,11 +605,11 @@ function RowLine({ row, grid, columns, config, options, patch, remove, onAbrir, 
 
   return (
     <div className="fe-row" role="button" tabIndex={0} aria-label={`Abrir ${titulo || 'registro sem título'}`}
-      style={{ display: 'grid', gridTemplateColumns: grid, gap: 12, alignItems: 'center', minHeight: twoLine ? 58 : 46, padding: '0 24px', borderBottom: '1px solid var(--fe-divider)', cursor: 'pointer', transition: 'background var(--fe-dur-fast)', background: selected ? 'var(--fe-accent-dim)' : 'var(--fe-surface)' }}
+      style={{ display: 'grid', gridTemplateColumns: grid, gap: 12, alignItems: 'center', minHeight: twoLine ? 58 : 46, padding: '0 24px', borderBottom: '1px solid var(--fe-divider)', cursor: 'pointer', transition: 'background var(--fe-dur-fast), box-shadow var(--fe-dur-fast)', boxShadow: selected ? 'inset 2px 0 0 var(--fe-accent)' : 'none', background: selected ? 'var(--fe-accent-dim)' : 'var(--fe-surface)' }}
       onClick={() => { if (!pop) onAbrir(row.id) }}
       onKeyDown={(e) => { if ((e.key === 'Enter' || e.key === ' ') && e.target === e.currentTarget) { e.preventDefault(); if (!pop) onAbrir(row.id) } }}
-      onMouseEnter={(e) => { setHovered(true); if (!selected) e.currentTarget.style.background = 'var(--fe-warm-white)' }}
-      onMouseLeave={(e) => { setHovered(false); if (!selected) e.currentTarget.style.background = 'var(--fe-surface)' }}>
+      onMouseEnter={(e) => { setHovered(true); if (!selected) { e.currentTarget.style.background = 'var(--fe-warm-white)'; e.currentTarget.style.boxShadow = 'inset 2px 0 0 var(--fe-accent)' } }}
+      onMouseLeave={(e) => { setHovered(false); if (!selected) { e.currentTarget.style.background = 'var(--fe-surface)'; e.currentTarget.style.boxShadow = 'none' } }}>
       {/* Checkbox */}
       <span onClick={(e) => e.stopPropagation()} style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
         <Checkbox checked={selected} onChange={onToggle} visible={hovered || selected || anySelected} />
@@ -617,16 +617,16 @@ function RowLine({ row, grid, columns, config, options, patch, remove, onAbrir, 
       {columns.map((f) => (
         <span key={f.key} onClick={(e) => { if (!f.column!.primary) e.stopPropagation() }} style={{ minWidth: 0, display: 'flex', alignItems: 'center' }}>
           {f.column!.primary ? (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
               {statusField && <span onClick={(e) => e.stopPropagation()} style={{ display: 'inline-flex', alignItems: 'center', flexShrink: 0 }}><StatusDot options={statusField.options ?? []} value={String(row[config.statusField!] ?? '')} onChange={(v) => patch(row.id, { [config.statusField!]: v })} /></span>}
               {config.titleAvatar && <Avatar nome={titulo || null} size={twoLine ? 30 : 24} />}
               {twoLine ? (
                 <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0, gap: 1 }}>
-                  <span style={{ fontSize: 'var(--fe-text-md)', fontWeight: 500, color: concluida ? 'var(--fe-text-muted)' : 'var(--fe-text-strong)', textDecoration: concluida ? 'line-through' : 'none', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', lineHeight: 1.3 }}>{titulo || <span style={{ color: 'var(--fe-text-faint)' }}>Sem título</span>}</span>
+                  <span style={{ fontSize: 'var(--fe-text-md)', fontWeight: 500, color: 'var(--fe-text-strong)', opacity: concluida ? 0.5 : 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', lineHeight: 1.3 }}>{titulo || <span style={{ color: 'var(--fe-text-faint)' }}>Sem título</span>}</span>
                   {(() => { const sub = primaryCol!.subtitle!(row); return sub ? <span style={{ fontSize: 'var(--fe-text-sm)', color: 'var(--fe-text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', lineHeight: 1.3 }}>{sub}</span> : null })()}
                 </div>
               ) : (
-                <span style={{ fontSize: 'var(--fe-text-md)', fontWeight: 500, color: concluida ? 'var(--fe-text-muted)' : 'var(--fe-text-strong)', textDecoration: concluida ? 'line-through' : 'none', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{titulo || <span style={{ color: 'var(--fe-text-faint)' }}>Sem título</span>}</span>
+                <span style={{ fontSize: 'var(--fe-text-md)', fontWeight: 500, color: 'var(--fe-text-strong)', opacity: concluida ? 0.5 : 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{titulo || <span style={{ color: 'var(--fe-text-faint)' }}>Sem título</span>}</span>
               )}
             </div>
           ) : (
