@@ -9,7 +9,7 @@ import {
 } from './types'
 import { type EmbedMap } from './load'
 import { Breadcrumb, SpaceBadge, Avatar, EmptyState, dataLonga, useHiddenFields } from './kit'
-import { Dropdown, StatusDot, SelectMenu, OptionPill, RowMenu } from './inline'
+import { Dropdown, StatusDot, SelectMenu, RelationMenu, OptionPill, RowMenu } from './inline'
 import { InlineField, displayLabel, groupKey, optionOf, isDerived } from './cells'
 import { RichTextEditor } from './RichText'
 import { QuickAddRow } from './QuickAdd'
@@ -697,11 +697,20 @@ function BulkBar({ selectedIds, config, options, onPatch, onRemove, onClear }: {
 }) {
   const n = selectedIds.length
   const statusField = config.statusField ? config.fields.find((f) => f.key === config.statusField) : null
+  const assigneeField = config.assigneeField ? config.fields.find((f) => f.key === config.assigneeField) ?? null : null
+  const assigneeOptions = assigneeField ? (options[assigneeField.key] ?? []) : []
+  // Acesso rápido inline: até 3 colunas select/date (exceto status e responsável).
   const actionFields = config.fields.filter((f) =>
     (f.type === 'select' || f.type === 'date') &&
     f.key !== config.statusField &&
+    f.key !== config.assigneeField &&
     (f.column || f.inPanel)
   ).slice(0, 3)
+  // Demais custom fields editáveis da List (qualquer tipo), acessíveis via "Campos".
+  const inlineKeys = new Set([config.statusField, config.assigneeField, config.titleField, ...actionFields.map((f) => f.key)].filter(Boolean) as string[])
+  const moreFields = config.fields.filter((f) =>
+    f.editable !== false && !isDerived(f) && f.type !== 'richtext' && !inlineKeys.has(f.key)
+  )
 
   const bulkBtnStyle: React.CSSProperties = {
     height: 34, padding: '0 12px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.14)',
@@ -756,6 +765,21 @@ function BulkBar({ selectedIds, config, options, onPatch, onRemove, onClear }: {
           </BulkDropdown>
         )}
 
+        {/* Responsável */}
+        {assigneeField && (
+          <RelationMenu options={assigneeOptions} value={null} semLabel={`Sem ${assigneeField.label.toLowerCase()}`}
+            onChange={(id) => onPatch({ [assigneeField.key]: id })}>
+            {({ toggle }) => (
+              <button onClick={toggle} style={bulkBtnStyle}
+                onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.14)')}
+                onMouseLeave={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.08)')}>
+                <PersonGlyph />{assigneeField.label}
+                <svg width="9" height="9" viewBox="0 0 9 9" fill="none" style={{ opacity: 0.6 }}><path d="M2 3.5L4.5 6L7 3.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" /></svg>
+              </button>
+            )}
+          </RelationMenu>
+        )}
+
         {/* Campos select adicionais */}
         {actionFields.map((f) => f.type === 'select' ? (
           <BulkDropdown
@@ -791,6 +815,28 @@ function BulkBar({ selectedIds, config, options, onPatch, onRemove, onClear }: {
             )}
           </BulkDropdown>
         ) : null)}
+
+        {/* Demais custom fields da List */}
+        {moreFields.length > 0 && (
+          <BulkDropdown
+            label={<><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M1.5 3.5H10.5M1.5 6H10.5M1.5 8.5H10.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" /><circle cx="4" cy="3.5" r="1.3" fill="var(--fe-surface,#1a1a2e)" stroke="currentColor" strokeWidth="1.1" /><circle cx="8" cy="6" r="1.3" fill="var(--fe-surface,#1a1a2e)" stroke="currentColor" strokeWidth="1.1" /><circle cx="5" cy="8.5" r="1.3" fill="var(--fe-surface,#1a1a2e)" stroke="currentColor" strokeWidth="1.1" /></svg>Campos</>}
+            btnStyle={bulkBtnStyle}
+            panelStyle={{ ...panelStyle, minWidth: 268, maxWidth: 320, maxHeight: 'min(56vh, 480px)', overflowY: 'auto', padding: 6 }}
+          >
+            {() => (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                {moreFields.map((f) => (
+                  <div key={f.key} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '5px 7px', borderRadius: 6 }}>
+                    <span style={{ fontSize: 12.5, color: 'var(--fe-text-muted)', whiteSpace: 'nowrap', flexShrink: 0 }}>{f.label}</span>
+                    <span style={{ minWidth: 0, textAlign: 'right' }}>
+                      <InlineField field={f} row={{ id: '' }} options={options} patch={(p) => onPatch(p)} variant="panel" />
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </BulkDropdown>
+        )}
 
         <div style={{ width: 1, height: 22, background: 'rgba(255,255,255,0.1)', margin: '0 4px' }} />
 
@@ -875,6 +921,13 @@ function SlideOver({ row, config, options, patch, remove, onFechar }: {
   const doneOpt = statusField?.options?.find((o) => o.done)
   const openOpt = statusField?.options?.find((o) => !o.done)
   const concluida = statusField ? !!optionOf(statusField, String(row[config.statusField!] ?? ''))?.done : false
+
+  // Fecha o painel ao pressionar Esc.
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) { if (e.key === 'Escape') onFechar() }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [onFechar])
 
   return (
     <>
