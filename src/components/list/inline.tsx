@@ -80,12 +80,18 @@ export function StatusDot({ options, value, onChange, size = 14 }: { options: Se
   const opt = options.find((o) => o.value === value)
   const done = !!opt?.done
   const dot = opt?.dot ?? 'var(--fe-status-todo)'
+  // Progresso 0..1: enche o quadradinho aos poucos conforme o status avança até "concluído".
+  const curIdx = options.findIndex((o) => o.value === value)
+  const doneIdx = options.findIndex((o) => o.done)
+  const denom = doneIdx > 0 ? doneIdx : Math.max(options.length - 1, 1)
+  const frac = done ? 1 : curIdx <= 0 ? 0 : Math.min(curIdx / denom, 1)
   return (
     <Dropdown align="left" width={190}
       trigger={({ toggle }) => (
         <button onClick={toggle} title="Alterar status" aria-label="Alterar status"
-          style={{ width: size, height: size, flexShrink: 0, borderRadius: 4, cursor: 'pointer', padding: 0, border: done ? 'none' : `2px solid ${dot}`, background: done ? (opt?.dot ?? 'var(--fe-accent)') : 'transparent', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
-          {done && <svg width={size * 0.6} height={size * 0.6} viewBox="0 0 12 12" fill="none"><path d="M2.5 6.2L5 8.5L9.5 3.5" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>}
+          style={{ width: size, height: size, flexShrink: 0, borderRadius: 4, cursor: 'pointer', padding: 0, border: `2px solid ${dot}`, background: 'transparent', position: 'relative', overflow: 'hidden', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+          {frac > 0 && <span aria-hidden style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: `${frac * 100}%`, background: dot, transition: 'height var(--fe-dur-fast) var(--fe-ease)' }} />}
+          {done && <svg width={size * 0.6} height={size * 0.6} viewBox="0 0 12 12" fill="none" style={{ position: 'relative' }}><path d="M2.5 6.2L5 8.5L9.5 3.5" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>}
         </button>
       )}>
       {(close) => options.map((o) => (
