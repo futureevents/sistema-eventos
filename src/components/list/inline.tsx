@@ -223,6 +223,53 @@ export function TextInline({ value, onChange, placeholder = '—', type = 'text'
   )
 }
 
+// ─── Dinheiro (BRL) inline editável ──────────────────────────────────────────
+
+const fmtBRL = (n: number) => n.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+
+export function MoneyInline({ value, onChange, dense = false }: {
+  value: number | null
+  onChange: (v: number | null) => void
+  dense?: boolean
+}) {
+  const ref = useRef<HTMLInputElement>(null)
+  const [prev, setPrev] = useState(value)
+  const [v, setV] = useState(() => value != null ? fmtBRL(value) : '')
+
+  // sincroniza com valor externo (mesmo padrão de TextInline)
+  if (value !== prev) { setPrev(value); setV(value != null ? fmtBRL(value) : '') }
+
+  function commit() {
+    // pt-BR: '.' = separador de milhar, ',' = decimal
+    const clean = v.trim().replace(/\./g, '').replace(',', '.')
+    const n = parseFloat(clean)
+    const newVal = !clean || isNaN(n) ? null : Math.round(n * 100) / 100
+    if (newVal !== value) onChange(newVal)
+    setV(newVal != null ? fmtBRL(newVal) : '')
+  }
+
+  return (
+    <input
+      ref={ref}
+      value={v}
+      type="text"
+      inputMode="decimal"
+      placeholder="—"
+      onChange={(e) => setV(e.target.value)}
+      onClick={(e) => { e.stopPropagation(); ref.current?.select() }}
+      onBlur={commit}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter') ref.current?.blur()
+        if (e.key === 'Escape') { setV(value != null ? fmtBRL(value) : ''); ref.current?.blur() }
+      }}
+      style={{ width: '100%', height: dense ? 30 : 36, padding: '0 6px', margin: '0 -6px', border: '1px solid transparent', borderRadius: 6, background: 'transparent', fontSize: dense ? 12.5 : 14, color: v ? 'var(--fe-text)' : 'var(--fe-text-faint)', outline: 'none', textAlign: 'right', fontVariantNumeric: 'tabular-nums', transition: 'border-color var(--fe-dur-fast), background var(--fe-dur-fast)' }}
+      onFocus={(e) => { e.currentTarget.style.borderColor = 'var(--fe-accent)'; e.currentTarget.style.background = 'var(--fe-surface)' }}
+      onMouseEnter={(e) => { if (document.activeElement !== e.currentTarget) e.currentTarget.style.background = 'var(--fe-hover)' }}
+      onMouseLeave={(e) => { if (document.activeElement !== e.currentTarget) e.currentTarget.style.background = 'transparent' }}
+    />
+  )
+}
+
 // ─── Calendário (popover de data) ─────────────────────────────────────────────
 
 const DOW = ['D', 'S', 'T', 'Q', 'Q', 'S', 'S']

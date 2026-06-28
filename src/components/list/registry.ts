@@ -5,6 +5,7 @@ import { fornecedoresConfig } from './configs/fornecedores'
 import { tasksConfig } from './configs/tasks'
 import { marketingConfig } from './configs/marketing-criacao'
 import { processoConfig } from './configs/gestao-processos'
+import { oportunidadeConfig } from './configs/oportunidades'
 
 /**
  * Registro de Lists. As páginas (servidor) e os wrappers (cliente) resolvem a
@@ -14,6 +15,8 @@ import { processoConfig } from './configs/gestao-processos'
 export const LIST_CONFIGS: Record<string, ListConfig> = {
   eventos: eventosConfig,
   clientes: clientesConfig,
+  'oport:trafego_pago': oportunidadeConfig('trafego_pago'),
+  'oport:prospeccao_ativa': oportunidadeConfig('prospeccao_ativa'),
   fornecedores: fornecedoresConfig,
   'tasks:onboarding': tasksConfig('onboarding'),
   'tasks:pre_evento': tasksConfig('pre_evento'),

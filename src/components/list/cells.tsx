@@ -4,7 +4,7 @@ import { type FieldDef, type Row, type OptionsMap, type SelectOption } from './t
 import { Avatar, Tag, dataCurta, Dash } from './kit'
 import {
   Dropdown, CalendarPopover, SelectMenu, RelationMenu, MultiMenu, TextInline,
-  OptionPill, FlagInline,
+  OptionPill, FlagInline, MoneyInline,
 } from './inline'
 
 // ─── Leitura de valores ───────────────────────────────────────────────────────
@@ -35,6 +35,11 @@ export function displayLabel(f: FieldDef, row: Row, options: OptionsMap): string
       return emb && f.relation ? String(emb[f.relation.labelField] ?? '') || null : null
     }
     case 'date': return dataCurta(String(v))
+    case 'money': {
+      const n = Number(v)
+      if (isNaN(n)) return null
+      return 'R$ ' + n.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+    }
     case 'multiselect': {
       if (!Array.isArray(v) || v.length === 0) return null
       const arr = v as string[]
@@ -141,6 +146,11 @@ export function InlineField({
           )}
         </RelationMenu>
       )
+    }
+
+    case 'money': {
+      const num = row[field.key] as number | null | undefined
+      return <MoneyInline value={num ?? null} dense={variant === 'cell'} onChange={(v) => patch({ [field.key]: v })} />
     }
 
     case 'multiselect': {

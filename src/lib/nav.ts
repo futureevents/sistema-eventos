@@ -28,8 +28,8 @@ export const NAV: NavSpace[] = [
         label: 'Oportunidades',
         slug: 'oportunidades',
         lists: [
-          { label: 'Geração de novas oportunidades', slug: 'geracao', href: '/comercial/oportunidades/geracao' },
-          { label: 'Renovações & upgrades', slug: 'renovacoes', href: '/comercial/oportunidades/renovacoes' },
+          { label: 'Tráfego Pago', slug: 'trafego-pago', href: '/comercial/oportunidades/trafego-pago' },
+          { label: 'Prospeção Ativa', slug: 'prospeccao-ativa', href: '/comercial/oportunidades/prospeccao-ativa' },
         ],
       },
       {

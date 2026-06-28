@@ -43,9 +43,9 @@ A navegação segue a mesma hierarquia do ClickUp: **Space → Folder → List �
 ### Spaces e sua estrutura
 
 #### Space: Comercial
-- **Folder: Oportunidades**
-  - List: Geração de novas oportunidades
-  - List: Renovações & upgrades
+- **Folder: Oportunidades** *(CRM de leads — tabela única `task_oportunidade` por `tipo`)*
+  - List: Tráfego Pago *(leads inbound de anúncios; pipeline LEAD → … → NEGÓCIO FECHADO)*
+  - List: Prospeção Ativa *(outbound; pipeline próprio — a definir)*
 - **Folder: Gestão de clientes**
   - List: Clientes
 

@@ -9,7 +9,7 @@ import type { Space } from './spaces'
  */
 
 export type FieldType =
-  | 'text' | 'richtext' | 'select' | 'date' | 'relation' | 'multiselect' | 'email' | 'tel'
+  | 'text' | 'richtext' | 'select' | 'date' | 'relation' | 'multiselect' | 'email' | 'tel' | 'money'
 
 export type SelectOption = {
   value: string
@@ -115,4 +115,9 @@ export function toISODate(d: Date): string {
   const day = String(d.getDate()).padStart(2, '0')
   return `${y}-${m}-${day}`
 }
-export function parseISO(iso: string): Date { return new Date(iso + 'T00:00:00') }
+export function parseISO(iso: string): Date {
+  // Supabase devolve 'YYYY-MM-DD' para date e ISO full para timestamptz.
+  // O sufixo 'T' ou '+'/'-' indica timestamp já parseável pelo construtor nativo.
+  if (iso.includes('T') || iso.endsWith('Z') || /[+-]\d{2}:\d{2}$/.test(iso)) return new Date(iso)
+  return new Date(iso + 'T00:00:00')
+}
