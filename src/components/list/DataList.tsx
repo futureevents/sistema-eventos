@@ -197,7 +197,7 @@ export function DataList({ config, rows: rowsProp, options, embeds }: {
               <EmptyState icon={config.emptyIcon ?? <DefaultEmptyIcon />} titulo={`Nenhum registro em ${config.plural}`} descricao={`Crie o primeiro ${config.singular.toLowerCase()} para começar.`} addHref={addHref} addLabel={config.addLabel ?? `Adicionar ${config.singular}`} />
             ) : (
               <div style={{ minWidth: 'var(--fe-list-min-w)' }}>
-                <Header columns={columns} grid={grid} config={config} allSelected={allVisibleSelected} someSelected={someSelected} onToggleAll={() => toggleSelectAll(visibleIds)} />
+                {!groupBy && <Header columns={columns} grid={grid} config={config} allSelected={allVisibleSelected} someSelected={someSelected} onToggleAll={() => toggleSelectAll(visibleIds)} />}
                 {grupos.map((g, i) => (
                   <Grupo key={g.key} grupo={g} grid={grid} columns={columns} config={config} options={options} patch={patch} remove={remove} add={add} groupByField={groupByField} onAbrir={setSel} grouped={!!groupBy} first={i === 0} selectedIds={selectedIds} onToggle={toggleSelect} />
                 ))}
@@ -280,6 +280,16 @@ function contarFiltros(filtros: FilterState): number {
 // ─── Agrupamento (lógica) ─────────────────────────────────────────────────────
 
 type GrupoView = { key: string; itens: Row[]; option?: SelectOption; label?: string }
+
+// Cor da data de vencimento (estilo ClickUp): verde quando ainda há prazo,
+// vermelha quando atrasada e a task não está concluída. Concluída/sem data → cor padrão.
+function dueTone(iso: string | null, done: boolean): string | undefined {
+  if (!iso || done) return undefined
+  const hoje = new Date(); hoje.setHours(0, 0, 0, 0)
+  const dias = Math.round((parseISO(iso).getTime() - hoje.getTime()) / 86400000)
+  if (dias < 0) return 'var(--fe-prio-urgent)'
+  return 'var(--fe-status-done-text)'
+}
 
 function dateBucket(iso: string | null): { ordem: number; key: string; label: string } {
   if (!iso) return { ordem: 5, key: 'sem', label: 'Sem data' }
@@ -515,7 +525,7 @@ function Header({ columns, grid, config, allSelected, someSelected, onToggleAll 
       <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
         <Checkbox checked={allSelected} indeterminate={someSelected && !allSelected} onChange={onToggleAll} />
       </span>
-      {columns.map((c) => <span key={c.key} style={{ fontSize: 11, fontWeight: 600, color: 'var(--fe-text-faint)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{c.column!.header ?? (c.column!.primary ? `Nome (${config.singular.toLowerCase()})` : c.label)}</span>)}
+      {columns.map((c) => <span key={c.key} style={{ fontSize: 12, fontWeight: 600, color: 'var(--fe-text-muted)' }}>{c.column!.header ?? (c.column!.primary ? `Nome (${config.singular.toLowerCase()})` : c.label)}</span>)}
       <span />
     </div>
   )
@@ -574,9 +584,16 @@ function Grupo({ grupo, grid, columns, config, options, patch, remove, add, grou
           <span style={{ width: 20, flexShrink: 0, display: 'inline-flex', alignItems: 'center' }}>
             <svg width="10" height="10" viewBox="0 0 9 9" fill="none" style={{ transform: aberto ? 'rotate(90deg)' : 'rotate(0deg)', transition: 'transform var(--fe-dur-fast) var(--fe-ease)', color: 'var(--fe-text-muted)' }}><path d="M3 1.5L6 4.5L3 7.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" /></svg>
           </span>
-          {grupo.option ? <OptionPill opt={grupo.option} /> : <span style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--fe-text-strong)' }}>{grupo.label}</span>}
+          {grupo.option ? <OptionPill opt={grupo.option} solid /> : <span style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--fe-text-strong)' }}>{grupo.label}</span>}
           <span style={{ fontFamily: 'var(--font-geist-mono), monospace', fontSize: 12, color: 'var(--fe-text-muted)' }}>{grupo.itens.length}</span>
           <button onClick={(e) => { e.stopPropagation(); setAberto(true); setAdicionando(true) }} style={{ marginLeft: 6, border: 'none', background: 'transparent', padding: 0, cursor: 'pointer', fontSize: 12.5, color: 'var(--fe-text-faint)' }} onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--fe-text-soft)')} onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--fe-text-faint)')}>+ Adicionar</button>
+        </div>
+      )}
+      {grouped && aberto && grupo.itens.length > 0 && (
+        <div style={{ display: 'grid', gridTemplateColumns: grid, gap: 12, padding: '0 24px', height: 30, alignItems: 'center', borderBottom: '1px solid var(--fe-divider)' }}>
+          <span />
+          {columns.map((c) => <span key={c.key} style={{ fontSize: 12, fontWeight: 600, color: 'var(--fe-text-muted)' }}>{c.column!.header ?? (c.column!.primary ? `Nome (${config.singular.toLowerCase()})` : c.label)}</span>)}
+          <span />
         </div>
       )}
       {aberto && grupo.itens.map((r) => (
@@ -630,7 +647,8 @@ function RowLine({ row, grid, columns, config, options, patch, remove, onAbrir, 
               )}
             </div>
           ) : (
-            <InlineField field={f} row={row} options={options} patch={(p) => patch(row.id, p)} variant="cell" onOpenChange={setPop} />
+            <InlineField field={f} row={row} options={options} patch={(p) => patch(row.id, p)} variant="cell" onOpenChange={setPop}
+              dateColor={f.type === 'date' && f.key === config.endDateField ? dueTone(row[f.key] as string | null, concluida) : undefined} />
           )}
         </span>
       ))}

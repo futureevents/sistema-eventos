@@ -207,7 +207,7 @@ export function ColunasHeader({ cols, leftPad = 22 }: { cols: Col[]; leftPad?: n
   return (
     <div style={{ position: 'sticky', top: 0, zIndex: 2, display: 'grid', gridTemplateColumns: cols.map((c) => c.width).join(' '), gap: 12, padding: `0 22px 0 ${leftPad}px`, height: 38, alignItems: 'center', background: 'var(--fe-surface)', borderBottom: '1px solid var(--fe-border)' }}>
       {cols.map((c) => (
-        <span key={c.label} style={{ fontSize: 11, fontWeight: 600, color: 'var(--fe-text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{c.label}</span>
+        <span key={c.label} style={{ fontSize: 12, fontWeight: 600, color: 'var(--fe-text-muted)' }}>{c.label}</span>
       ))}
     </div>
   )

@@ -72,7 +72,7 @@ function HoverBtn({ children, onClick, title }: { children: React.ReactNode; onC
 }
 
 export function InlineField({
-  field, row, options, patch, variant = 'cell', onOpenChange,
+  field, row, options, patch, variant = 'cell', onOpenChange, dateColor,
 }: {
   field: FieldDef
   row: Row
@@ -80,6 +80,7 @@ export function InlineField({
   patch: (partial: Record<string, unknown>) => void
   variant?: 'cell' | 'panel'
   onOpenChange?: (open: boolean) => void
+  dateColor?: string                 // override de cor p/ datas (ex.: vencimento atrasado/no prazo)
 }) {
   const editable = field.editable !== false && !isDerived(field)
   const muted = 'var(--fe-text)'
@@ -87,7 +88,7 @@ export function InlineField({
   // Derivado / não editável → só exibe
   if (!editable) {
     const lbl = displayLabel(field, row, options)
-    return <span style={{ fontSize: variant === 'cell' ? 12.5 : 14, color: lbl ? muted : 'var(--fe-text-faint)' }}>{lbl ?? '—'}</span>
+    return <span style={{ fontSize: variant === 'cell' ? 13 : 14, color: lbl ? muted : 'var(--fe-text-faint)' }}>{lbl ?? '—'}</span>
   }
 
   switch (field.type) {
@@ -100,7 +101,7 @@ export function InlineField({
         <Dropdown align="left" width={252} fill={variant === 'cell'} onOpenChange={onOpenChange}
           trigger={({ toggle }) => (
             <HoverBtn onClick={toggle} title={`Alterar ${field.label.toLowerCase()}`}>
-              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: variant === 'cell' ? 12.5 : 14, color: iso ? muted : 'var(--fe-text-faint)', whiteSpace: 'nowrap' }}>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: variant === 'cell' ? 13 : 14, color: iso ? (dateColor ?? muted) : 'var(--fe-text-faint)', fontWeight: iso && dateColor ? 500 : undefined, fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>
                 <svg width="13" height="13" viewBox="0 0 14 14" fill="none" style={{ opacity: 0.85, flexShrink: 0 }}><rect x="2" y="2.8" width="10" height="9.2" rx="1.6" stroke="currentColor" strokeWidth="1.2" /><path d="M2 5.2H12M4.6 1.6V3.4M9.4 1.6V3.4" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" /></svg>
                 {iso ? dataCurta(iso) : (field.placeholder ?? '—')}
               </span>
@@ -119,7 +120,7 @@ export function InlineField({
         <SelectMenu options={field.options ?? []} value={value} display={display} fill={variant === 'cell'} onChange={(v) => patch({ [field.key]: v })}>
           {({ toggle }) => (
             <HoverBtn onClick={toggle} title={`Alterar ${field.label.toLowerCase()}`}>
-              {opt ? (display === 'flag' ? <FlagInline color={opt.flag ?? opt.dot ?? 'var(--fe-text-muted)'} label={opt.label} /> : <OptionPill opt={opt} chevron={variant === 'panel'} />) : <span style={{ color: 'var(--fe-text-faint)', fontSize: 12.5 }}>—</span>}
+              {opt ? (display === 'flag' ? <FlagInline color={opt.flag ?? opt.dot ?? 'var(--fe-text-muted)'} label={opt.label} /> : <OptionPill opt={opt} chevron={variant === 'panel'} />) : <span style={{ color: 'var(--fe-text-faint)', fontSize: 13 }}>—</span>}
             </HoverBtn>
           )}
         </SelectMenu>
@@ -140,7 +141,7 @@ export function InlineField({
               </button>
             ) : (
               <HoverBtn onClick={toggle} title={`Alterar ${field.label.toLowerCase()}`}>
-                <span style={{ fontSize: variant === 'cell' ? 12.5 : 14, color: lbl ? muted : 'var(--fe-text-faint)', textAlign: 'left', overflow: variant === 'cell' ? 'hidden' : 'visible', textOverflow: 'ellipsis', whiteSpace: variant === 'cell' ? 'nowrap' : 'normal', wordBreak: 'break-word' }}>{lbl ?? '—'}</span>
+                <span style={{ fontSize: variant === 'cell' ? 13 : 14, color: lbl ? muted : 'var(--fe-text-faint)', textAlign: 'left', overflow: variant === 'cell' ? 'hidden' : 'visible', textOverflow: 'ellipsis', whiteSpace: variant === 'cell' ? 'nowrap' : 'normal', wordBreak: 'break-word' }}>{lbl ?? '—'}</span>
               </HoverBtn>
             )
           )}
@@ -162,7 +163,7 @@ export function InlineField({
         <MultiMenu options={field.multiOptions ?? []} colored={colored} value={arr} fill={variant === 'cell'} onChange={(v) => patch({ [field.key]: v })}>
           {({ toggle }) => (
             <HoverBtn onClick={toggle} title={`Alterar ${field.label.toLowerCase()}`}>
-              {arr.length === 0 ? <span style={{ color: 'var(--fe-text-faint)', fontSize: 12.5 }}>—</span> : (
+              {arr.length === 0 ? <span style={{ color: 'var(--fe-text-faint)', fontSize: 13 }}>—</span> : (
                 <span style={{ display: 'inline-flex', gap: 5, flexWrap: 'nowrap', overflow: variant === 'panel' ? 'visible' : 'hidden' }}>
                   {arr.slice(0, variant === 'panel' ? 99 : 2).map((t) => {
                     const opt = colored?.find((o) => o.value === t)

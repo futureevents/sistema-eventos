@@ -241,7 +241,7 @@ export function TextInline({ value, onChange, placeholder = '—', type = 'text'
     <input ref={ref} value={v} type={type} placeholder={placeholder}
       onChange={(e) => setV(e.target.value)} onClick={(e) => e.stopPropagation()}
       onBlur={commit} onKeyDown={(e) => { if (e.key === 'Enter') ref.current?.blur(); if (e.key === 'Escape') { setV(value ?? ''); ref.current?.blur() } }}
-      style={{ width: '100%', height: dense ? 30 : 36, padding: '0 6px', margin: '0 -6px', border: '1px solid transparent', borderRadius: 6, background: 'transparent', fontSize: dense ? 12.5 : 14, color: v ? 'var(--fe-text)' : 'var(--fe-text-faint)', outline: 'none', transition: 'border-color var(--fe-dur-fast), background var(--fe-dur-fast)' }}
+      style={{ width: '100%', height: dense ? 30 : 36, padding: '0 6px', margin: '0 -6px', border: '1px solid transparent', borderRadius: 6, background: 'transparent', fontSize: dense ? 13 : 14, color: v ? 'var(--fe-text)' : 'var(--fe-text-faint)', outline: 'none', transition: 'border-color var(--fe-dur-fast), background var(--fe-dur-fast)' }}
       onFocus={(e) => { e.currentTarget.style.borderColor = 'var(--fe-accent)'; e.currentTarget.style.background = 'var(--fe-surface)' }}
       onMouseEnter={(e) => { if (document.activeElement !== e.currentTarget) e.currentTarget.style.background = 'var(--fe-hover)' }}
       onMouseLeave={(e) => { if (document.activeElement !== e.currentTarget) e.currentTarget.style.background = 'transparent' }} />
@@ -287,7 +287,7 @@ export function MoneyInline({ value, onChange, dense = false }: {
         if (e.key === 'Enter') ref.current?.blur()
         if (e.key === 'Escape') { setV(value != null ? fmtBRL(value) : ''); ref.current?.blur() }
       }}
-      style={{ width: '100%', height: dense ? 30 : 36, padding: '0 6px', margin: '0 -6px', border: '1px solid transparent', borderRadius: 6, background: 'transparent', fontSize: dense ? 12.5 : 14, color: v ? 'var(--fe-text)' : 'var(--fe-text-faint)', outline: 'none', textAlign: 'right', fontVariantNumeric: 'tabular-nums', transition: 'border-color var(--fe-dur-fast), background var(--fe-dur-fast)' }}
+      style={{ width: '100%', height: dense ? 30 : 36, padding: '0 6px', margin: '0 -6px', border: '1px solid transparent', borderRadius: 6, background: 'transparent', fontSize: dense ? 13 : 14, color: v ? 'var(--fe-text)' : 'var(--fe-text-faint)', outline: 'none', textAlign: 'right', fontVariantNumeric: 'tabular-nums', transition: 'border-color var(--fe-dur-fast), background var(--fe-dur-fast)' }}
       onFocus={(e) => { e.currentTarget.style.borderColor = 'var(--fe-accent)'; e.currentTarget.style.background = 'var(--fe-surface)' }}
       onMouseEnter={(e) => { if (document.activeElement !== e.currentTarget) e.currentTarget.style.background = 'var(--fe-hover)' }}
       onMouseLeave={(e) => { if (document.activeElement !== e.currentTarget) e.currentTarget.style.background = 'transparent' }}
