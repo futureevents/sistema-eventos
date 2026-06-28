@@ -41,6 +41,7 @@ export function DataList({ config, rows: rowsProp, options, embeds }: {
   const [filtros, setFiltros] = useState<FilterState>(firstPreset?.filter ?? {})
   const [salvando, setSalvando] = useState<'idle' | 'saving' | 'saved'>('idle')
   const savedTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const tmpSeq = useRef(0)
 
   function marcarSalvo() {
     setSalvando('saved')
@@ -69,19 +70,32 @@ export function DataList({ config, rows: rowsProp, options, embeds }: {
     const payload: Record<string, unknown> = { ...partial }
     if (config.baseFilter) payload[config.baseFilter.col] = config.baseFilter.value
     if (config.baseFilterIn && payload[config.baseFilterIn.col] == null) payload[config.baseFilterIn.col] = config.baseFilterIn.values[0]
-    setSalvando('saving')
-    const { data, error } = await supabase.from(config.table).insert(payload).select('*').single()
-    if (error || !data) { setSalvando('idle'); return false }
-    const novo = { ...(data as Row) }
-    for (const k of Object.keys(payload)) {
-      const f = config.fields.find((x) => x.key === k)
-      if (f?.type === 'relation' && f.relation?.embed) {
-        const alias = k.replace(/_id$/, '')
-        const newId = payload[k] as string | null
-        novo[alias] = newId ? (embeds[k]?.[newId] ?? null) : null
+
+    // Resolve os embeds de relação (usados tanto na linha otimista quanto na real)
+    function withEmbeds(base: Row): Row {
+      const out = { ...base }
+      for (const k of Object.keys(payload)) {
+        const f = config.fields.find((x) => x.key === k)
+        if (f?.type === 'relation' && f.relation?.embed) {
+          const alias = k.replace(/_id$/, '')
+          const newId = payload[k] as string | null
+          out[alias] = newId ? (embeds[k]?.[newId] ?? null) : null
+        }
       }
+      return out
     }
-    setRows((prev) => [...prev, novo])
+
+    // Linha otimista: aparece na hora, com id temporário
+    const tmpId = `tmp-${++tmpSeq.current}`
+    const otimista = withEmbeds({ id: tmpId, criado_em: new Date().toISOString(), ...payload } as Row)
+    setRows((prev) => [...prev, otimista])
+    setSalvando('saving')
+
+    const { data, error } = await supabase.from(config.table).insert(payload).select('*').single()
+    if (error || !data) { setRows((prev) => prev.filter((r) => r.id !== tmpId)); setSalvando('idle'); return false }
+
+    const novo = withEmbeds({ ...(data as Row) })
+    setRows((prev) => prev.map((r) => (r.id === tmpId ? novo : r)))
     marcarSalvo()
     return true
   }

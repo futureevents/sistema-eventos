@@ -377,41 +377,49 @@ function FolderSection({
         <div style={{ marginLeft: 14, paddingLeft: 8, borderLeft: '1px solid var(--fe-border)', display: 'flex', flexDirection: 'column', gap: 1 }}>
           {folder.lists.map((list) => {
             const isActive = pathname === list.href || pathname.startsWith(list.href + '/')
-            return (
-              <Link
-                key={list.slug}
-                href={list.href}
-                className="fe-nav-row"
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 9,
-                  height: 34,
-                  padding: '0 10px',
-                  borderRadius: 'var(--fe-radius-md)',
-                  fontSize: 'var(--fe-text-base)',
-                  fontWeight: isActive ? 600 : 400,
-                  color: isActive ? 'var(--fe-accent-dark)' : 'var(--fe-text-soft)',
-                  background: isActive ? 'var(--fe-accent-dim)' : 'transparent',
-                  textDecoration: 'none',
-                  transition: 'background var(--fe-dur-fast)',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap',
-                }}
-                onMouseEnter={(e) => !isActive && ((e.currentTarget as HTMLElement).style.background = 'var(--fe-hover)')}
-                onMouseLeave={(e) => !isActive && ((e.currentTarget as HTMLElement).style.background = 'transparent')}
-              >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={isActive ? 'var(--fe-accent)' : 'var(--fe-text-muted)'} strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
-                  <line x1="8" y1="6" x2="21" y2="6" /><line x1="8" y1="12" x2="21" y2="12" /><line x1="8" y1="18" x2="21" y2="18" /><line x1="3" y1="6" x2="3.01" y2="6" /><line x1="3" y1="12" x2="3.01" y2="12" /><line x1="3" y1="18" x2="3.01" y2="18" />
-                </svg>
-                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{list.label}</span>
-              </Link>
-            )
+            return <ListNavLink key={list.slug} href={list.href} label={list.label} isActive={isActive} />
           })}
         </div>
       )}
     </div>
+  )
+}
+
+// Link de List com prefetch no hover: ao passar o mouse, busca os dados completos
+// da List (prefetch={true}) para que o clique seja instantâneo. Só dispara na
+// intenção (hover), evitando prefazer todas as Lists de uma vez.
+function ListNavLink({ href, label, isActive }: { href: string; label: string; isActive: boolean }) {
+  const [prefetchOn, setPrefetchOn] = useState(false)
+  return (
+    <Link
+      href={href}
+      prefetch={prefetchOn ? true : false}
+      className="fe-nav-row"
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 9,
+        height: 34,
+        padding: '0 10px',
+        borderRadius: 'var(--fe-radius-md)',
+        fontSize: 'var(--fe-text-base)',
+        fontWeight: isActive ? 600 : 400,
+        color: isActive ? 'var(--fe-accent-dark)' : 'var(--fe-text-soft)',
+        background: isActive ? 'var(--fe-accent-dim)' : 'transparent',
+        textDecoration: 'none',
+        transition: 'background var(--fe-dur-fast)',
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
+        whiteSpace: 'nowrap',
+      }}
+      onMouseEnter={(e) => { setPrefetchOn(true); if (!isActive) (e.currentTarget as HTMLElement).style.background = 'var(--fe-hover)' }}
+      onMouseLeave={(e) => { if (!isActive) (e.currentTarget as HTMLElement).style.background = 'transparent' }}
+    >
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={isActive ? 'var(--fe-accent)' : 'var(--fe-text-muted)'} strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+        <line x1="8" y1="6" x2="21" y2="6" /><line x1="8" y1="12" x2="21" y2="12" /><line x1="8" y1="18" x2="21" y2="18" /><line x1="3" y1="6" x2="3.01" y2="6" /><line x1="3" y1="12" x2="3.01" y2="12" /><line x1="3" y1="18" x2="3.01" y2="18" />
+      </svg>
+      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{label}</span>
+    </Link>
   )
 }
 

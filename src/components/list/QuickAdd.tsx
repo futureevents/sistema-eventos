@@ -26,7 +26,6 @@ export function QuickAddRow({
   const [nome, setNome] = useState('')
   const [pending, setPending] = useState<Record<string, unknown> | null>(null)
   const [pendingLabel, setPendingLabel] = useState<string | null>(null)
-  const [salvando, setSalvando] = useState(false)
   const [menuIdx, setMenuIdx] = useState(0)
 
   const templates = config.templates ?? []
@@ -56,14 +55,15 @@ export function QuickAddRow({
     })
   }
 
-  async function submit() {
+  function submit() {
     const titulo = nome.trim()
     if (!titulo || titulo.startsWith('/')) return
-    setSalvando(true)
     const partial: Record<string, unknown> = { ...defaults, ...(pending ?? {}), [config.titleField]: titulo }
-    const ok = await onCreate(partial)
-    setSalvando(false)
-    if (ok) { setNome(''); setPending(null); setPendingLabel(null); requestAnimationFrame(() => inputRef.current?.focus()) }
+    // Limpa o campo na hora para criar várias tasks em sequência (Enter, Enter…).
+    // onCreate é otimista: a linha já aparece e a persistência é reconciliada em segundo plano.
+    setNome(''); setPending(null); setPendingLabel(null)
+    requestAnimationFrame(() => inputRef.current?.focus())
+    void onCreate(partial)
   }
 
   function onKeyDown(e: React.KeyboardEvent) {
@@ -113,7 +113,6 @@ export function QuickAddRow({
           onKeyDown={onKeyDown}
           onBlur={() => { if (!nome.trim()) reset(true) }}
           placeholder="Nome da task…  ( / para modelos )"
-          disabled={salvando}
           style={{ flex: 1, minWidth: 0, height: 30, border: 'none', outline: 'none', background: 'transparent', fontSize: 'var(--fe-text-md)', fontWeight: 500, color: 'var(--fe-text-strong)' }}
         />
         {slashOpen && (

@@ -80,18 +80,18 @@ export async function loadListData(config: ListConfig): Promise<{ rows: Row[]; o
   if (config.baseFilter) q = q.eq(config.baseFilter.col, config.baseFilter.value)
   if (config.baseFilterIn) q = q.in(config.baseFilterIn.col, config.baseFilterIn.values)
   q = config.orderBy ? q.order(config.orderBy.col, { ascending: config.orderBy.ascending }) : q.order('criado_em', { ascending: false })
-  const { data } = await q
+  // Linhas e relações em paralelo (cada um faz seu round-trip ao Supabase)
+  const [{ data }, rel] = await Promise.all([q, loadRelations(config)])
   const rows = ((data ?? []) as unknown as Record<string, unknown>[]).map((r) => normalizeRow(config, r))
-  const { options, embeds } = await loadRelations(config)
-  return { rows, options, embeds }
+  return { rows, options: rel.options, embeds: rel.embeds }
 }
 
 export async function loadRecord(config: ListConfig, id: string): Promise<{ row: Row | null; options: OptionsMap; embeds: EmbedMap }> {
   const supabase = await createClient()
-  const { data } = await supabase.from(config.table).select(buildSelect(config)).eq('id', id).single()
+  const rec = supabase.from(config.table).select(buildSelect(config)).eq('id', id).single()
+  const [{ data }, rel] = await Promise.all([rec, loadRelations(config)])
   const row = data ? normalizeRow(config, data as unknown as Record<string, unknown>) : null
-  const { options, embeds } = await loadRelations(config)
-  return { row, options, embeds }
+  return { row, options: rel.options, embeds: rel.embeds }
 }
 
 export async function loadOptions(config: ListConfig): Promise<OptionsMap> {

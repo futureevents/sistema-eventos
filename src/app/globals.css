@@ -146,8 +146,14 @@
   to   { opacity: 1; transform: translateX(-50%) translateY(0); }
 }
 
+@keyframes fePulse {
+  0%, 100% { opacity: 0.55; }
+  50%      { opacity: 1; }
+}
+
 .fe-slide-in  { animation: feSlideIn var(--fe-dur-panel) var(--fe-ease) both; }
 .fe-fade-in   { animation: feFadeIn var(--fe-dur-fast) var(--fe-ease) both; }
+.fe-skeleton  { background: var(--fe-divider); border-radius: 6px; animation: fePulse 1.1s ease-in-out infinite; }
 
 /* ── Rich text (descrição de tarefas e comentários) ──────────────────── */
 .fe-richtext h1 { font-family: var(--font-geist), sans-serif; font-size: var(--fe-text-2xl); font-weight: 700; letter-spacing: -0.02em; line-height: 1.2; color: var(--fe-text-strong); margin: 24px 0 8px; }

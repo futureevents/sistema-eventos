@@ -32,12 +32,19 @@ export function FullRecord({ config, row: rowProp, options, embeds }: {
 
   const { hidden, toggle: toggleField, reset: showAllFields } = useHiddenFields(config.table)
 
+  // Fecha a task voltando no histórico (instantâneo, sem refetch da lista).
+  // Se a task foi aberta direto pela URL (sem histórico no app), navega para a lista.
+  function fechar() {
+    if (typeof window !== 'undefined' && window.history.length > 1) router.back()
+    else router.push(config.basePath)
+  }
+
   // ESC fecha a task
   useEffect(() => {
-    function onKey(e: KeyboardEvent) { if (e.key === 'Escape') router.push(config.basePath) }
+    function onKey(e: KeyboardEvent) { if (e.key === 'Escape') fechar() }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [router, config.basePath])
+  }, [router, config.basePath]) // eslint-disable-line
   const [hoveredField, setHoveredField] = useState<string | null>(null)
   const visibleFields = detailFields.filter((f) => !hidden.has(f.key))
   // Datas mostradas logo abaixo do nome (estilo ClickUp); os demais campos vão abaixo da descrição.
@@ -102,7 +109,7 @@ export function FullRecord({ config, row: rowProp, options, embeds }: {
           <Link href={`${config.basePath}?sel=${row.id}`} style={{ height: 32, padding: '0 12px', borderRadius: 'var(--fe-radius-md)', border: '1px solid var(--fe-border)', background: 'transparent', fontSize: 12.5, fontWeight: 500, color: 'var(--fe-text)', display: 'inline-flex', alignItems: 'center', gap: 6, textDecoration: 'none' }}>
             <svg width="13" height="13" viewBox="0 0 14 14" fill="none"><path d="M5.5 2H2V5.5M2 2L6 6M8.5 12H12V8.5M12 12L8 8" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" /></svg>Recolher
           </Link>
-          <Link href={config.basePath} title="Fechar" style={{ width: 32, height: 32, borderRadius: 'var(--fe-radius-md)', background: 'transparent', color: 'var(--fe-text-soft)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}><svg width="15" height="15" viewBox="0 0 14 14" fill="none"><path d="M3.5 3.5L10.5 10.5M10.5 3.5L3.5 10.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" /></svg></Link>
+          <button onClick={fechar} title="Fechar" aria-label="Fechar" style={{ width: 32, height: 32, borderRadius: 'var(--fe-radius-md)', border: 'none', background: 'transparent', color: 'var(--fe-text-soft)', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}><svg width="15" height="15" viewBox="0 0 14 14" fill="none"><path d="M3.5 3.5L10.5 10.5M10.5 3.5L3.5 10.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" /></svg></button>
         </div>
       </div>
 
