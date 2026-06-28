@@ -191,78 +191,149 @@ export function Sidebar({ mobileOpen = false, onClose, collapsed = false, onTogg
 
       {/* Scroll area */}
       <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: collapsed ? '6px 0 12px' : '6px 10px 12px' }}>
-        {/* Atalhos pessoais */}
-        <nav style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-          <QuickLink href="/inbox" label="Inbox" pathname={pathname}>
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M22 12h-6l-2 3h-4l-2-3H2" /><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z" />
-            </svg>
-          </QuickLink>
-          <QuickLink href="/updates" label="Updates do dia" pathname={pathname}>
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
-              <rect x="3" y="4" width="18" height="18" rx="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" />
-            </svg>
-          </QuickLink>
-          <QuickLink href="/minhas-atividades" label="Minhas atividades" pathname={pathname}>
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
-            </svg>
-          </QuickLink>
-        </nav>
+        {collapsed ? (
+          /* Modo recolhido: ícones centralizados */
+          <nav style={{ display: 'flex', flexDirection: 'column', gap: 2, alignItems: 'center' }}>
+            <CollapsedIconLink href="/inbox" label="Inbox" pathname={pathname}>
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M22 12h-6l-2 3h-4l-2-3H2" /><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z" />
+              </svg>
+            </CollapsedIconLink>
+            <CollapsedIconLink href="/updates" label="Updates do dia" pathname={pathname}>
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="4" width="18" height="18" rx="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" />
+              </svg>
+            </CollapsedIconLink>
+            <CollapsedIconLink href="/minhas-atividades" label="Minhas atividades" pathname={pathname}>
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
+              </svg>
+            </CollapsedIconLink>
+            <div style={{ width: 24, height: 1, background: 'var(--fe-border)', margin: '10px 0' }} />
+            {NAV.map((space) => (
+              <CollapsedIconLink key={space.slug} href={space.folders[0]?.lists[0]?.href ?? '#'} label={space.label} pathname={pathname}>
+                <span style={{ width: 20, height: 20, borderRadius: 5, background: space.color, color: '#fff', fontSize: 11, fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  {space.label[0]}
+                </span>
+              </CollapsedIconLink>
+            ))}
+            {/* Botão expandir no modo recolhido */}
+            <button
+              onClick={onToggleCollapse}
+              title="Expandir sidebar"
+              aria-label="Expandir sidebar"
+              style={{ marginTop: 4, width: 36, height: 36, borderRadius: 'var(--fe-radius-md)', border: 'none', background: 'transparent', color: 'var(--fe-text-muted)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+              onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.background = 'var(--fe-hover)')}
+              onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.background = 'transparent')}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6" /></svg>
+            </button>
+          </nav>
+        ) : (
+          <>
+            {/* Atalhos pessoais */}
+            <nav style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+              <QuickLink href="/inbox" label="Inbox" pathname={pathname}>
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M22 12h-6l-2 3h-4l-2-3H2" /><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z" />
+                </svg>
+              </QuickLink>
+              <QuickLink href="/updates" label="Updates do dia" pathname={pathname}>
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="3" y="4" width="18" height="18" rx="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" />
+                </svg>
+              </QuickLink>
+              <QuickLink href="/minhas-atividades" label="Minhas atividades" pathname={pathname}>
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
+                </svg>
+              </QuickLink>
+            </nav>
 
-        {/* Espaços label */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '22px 10px 8px' }}>
-          <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.06em', color: 'var(--fe-text-muted)', textTransform: 'uppercase' }}>Espaços</span>
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--fe-icon)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>
-        </div>
+            {/* Espaços label */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '22px 10px 8px' }}>
+              <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.06em', color: 'var(--fe-text-muted)', textTransform: 'uppercase' }}>Espaços</span>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--fe-icon)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>
+            </div>
 
-        {/* Spaces */}
-        {NAV.map((space) => (
-          <SpaceSection
-            key={space.slug}
-            space={space}
-            isOpen={openSpaces.has(space.slug)}
-            onToggle={() => toggleSpace(space.slug)}
-            openFolders={openFolders}
-            onToggleFolder={toggleFolder}
-            pathname={pathname}
-          />
-        ))}
+            {/* Spaces */}
+            {NAV.map((space) => (
+              <SpaceSection
+                key={space.slug}
+                space={space}
+                isOpen={openSpaces.has(space.slug)}
+                onToggle={() => toggleSpace(space.slug)}
+                openFolders={openFolders}
+                onToggleFolder={toggleFolder}
+                pathname={pathname}
+              />
+            ))}
+          </>
+        )}
       </div>
 
       {/* Rodapé: usuário */}
-      <div style={{ borderTop: '1px solid var(--fe-border)', padding: '10px 12px', display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
-        <span style={{ width: 28, height: 28, flexShrink: 0, borderRadius: '50%', background: '#6B59C9', color: '#fff', fontSize: 11, fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>FE</span>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--fe-text-strong)', lineHeight: 1.2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>Future Events</div>
-          <div style={{ fontSize: 11.5, color: 'var(--fe-text-muted)', lineHeight: 1.3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>Workspace</div>
+      {collapsed ? (
+        <div style={{ borderTop: '1px solid var(--fe-border)', padding: '10px 0', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, flexShrink: 0 }}>
+          {(() => {
+            const isConfigActive = pathname === '/configuracoes' || pathname.startsWith('/configuracoes/')
+            return (
+              <Link
+                href="/configuracoes"
+                title="Configurações"
+                aria-label="Configurações"
+                style={{ width: 36, height: 36, borderRadius: 'var(--fe-radius-md)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', background: isConfigActive ? 'var(--fe-accent-dim)' : 'transparent', color: isConfigActive ? 'var(--fe-accent)' : 'var(--fe-text-muted)' }}
+                onMouseEnter={(e) => !isConfigActive && ((e.currentTarget as HTMLElement).style.background = 'var(--fe-hover)')}
+                onMouseLeave={(e) => !isConfigActive && ((e.currentTarget as HTMLElement).style.background = 'transparent')}
+              >
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" /></svg>
+              </Link>
+            )
+          })()}
+          <button
+            onClick={handleLogout}
+            title="Sair"
+            style={{ width: 36, height: 36, border: 'none', background: 'transparent', borderRadius: 'var(--fe-radius-md)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.background = 'var(--fe-hover)')}
+            onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.background = 'transparent')}
+          >
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--fe-text-muted)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" /></svg>
+          </button>
         </div>
-        {(() => {
-          const isConfigActive = pathname === '/configuracoes' || pathname.startsWith('/configuracoes/')
-          return (
-            <Link
-              href="/configuracoes"
-              title="Configurações"
-              aria-label="Configurações"
-              aria-current={isConfigActive ? 'page' : undefined}
-              style={{ width: 28, height: 28, borderRadius: 7, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, background: isConfigActive ? 'var(--fe-accent-dim)' : 'transparent', color: isConfigActive ? 'var(--fe-accent)' : 'var(--fe-text-muted)' }}
-              onMouseEnter={(e) => !isConfigActive && ((e.currentTarget as HTMLElement).style.background = 'var(--fe-hover)')}
-              onMouseLeave={(e) => !isConfigActive && ((e.currentTarget as HTMLElement).style.background = 'transparent')}
-            >
-              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" /></svg>
-            </Link>
-          )
-        })()}
-        <button
-          onClick={handleLogout}
-          title="Sair"
-          style={{ width: 28, height: 28, border: 'none', background: 'transparent', borderRadius: 7, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
-          onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.background = 'var(--fe-hover)')}
-          onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.background = 'transparent')}
-        >
-          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--fe-text-muted)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" /></svg>
-        </button>
-      </div>
+      ) : (
+        <div style={{ borderTop: '1px solid var(--fe-border)', padding: '10px 12px', display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
+          <span style={{ width: 28, height: 28, flexShrink: 0, borderRadius: '50%', background: '#6B59C9', color: '#fff', fontSize: 11, fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>FE</span>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--fe-text-strong)', lineHeight: 1.2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>Future Events</div>
+            <div style={{ fontSize: 11.5, color: 'var(--fe-text-muted)', lineHeight: 1.3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>Workspace</div>
+          </div>
+          {(() => {
+            const isConfigActive = pathname === '/configuracoes' || pathname.startsWith('/configuracoes/')
+            return (
+              <Link
+                href="/configuracoes"
+                title="Configurações"
+                aria-label="Configurações"
+                aria-current={isConfigActive ? 'page' : undefined}
+                style={{ width: 28, height: 28, borderRadius: 7, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, background: isConfigActive ? 'var(--fe-accent-dim)' : 'transparent', color: isConfigActive ? 'var(--fe-accent)' : 'var(--fe-text-muted)' }}
+                onMouseEnter={(e) => !isConfigActive && ((e.currentTarget as HTMLElement).style.background = 'var(--fe-hover)')}
+                onMouseLeave={(e) => !isConfigActive && ((e.currentTarget as HTMLElement).style.background = 'transparent')}
+              >
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" /></svg>
+              </Link>
+            )
+          })()}
+          <button
+            onClick={handleLogout}
+            title="Sair"
+            style={{ width: 28, height: 28, border: 'none', background: 'transparent', borderRadius: 7, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
+            onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.background = 'var(--fe-hover)')}
+            onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.background = 'transparent')}
+          >
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--fe-text-muted)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" /></svg>
+          </button>
+        </div>
+      )}
     </aside>
   )
 }
@@ -453,6 +524,27 @@ function ListNavLink({ href, label, isActive }: { href: string; label: string; i
         <line x1="8" y1="6" x2="21" y2="6" /><line x1="8" y1="12" x2="21" y2="12" /><line x1="8" y1="18" x2="21" y2="18" /><line x1="3" y1="6" x2="3.01" y2="6" /><line x1="3" y1="12" x2="3.01" y2="12" /><line x1="3" y1="18" x2="3.01" y2="18" />
       </svg>
       <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{label}</span>
+    </Link>
+  )
+}
+
+function CollapsedIconLink({ href, label, pathname, children }: { href: string; label: string; pathname: string; children: ReactNode }) {
+  const isActive = pathname === href || pathname.startsWith(href + '/')
+  return (
+    <Link
+      href={href}
+      title={label}
+      aria-label={label}
+      style={{
+        width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center',
+        borderRadius: 'var(--fe-radius-md)', textDecoration: 'none',
+        background: isActive ? 'var(--fe-accent-dim)' : 'transparent',
+        color: isActive ? 'var(--fe-accent)' : 'var(--fe-text-soft)',
+      }}
+      onMouseEnter={(e) => !isActive && ((e.currentTarget as HTMLElement).style.background = 'var(--fe-hover)')}
+      onMouseLeave={(e) => !isActive && ((e.currentTarget as HTMLElement).style.background = 'transparent')}
+    >
+      {children}
     </Link>
   )
 }
