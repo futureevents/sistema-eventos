@@ -144,11 +144,11 @@ export function oportunidadeConfig(tipo: TipoOportunidade): ListConfig {
     { key: 'responsavel_id', label: 'Responsável', type: 'relation', relation: { table: 'membros', labelField: 'nome' },
       column: { width: '120px', display: 'avatar' }, groupable: true, filterable: true },
 
-    { key: 'data_inicio', label: 'Data inicial', type: 'date',
-      column: { width: '112px', header: 'Data inicial' }, groupable: true, filterable: true },
+    { key: 'data_inicio', label: 'Data inicial', type: 'date', withTime: true,
+      column: { width: '132px', header: 'Data inicial' }, groupable: true, filterable: true },
 
-    { key: 'data_fim', label: 'Data final', type: 'date',
-      column: { width: '112px', header: 'Data final' }, groupable: true, filterable: true },
+    { key: 'data_fim', label: 'Data final', type: 'date', withTime: true,
+      column: { width: '132px', header: 'Data final' }, groupable: true, filterable: true },
 
     { key: 'data_reuniao', label: 'Data da reunião', type: 'date', withTime: true,
       column: { width: '148px', header: 'Data da reunião' }, groupable: true, filterable: true },
