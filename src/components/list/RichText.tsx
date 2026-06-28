@@ -589,7 +589,7 @@ export function RichTextEditor({
       {/* Barra flutuante na seleção */}
       {floatPos && (
         <div onMouseDown={(e) => e.preventDefault()}
-          style={{ position: 'fixed', left: floatPos.x, top: floatPos.y, transform: 'translate(-50%, calc(-100% - 8px))', zIndex: 9999, display: 'flex', alignItems: 'center', gap: 1, padding: '3px 5px', background: 'var(--fe-bg)', border: '1px solid var(--fe-border-soft)', borderRadius: 8, boxShadow: '0 4px 16px rgba(0,0,0,0.14)', pointerEvents: 'auto' }}>
+          style={{ position: 'fixed', left: floatPos.x, top: floatPos.y, transform: 'translate(-50%, calc(-100% - 8px))', zIndex: 9999, display: 'flex', alignItems: 'center', gap: 1, padding: '3px 5px', background: 'var(--fe-surface)', border: '1px solid var(--fe-border-soft)', borderRadius: 8, boxShadow: '0 4px 16px rgba(0,0,0,0.14)', pointerEvents: 'auto' }}>
           <FtBtn onClick={() => applyFmt('bold')}><b style={{ fontSize: 13 }}>B</b></FtBtn>
           <FtBtn onClick={() => applyFmt('italic')}><i style={{ fontFamily: 'Georgia,serif', fontSize: 13 }}>I</i></FtBtn>
           <FtBtn onClick={() => applyFmt('underline')}><u style={{ fontSize: 12 }}>U</u></FtBtn>
@@ -614,7 +614,7 @@ export function RichTextEditor({
       {/* Controles de tabela */}
       {tablePos && (
         <div onMouseDown={(e) => e.preventDefault()}
-          style={{ position: 'fixed', left: tablePos.x, top: tablePos.y, transform: 'translateY(calc(-100% - 6px))', zIndex: 9998, display: 'flex', alignItems: 'center', gap: 2, padding: '3px 5px', background: 'var(--fe-bg)', border: '1px solid var(--fe-border-soft)', borderRadius: 8, boxShadow: '0 4px 16px rgba(0,0,0,0.14)', fontSize: 11 }}>
+          style={{ position: 'fixed', left: tablePos.x, top: tablePos.y, transform: 'translateY(calc(-100% - 6px))', zIndex: 9998, display: 'flex', alignItems: 'center', gap: 2, padding: '3px 5px', background: 'var(--fe-surface)', border: '1px solid var(--fe-border-soft)', borderRadius: 8, boxShadow: '0 4px 16px rgba(0,0,0,0.14)', fontSize: 11 }}>
           <FtBtn onClick={() => addRow(true)} title="Adicionar linha abaixo">+ linha</FtBtn>
           <FtBtn onClick={() => addColumn(true)} title="Adicionar coluna à direita">+ coluna</FtBtn>
           <FtSep />
@@ -627,8 +627,8 @@ export function RichTextEditor({
 
       {/* Slash menu */}
       {slashPos && slashItems.length > 0 && (
-        <div ref={slashMenuRef} style={{ position: 'fixed', left: slashPos.x, top: slashPos.y, zIndex: 9999, background: 'var(--fe-bg)', border: '1px solid var(--fe-border-soft)', borderRadius: 10, boxShadow: '0 8px 24px rgba(0,0,0,0.12)', minWidth: 210, maxHeight: 320, overflowY: 'auto' }}>
-          <div style={{ padding: '6px 10px 4px', fontSize: 10, color: 'var(--fe-text-faint)', textTransform: 'uppercase', letterSpacing: 0.6, borderBottom: '1px solid var(--fe-divider)', position: 'sticky', top: 0, background: 'var(--fe-bg)' }}>Blocos</div>
+        <div ref={slashMenuRef} style={{ position: 'fixed', left: slashPos.x, top: slashPos.y, zIndex: 9999, background: 'var(--fe-surface)', border: '1px solid var(--fe-border-soft)', borderRadius: 10, boxShadow: '0 8px 24px rgba(0,0,0,0.12)', minWidth: 210, maxHeight: 320, overflowY: 'auto' }}>
+          <div style={{ padding: '6px 10px 4px', fontSize: 10, color: 'var(--fe-text-faint)', textTransform: 'uppercase', letterSpacing: 0.6, borderBottom: '1px solid var(--fe-divider)', position: 'sticky', top: 0, background: 'var(--fe-surface)' }}>Blocos</div>
           {slashItems.map((item, i) => (
             <div key={item.label} data-active={i === slashIdx} onMouseDown={(e) => { e.preventDefault(); applySlashItem(item) }} onMouseEnter={() => setSlashIdx(i)}
               style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '7px 10px', cursor: 'pointer', background: i === slashIdx ? 'var(--fe-hover)' : 'transparent', transition: 'background 80ms' }}>
