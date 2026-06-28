@@ -73,6 +73,11 @@ export function processoConfig(tipo: TipoProcesso): ListConfig {
         filterable: true,
         column: { width: '130px', display: 'pill', header: 'Status' },
       },
+      {
+        key: 'descricao',
+        label: 'Descrição',
+        type: 'richtext',
+      },
     ],
     addLabel: 'Adicionar processo',
   }
