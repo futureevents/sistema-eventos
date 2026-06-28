@@ -95,34 +95,75 @@ export function oportunidadeConfig(tipo: TipoOportunidade): ListConfig {
   const isTrafego = tipo === 'trafego_pago'
 
   // UTM fields (Tráfego Pago) vs. Origem select (Prospeção Ativa) — mutuamente exclusivos.
+  // Nenhum deles tem `column` — ficam apenas no painel de detalhes.
   const origemOuUtmFields: FieldDef[] = isTrafego ? [
-    { key: 'utm_source',   label: 'Origem (utm_source)',    type: 'text', filterable: true, groupable: true, column: { width: '140px', header: 'Origem' } },
-    { key: 'utm_medium',   label: 'Mídia (utm_medium)',     type: 'text', filterable: true },
+    { key: 'utm_source',   label: 'Origem (utm_source)',     type: 'text', filterable: true, groupable: true },
+    { key: 'utm_medium',   label: 'Mídia (utm_medium)',      type: 'text', filterable: true },
     { key: 'utm_campaign', label: 'Campanha (utm_campaign)', type: 'text', filterable: true, groupable: true },
-    { key: 'utm_term',     label: 'Termo (utm_term)',       type: 'text' },
-    { key: 'utm_content',  label: 'Conteúdo (utm_content)', type: 'text' },
+    { key: 'utm_term',     label: 'Termo (utm_term)',        type: 'text' },
+    { key: 'utm_content',  label: 'Conteúdo (utm_content)',  type: 'text' },
   ] : [
-    { key: 'origem', label: 'Origem', type: 'select', options: ORIGEM_PROSPECCAO, column: { width: '148px', display: 'pill', header: 'Origem' }, groupable: true, filterable: true },
+    { key: 'origem', label: 'Origem', type: 'select', options: ORIGEM_PROSPECCAO, groupable: true, filterable: true },
   ]
 
+  const M = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez']
+
   const fields: FieldDef[] = [
-    { key: 'nome', label: 'Empresa', type: 'text', required: true, column: { width: 'minmax(0,1fr)', primary: true, header: 'Empresa', subtitle: (r: Row) => (r.nome_contato as string) || null } },
-    { key: 'status', label: 'Status', type: 'select', options: statusOptions, groupOrder: statusValues, column: { width: '188px', display: 'pill', header: 'Status' }, groupable: true, filterable: true },
-    { key: 'responsavel_id', label: 'Responsável', type: 'relation', relation: { table: 'membros', labelField: 'nome' }, column: { width: '120px', display: 'avatar' }, groupable: true, filterable: true },
-    // Campos de qualificação e reunião (preenchidos manualmente e por automação)
-    { key: 'oportunidade', label: 'Oportunidade', type: 'money', column: { width: '148px', header: 'Oportunidade (R$)' }, filterable: true },
-    { key: 'qualidade_lead',    label: 'Qualidade do lead',    type: 'select', options: QUALIDADE_LEAD,    column: { width: '158px', display: 'pill', header: 'Qual. lead' }, groupable: true, filterable: true },
-    { key: 'reuniao_realizada', label: 'Reunião realizada',    type: 'select', options: REUNIAO_REALIZADA, column: { width: '104px', display: 'pill', header: 'Reunião' },   groupable: true, filterable: true },
+    // ── Colunas visíveis (na ordem exacta pedida) ─────────────────────────────
+    { key: 'nome', label: 'Empresa', type: 'text', required: true,
+      column: { width: 'minmax(0,1fr)', primary: true, header: 'Empresa', subtitle: (r: Row) => (r.nome_contato as string) || null } },
+
+    { key: 'criado_em', label: 'Data criada', type: 'text', editable: false,
+      valuePath: (r: Row) => { const v = r.criado_em as string | null; if (!v) return null; const d = new Date(v); return `${d.getDate()} ${M[d.getMonth()]}` },
+      column: { width: '110px', header: 'Data criada' } },
+
+    // status_changed_at: coluna real no DB, incluída no SELECT, não exibida no painel.
+    { key: 'status_changed_at', label: 'Status alterado em', type: 'date', editable: false, inPanel: false },
+
+    { key: 'tempo_no_status', label: 'Tempo no status', type: 'text', editable: false,
+      valuePath: (r: Row) => {
+        const v = r.status_changed_at as string | null
+        if (!v) return null
+        const ms = Date.now() - new Date(v).getTime()
+        const mins = Math.floor(ms / 60000)
+        if (mins < 60) return `${mins}m`
+        const hrs = Math.floor(mins / 60)
+        if (hrs < 24) return `${hrs}h`
+        const days = Math.floor(hrs / 24)
+        if (days < 7) return `${days} dia${days !== 1 ? 's' : ''}`
+        const weeks = Math.floor(days / 7)
+        if (weeks < 5) return `${weeks} sem.`
+        const months = Math.floor(days / 30)
+        return `${months} ${months === 1 ? 'mês' : 'meses'}`
+      },
+      column: { width: '132px', header: 'Tempo no status' } },
+
+    { key: 'oportunidade', label: 'Oportunidade', type: 'money',
+      column: { width: '148px', header: 'Oportunidade (R$)' }, filterable: true },
+
+    { key: 'responsavel_id', label: 'Responsável', type: 'relation', relation: { table: 'membros', labelField: 'nome' },
+      column: { width: '120px', display: 'avatar' }, groupable: true, filterable: true },
+
+    { key: 'data_inicio', label: 'Data inicial', type: 'date',
+      column: { width: '112px', header: 'Data inicial' }, groupable: true, filterable: true },
+
+    { key: 'data_fim', label: 'Data final', type: 'date',
+      column: { width: '112px', header: 'Data final' }, groupable: true, filterable: true },
+
+    { key: 'data_reuniao', label: 'Data da reunião', type: 'date', withTime: true,
+      column: { width: '148px', header: 'Data da reunião' }, groupable: true, filterable: true },
+
+    // ── Painel de detalhes (sem coluna visível) ────────────────────────────────
+    { key: 'status', label: 'Status', type: 'select', options: statusOptions, groupOrder: statusValues, groupable: true, filterable: true },
+    { key: 'qualidade_lead',    label: 'Qualidade do lead',    type: 'select', options: QUALIDADE_LEAD,    groupable: true, filterable: true },
+    { key: 'reuniao_realizada', label: 'Reunião realizada',    type: 'select', options: REUNIAO_REALIZADA, groupable: true, filterable: true },
     { key: 'qualidade_reuniao', label: 'Qualidade da reunião', type: 'select', options: QUALIDADE_REUNIAO, groupable: true, filterable: true },
-    { key: 'data_reuniao',      label: 'Data da reunião',      type: 'date',   withTime: true, column: { width: '148px', header: 'Data da reunião' }, groupable: true, filterable: true },
     { key: 'nome_contato', label: 'Nome do contato', type: 'text', filterable: true },
-    { key: 'whatsapp', label: 'WhatsApp', type: 'tel', column: { width: '150px' } },
-    { key: 'telefone', label: 'Telefone', type: 'tel' },
-    { key: 'email', label: 'E-mail', type: 'email' },
+    { key: 'whatsapp',    label: 'WhatsApp',  type: 'tel' },
+    { key: 'telefone',    label: 'Telefone',  type: 'tel' },
+    { key: 'email',       label: 'E-mail',    type: 'email' },
     ...origemOuUtmFields,
-    { key: 'prioridade', label: 'Prioridade', type: 'select', options: PRIORIDADE, groupOrder: ['urgente', 'alta', 'media', 'baixa'], column: { width: '122px', display: 'flag' }, groupable: true, filterable: true },
-    { key: 'data_inicio', label: 'Entrada', type: 'date', groupable: true, filterable: true },
-    { key: 'data_fim', label: 'Término', type: 'date', groupable: true, filterable: true },
+    { key: 'prioridade', label: 'Prioridade', type: 'select', options: PRIORIDADE, groupOrder: ['urgente', 'alta', 'media', 'baixa'], groupable: true, filterable: true },
     { key: 'descricao', label: 'Descrição', type: 'richtext' },
   ]
 
