@@ -71,14 +71,16 @@ export function markdownToHtml(md: string): string {
   return out.join('')
 }
 
-const SLASH_ITEMS = [
-  { label: 'Título 1',       icon: 'H1',  cmd: () => execCmd('formatBlock', 'H1') },
-  { label: 'Título 2',       icon: 'H2',  cmd: () => execCmd('formatBlock', 'H2') },
-  { label: 'Título 3',       icon: 'H3',  cmd: () => execCmd('formatBlock', 'H3') },
-  { label: 'Título 4',       icon: 'H4',  cmd: () => execCmd('formatBlock', 'H4') },
-  { label: 'Texto normal',   icon: 'P',   cmd: () => execCmd('formatBlock', 'P') },
-  { label: 'Lista de itens', icon: '•',   cmd: () => execCmd('insertUnorderedList') },
-  { label: 'Lista numerada', icon: '1.',  cmd: () => execCmd('insertOrderedList') },
+type SlashAction = { kind: 'block'; tag: string } | { kind: 'list'; ordered: boolean }
+
+const SLASH_ITEMS: { label: string; icon: string; action: SlashAction }[] = [
+  { label: 'Título 1',       icon: 'H1',  action: { kind: 'block', tag: 'H1' } },
+  { label: 'Título 2',       icon: 'H2',  action: { kind: 'block', tag: 'H2' } },
+  { label: 'Título 3',       icon: 'H3',  action: { kind: 'block', tag: 'H3' } },
+  { label: 'Título 4',       icon: 'H4',  action: { kind: 'block', tag: 'H4' } },
+  { label: 'Texto normal',   icon: 'P',   action: { kind: 'block', tag: 'P' } },
+  { label: 'Lista de itens', icon: '•',   action: { kind: 'list', ordered: false } },
+  { label: 'Lista numerada', icon: '1.',  action: { kind: 'list', ordered: true } },
 ]
 
 interface Pos { x: number; y: number }
@@ -185,8 +187,12 @@ export function RichTextEditor({
     const range = sel.getRangeAt(0)
     const node  = range.startContainer
 
+    // Navegadores convertem o espaço final em contentEditable para   (nbsp).
+    // Normalizar para espaço comum para que os gatilhos de markdown casem.
+    const norm = (s: string) => s.replace(/ /g, ' ')
+
     if (node.nodeType === Node.TEXT_NODE) {
-      const text = (node.textContent || '').substring(0, range.startOffset)
+      const text = norm((node.textContent || '').substring(0, range.startOffset))
       const nl = text.lastIndexOf('\n')
       return nl >= 0 ? text.substring(nl + 1) : text
     }
@@ -199,6 +205,7 @@ export function RichTextEditor({
         const child = el.childNodes[i]
         if (child) text += child.textContent || ''
       }
+      text = norm(text)
       const nl = text.lastIndexOf('\n')
       return nl >= 0 ? text.substring(nl + 1) : text
     }
@@ -234,21 +241,55 @@ export function RichTextEditor({
     return rect.height ? { x: rect.left, y: rect.bottom + 6 } : null
   }
 
-  // Deleta N caracteres do início da linha atual e reposiciona o cursor
-  function deletePrefix(len: number) {
+  // Posiciona o cursor no início de um elemento
+  function placeCaret(el: HTMLElement) {
+    const sel = window.getSelection()
+    if (!sel) return
+    const r = document.createRange()
+    r.setStart(el, 0)
+    r.collapse(true)
+    sel.removeAllRanges()
+    sel.addRange(r)
+  }
+
+  // Converte a linha atual numa lista. Construímos o DOM manualmente porque
+  // document.execCommand('insert*List') é instável quando o cursor está num nó
+  // de texto solto (primeira linha) ou no editor vazio.
+  // - Markdown ("1. "/"- "): substitui o nó-marcador pela lista.
+  // - Slash / linha vazia: insere a lista na posição do cursor.
+  function convertToList(ordered: boolean) {
+    if (!editorRef.current) return
     const sel = window.getSelection()
     if (!sel || sel.rangeCount === 0) return
     const range = sel.getRangeAt(0)
     const node  = range.startContainer
-    if (node.nodeType !== Node.TEXT_NODE) return
-    const r = document.createRange()
-    r.setStart(node, 0)
-    r.setEnd(node, Math.min(len, (node.textContent || '').length))
-    r.deleteContents()
-    // Reposiciona cursor após a deleção
-    r.collapse(true)
-    sel.removeAllRanges()
-    sel.addRange(r)
+
+    const list = document.createElement(ordered ? 'ol' : 'ul')
+    const li = document.createElement('li')
+    li.appendChild(document.createElement('br'))
+    list.appendChild(li)
+
+    // Caso marcador: nó de texto não-vazio (ex.: "1. "/"- ")
+    if (node.nodeType === Node.TEXT_NODE && (node.textContent || '').trim() !== '' && node.parentNode) {
+      const parent = node.parentNode as HTMLElement
+      if (
+        parent !== editorRef.current &&
+        (parent.tagName === 'DIV' || parent.tagName === 'P') &&
+        (parent.textContent || '').trim() === (node.textContent || '').trim() &&
+        parent.parentNode
+      ) {
+        parent.parentNode.replaceChild(list, parent)
+      } else {
+        parent.replaceChild(list, node)
+      }
+      placeCaret(li)
+      return
+    }
+
+    // Caso linha vazia / slash: insere no cursor
+    range.deleteContents()
+    range.insertNode(list)
+    placeCaret(li)
   }
 
   function handleInput() {
@@ -270,17 +311,13 @@ export function RichTextEditor({
     }
 
     // ── Markdown inline ────────────────────────────────────────────────────
-    if (prefix === '- ' || prefix === '– ') {
-      deletePrefix(prefix.length)
-      editorRef.current?.focus()
-      execCmd('insertUnorderedList')
+    if (prefix === '- ' || prefix === '– ' || prefix === '* ') {
+      convertToList(false)
       emitir()
       return
     }
     if (/^\d+\. $/.test(prefix)) {
-      deletePrefix(prefix.length)
-      editorRef.current?.focus()
-      execCmd('insertOrderedList')
+      convertToList(true)
       emitir()
       return
     }
@@ -304,6 +341,8 @@ export function RichTextEditor({
   function applySlashItem(item: typeof SLASH_ITEMS[0]) {
     if (!editorRef.current) return
     const sel = window.getSelection()
+
+    // Remove o texto do gatilho "/query" via range (do "/" até o cursor)
     if (sel && sel.rangeCount > 0) {
       const range = sel.getRangeAt(0)
       const node  = range.startContainer
@@ -311,17 +350,27 @@ export function RichTextEditor({
         const text  = node.textContent || ''
         const start = text.lastIndexOf('/')
         if (start !== -1) {
-          node.textContent = text.substring(0, start)
           const r = document.createRange()
-          r.setStart(node, (node.textContent || '').length)
+          r.setStart(node, start)
+          r.setEnd(node, range.startOffset)
+          r.deleteContents()
           r.collapse(true)
           sel.removeAllRanges()
           sel.addRange(r)
         }
       }
     }
+
     editorRef.current.focus()
-    item.cmd()
+    if (item.action.kind === 'list') {
+      convertToList(item.action.ordered)
+    } else {
+      // formatBlock falha em nó de texto vazio; limpar o editor se ficou vazio
+      // garante uma base limpa para o comando.
+      if ((editorRef.current.textContent || '') === '') editorRef.current.innerHTML = ''
+      editorRef.current.focus()
+      execCmd('formatBlock', item.action.tag)
+    }
     setSlashPos(null)
     emitir()
   }
