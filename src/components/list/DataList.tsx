@@ -42,6 +42,8 @@ export function DataList({ config, rows: rowsProp, options, embeds }: {
   const [salvando, setSalvando] = useState<'idle' | 'saving' | 'saved'>('idle')
   const savedTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const tmpSeq = useRef(0)
+  // Âncora p/ seleção em intervalo (shift+clique): último id clicado sem shift.
+  const anchorRef = useRef<string | null>(null)
 
   function marcarSalvo() {
     setSalvando('saved')
@@ -128,12 +130,25 @@ export function DataList({ config, rows: rowsProp, options, embeds }: {
     marcarSalvo()
   }
 
-  function toggleSelect(id: string) {
+  function toggleSelect(id: string, shift = false) {
+    // Shift+clique: seleciona todas as linhas entre a âncora e o id clicado,
+    // na ordem visível (atravessa grupos). Une à seleção atual (não remove).
+    if (shift && anchorRef.current && anchorRef.current !== id) {
+      const a = orderedIds.indexOf(anchorRef.current)
+      const b = orderedIds.indexOf(id)
+      if (a !== -1 && b !== -1) {
+        const [lo, hi] = a < b ? [a, b] : [b, a]
+        const range = orderedIds.slice(lo, hi + 1)
+        setSelectedIds((prev) => new Set([...prev, ...range]))
+        return
+      }
+    }
     setSelectedIds((prev) => {
       const next = new Set(prev)
       if (next.has(id)) next.delete(id); else next.add(id)
       return next
     })
+    anchorRef.current = id
   }
 
   function toggleSelectAll(visibleIds: string[]) {
@@ -163,6 +178,8 @@ export function DataList({ config, rows: rowsProp, options, embeds }: {
   const filtradas = useMemo(() => aplicarFiltros(rows, busca, filtros, config), [rows, busca, filtros, config])
   const groupByField = useMemo(() => (groupBy ? config.fields.find((f) => f.key === groupBy) ?? null : null), [groupBy, config])
   const grupos = useMemo(() => agrupar(filtradas, groupByField, options), [filtradas, groupByField, options])
+  // Ordem visível achatada (todos os grupos em sequência) p/ o range do shift+clique.
+  const orderedIds = useMemo(() => grupos.flatMap((g) => g.itens.map((r) => r.id)), [grupos])
   const nFiltros = contarFiltros(filtros)
   const visibleIds = useMemo(() => filtradas.map((r) => r.id), [filtradas])
   const allVisibleSelected = visibleIds.length > 0 && visibleIds.every((id) => selectedIds.has(id))
@@ -199,7 +216,7 @@ export function DataList({ config, rows: rowsProp, options, embeds }: {
               <div style={{ minWidth: 'var(--fe-list-min-w)' }}>
                 {!groupBy && <Header columns={columns} grid={grid} config={config} allSelected={allVisibleSelected} someSelected={someSelected} onToggleAll={() => toggleSelectAll(visibleIds)} />}
                 {grupos.map((g, i) => (
-                  <Grupo key={g.key} grupo={g} grid={grid} columns={columns} config={config} options={options} patch={patch} remove={remove} add={add} groupByField={groupByField} onAbrir={setSel} grouped={!!groupBy} first={i === 0} selectedIds={selectedIds} onToggle={toggleSelect} />
+                  <Grupo key={g.key} grupo={g} grid={grid} columns={columns} config={config} options={options} patch={patch} remove={remove} add={add} groupByField={groupByField} onAbrir={setSel} grouped={!!groupBy} first={i === 0} selectedIds={selectedIds} onToggle={toggleSelect} onToggleMany={toggleSelectAll} />
                 ))}
                 {rows.length > 0 && (busca.trim() !== '' || nFiltros > 0) && grupos.every((g) => g.itens.length === 0) && (
                   <div style={{ padding: '40px 24px', textAlign: 'center', fontSize: 13, color: 'var(--fe-text-muted)' }}>Nenhum registro corresponde aos filtros.</div>
@@ -533,8 +550,8 @@ function Header({ columns, grid, config, allSelected, someSelected, onToggleAll 
 
 // ─── Checkbox ────────────────────────────────────────────────────────────────
 
-function Checkbox({ checked, indeterminate = false, onChange, visible = true }: {
-  checked: boolean; indeterminate?: boolean; onChange: () => void; visible?: boolean
+function Checkbox({ checked, indeterminate = false, onChange, visible = true, interactive = true }: {
+  checked: boolean; indeterminate?: boolean; onChange: () => void; visible?: boolean; interactive?: boolean
 }) {
   const ref = useRef<HTMLInputElement>(null)
   useEffect(() => {
@@ -547,11 +564,13 @@ function Checkbox({ checked, indeterminate = false, onChange, visible = true }: 
       type="checkbox"
       checked={checked}
       onChange={onChange}
+      tabIndex={interactive ? undefined : -1}
       style={{
         width: 14, height: 14, cursor: 'pointer', accentColor: 'var(--fe-accent)',
         opacity: visible || checked || indeterminate ? 1 : 0,
         transition: 'opacity 80ms',
         flexShrink: 0,
+        pointerEvents: interactive ? undefined : 'none',
       }}
     />
   )
@@ -559,15 +578,20 @@ function Checkbox({ checked, indeterminate = false, onChange, visible = true }: 
 
 // ─── Grupo ─────────────────────────────────────────────────────────────────────
 
-function Grupo({ grupo, grid, columns, config, options, patch, remove, add, groupByField, onAbrir, grouped, first, selectedIds, onToggle }: {
+function Grupo({ grupo, grid, columns, config, options, patch, remove, add, groupByField, onAbrir, grouped, first, selectedIds, onToggle, onToggleMany }: {
   grupo: GrupoView; grid: string; columns: FieldDef[]; config: ListConfig; options: OptionsMap
   patch: (id: string, p: Record<string, unknown>) => void; remove: (id: string) => void
   add: (p: Record<string, unknown>) => Promise<boolean>; groupByField: FieldDef | null
   onAbrir: (id: string) => void; grouped: boolean; first?: boolean
-  selectedIds: Set<string>; onToggle: (id: string) => void
+  selectedIds: Set<string>; onToggle: (id: string, shift?: boolean) => void
+  onToggleMany: (ids: string[]) => void
 }) {
   const [aberto, setAberto] = useState(true)
   const [adicionando, setAdicionando] = useState(false)
+  // Seleção do grupo inteiro (checkbox no header do grupo).
+  const groupIds = grupo.itens.map((r) => r.id)
+  const allGroupSel = groupIds.length > 0 && groupIds.every((id) => selectedIds.has(id))
+  const someGroupSel = groupIds.some((id) => selectedIds.has(id))
 
   // Defaults da nova task ao criar dentro deste grupo (ex.: status do grupo).
   const groupDefaults = useMemo<Record<string, unknown> | undefined>(() => {
@@ -591,13 +615,15 @@ function Grupo({ grupo, grid, columns, config, options, patch, remove, add, grou
       )}
       {grouped && aberto && grupo.itens.length > 0 && (
         <div style={{ display: 'grid', gridTemplateColumns: grid, gap: 12, padding: '0 24px', height: 30, alignItems: 'center', borderBottom: '1px solid var(--fe-divider)' }}>
-          <span />
+          <span onClick={(e) => e.stopPropagation()} style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+            <Checkbox checked={allGroupSel} indeterminate={someGroupSel && !allGroupSel} onChange={() => onToggleMany(groupIds)} />
+          </span>
           {columns.map((c) => <span key={c.key} style={{ fontSize: 12, fontWeight: 600, color: 'var(--fe-text-muted)' }}>{c.column!.header ?? (c.column!.primary ? `Nome (${config.singular.toLowerCase()})` : c.label)}</span>)}
           <span />
         </div>
       )}
       {aberto && grupo.itens.map((r) => (
-        <RowLine key={r.id} row={r} grid={grid} columns={columns} config={config} options={options} patch={patch} remove={remove} onAbrir={onAbrir} selected={selectedIds.has(r.id)} onToggle={() => onToggle(r.id)} anySelected={selectedIds.size > 0} />
+        <RowLine key={r.id} row={r} grid={grid} columns={columns} config={config} options={options} patch={patch} remove={remove} onAbrir={onAbrir} selected={selectedIds.has(r.id)} onToggle={(shift) => onToggle(r.id, shift)} anySelected={selectedIds.size > 0} />
       ))}
       {aberto && (
         <QuickAddRow config={config} defaults={groupDefaults} active={adicionando} onActiveChange={setAdicionando} onCreate={add} placeholder={grouped ? 'Adicionar task' : undefined} />
@@ -609,7 +635,7 @@ function Grupo({ grupo, grid, columns, config, options, patch, remove, add, grou
 function RowLine({ row, grid, columns, config, options, patch, remove, onAbrir, selected, onToggle, anySelected }: {
   row: Row; grid: string; columns: FieldDef[]; config: ListConfig; options: OptionsMap
   patch: (id: string, p: Record<string, unknown>) => void; remove: (id: string) => void; onAbrir: (id: string) => void
-  selected: boolean; onToggle: () => void; anySelected: boolean
+  selected: boolean; onToggle: (shift: boolean) => void; anySelected: boolean
 }) {
   const [pop, setPop] = useState(false)
   const [hovered, setHovered] = useState(false)
@@ -623,13 +649,13 @@ function RowLine({ row, grid, columns, config, options, patch, remove, onAbrir, 
   return (
     <div className="fe-row" role="button" tabIndex={0} aria-label={`Abrir ${titulo || 'registro sem título'}`}
       style={{ display: 'grid', gridTemplateColumns: grid, gap: 12, alignItems: 'center', minHeight: twoLine ? 58 : 46, padding: '0 24px', borderBottom: '1px solid var(--fe-divider)', cursor: 'pointer', transition: 'background var(--fe-dur-fast), box-shadow var(--fe-dur-fast)', boxShadow: selected ? 'inset 2px 0 0 var(--fe-accent)' : 'none', background: selected ? 'var(--fe-accent-dim)' : 'var(--fe-surface)' }}
-      onClick={() => { if (!pop) onAbrir(row.id) }}
+      onClick={(e) => { if (e.shiftKey) { e.preventDefault(); onToggle(true) } else if (!pop) onAbrir(row.id) }}
       onKeyDown={(e) => { if ((e.key === 'Enter' || e.key === ' ') && e.target === e.currentTarget) { e.preventDefault(); if (!pop) onAbrir(row.id) } }}
       onMouseEnter={(e) => { setHovered(true); if (!selected) { e.currentTarget.style.background = 'var(--fe-warm-white)'; e.currentTarget.style.boxShadow = 'inset 2px 0 0 var(--fe-accent)' } }}
       onMouseLeave={(e) => { setHovered(false); if (!selected) { e.currentTarget.style.background = 'var(--fe-surface)'; e.currentTarget.style.boxShadow = 'none' } }}>
-      {/* Checkbox */}
-      <span onClick={(e) => e.stopPropagation()} style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
-        <Checkbox checked={selected} onChange={onToggle} visible={hovered || selected || anySelected} />
+      {/* Checkbox — span captura shiftKey (range); o input é só visual */}
+      <span onClick={(e) => { e.stopPropagation(); onToggle(e.shiftKey) }} style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+        <Checkbox checked={selected} onChange={() => {}} interactive={false} visible={hovered || selected || anySelected} />
       </span>
       {columns.map((f) => (
         <span key={f.key} onClick={(e) => { if (!f.column!.primary) e.stopPropagation() }} style={{ minWidth: 0, display: 'flex', alignItems: 'center' }}>
