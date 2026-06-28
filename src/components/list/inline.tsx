@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { type SelectOption, type OptionsMap, toISODate, parseISO, hasTime } from './types'
 import { Pill } from './kit'
 
@@ -19,6 +19,10 @@ export function Dropdown({
 }) {
   const [open, setOpen] = useState(false)
   const wrapRef = useRef<HTMLDivElement>(null)
+  const popRef = useRef<HTMLDivElement>(null)
+  // Posição efetiva: vira a borda quando o popover estouraria a viewport, para
+  // não ficar cortado (e exigir rolagem) perto da direita/baixo da tela.
+  const [pos, setPos] = useState<{ align: 'left' | 'right'; up: boolean }>({ align, up: false })
   useEffect(() => { onOpenChange?.(open) }, [open]) // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (!open) return
@@ -29,6 +33,21 @@ export function Dropdown({
     return () => { document.removeEventListener('mousedown', onDoc); document.removeEventListener('keydown', onKey) }
   }, [open])
 
+  // Mede o popover já renderizado e decide se vira a borda (antes da pintura).
+  useLayoutEffect(() => {
+    if (!open) { setPos({ align, up: false }); return }
+    const wrap = wrapRef.current, pop = popRef.current
+    if (!wrap || !pop) return
+    const w = wrap.getBoundingClientRect()
+    const pw = pop.offsetWidth, ph = pop.offsetHeight
+    const m = 8
+    let a: 'left' | 'right' = align
+    if (align === 'left' && w.left + pw > window.innerWidth - m) a = 'right'
+    else if (align === 'right' && w.right - pw < m) a = 'left'
+    const up = w.bottom + 5 + ph > window.innerHeight - m && w.top - ph - 5 > m
+    setPos({ align: a, up })
+  }, [open, align, width])
+
   const toggle = (e: React.MouseEvent) => { if (stopPropagation) e.stopPropagation(); setOpen((v) => !v) }
   const close = () => setOpen(false)
 
@@ -36,8 +55,8 @@ export function Dropdown({
     <div ref={wrapRef} style={{ position: 'relative', display: fill ? 'flex' : 'inline-flex', flex: fill ? '1 1 auto' : undefined, width: fill ? '100%' : undefined, minWidth: 0, maxWidth: '100%' }}>
       {trigger({ open, toggle })}
       {open && (
-        <div onClick={(e) => stopPropagation && e.stopPropagation()}
-          style={{ position: 'absolute', top: 'calc(100% + 5px)', zIndex: 40, [align]: 0, minWidth: width ?? 180, width, background: 'var(--fe-surface)', border: '1px solid var(--fe-border)', borderRadius: 'var(--fe-radius-lg)', boxShadow: 'var(--fe-shadow-pop)', padding: 5 } as React.CSSProperties}>
+        <div ref={popRef} onClick={(e) => stopPropagation && e.stopPropagation()}
+          style={{ position: 'absolute', [pos.up ? 'bottom' : 'top']: 'calc(100% + 5px)', zIndex: 40, [pos.align]: 0, minWidth: width ?? 180, width, maxHeight: 'calc(100vh - 24px)', overflowY: 'auto', background: 'var(--fe-surface)', border: '1px solid var(--fe-border)', borderRadius: 'var(--fe-radius-lg)', boxShadow: 'var(--fe-shadow-pop)', padding: 5 } as React.CSSProperties}>
           {children(close)}
         </div>
       )}
