@@ -113,9 +113,11 @@ export function RichTextEditor({
 
   const [floatPos, setFloatPos] = useState<Pos | null>(null)
   const [slashPos, setSlashPos]       = useState<Pos | null>(null)
+  const [slashCaretTop, setSlashCaretTop] = useState(0)
   const [slashFilter, setSlashFilter] = useState('')
   const [slashIdx, setSlashIdx]       = useState(0)
   const [tablePos, setTablePos]       = useState<Pos | null>(null)
+  const slashMenuRef = useRef<HTMLDivElement>(null)
 
   // Seed inicial (uma vez)
   useEffect(() => {
@@ -145,6 +147,30 @@ export function RichTextEditor({
     document.addEventListener('selectionchange', onSelChange)
     return () => document.removeEventListener('selectionchange', onSelChange)
   }, [])
+
+  // Reposiciona o slash menu para caber na viewport (vira pra cima se estourar)
+  useEffect(() => {
+    const menu = slashMenuRef.current
+    if (!menu || !slashPos) return
+    menu.style.top = slashPos.y + 'px'
+    menu.style.bottom = 'auto'
+    const rect = menu.getBoundingClientRect()
+    const vh = window.innerHeight || document.documentElement.clientHeight
+    if (rect.bottom > vh - 8) {
+      // tenta acima do cursor
+      const above = slashCaretTop - rect.height - 6
+      if (above >= 8) { menu.style.top = above + 'px' }
+      else { menu.style.top = '8px'; menu.style.maxHeight = (vh - 16) + 'px' }
+    }
+  }, [slashPos, slashCaretTop, slashFilter])
+
+  // Mantém o item destacado visível ao navegar por teclado
+  useEffect(() => {
+    const menu = slashMenuRef.current
+    if (!menu) return
+    const active = menu.querySelector('[data-active="true"]') as HTMLElement | null
+    active?.scrollIntoView({ block: 'nearest' })
+  }, [slashIdx])
 
   function closestEl(node: Node | null, tag: string): HTMLElement | null {
     let n: Node | null = node
@@ -198,7 +224,7 @@ export function RichTextEditor({
     return ''
   }
 
-  function getCursorBottomLeft(): Pos | null {
+  function getCursorBottomLeft(): { x: number; y: number; top: number } | null {
     const sel = window.getSelection()
     if (!sel || sel.rangeCount === 0) return null
     const range = sel.getRangeAt(0).cloneRange()
@@ -217,9 +243,9 @@ export function RichTextEditor({
     }
     if (!rect.height && editorRef.current) {
       const edRect = editorRef.current.getBoundingClientRect()
-      return { x: edRect.left + 20, y: edRect.bottom + 6 }
+      return { x: edRect.left + 20, y: edRect.bottom + 6, top: edRect.bottom }
     }
-    return rect.height ? { x: rect.left, y: rect.bottom + 6 } : null
+    return rect.height ? { x: rect.left, y: rect.bottom + 6, top: rect.top } : null
   }
 
   function placeCaret(el: HTMLElement) {
@@ -338,7 +364,7 @@ export function RichTextEditor({
     if (prefix.startsWith('/') && !prefix.includes(' ')) {
       const pos = getCursorBottomLeft()
       if (pos) {
-        setSlashPos(pos); setSlashFilter(prefix.slice(1)); setSlashIdx(0); setFloatPos(null); emitir(); return
+        setSlashPos({ x: pos.x, y: pos.y }); setSlashCaretTop(pos.top); setSlashFilter(prefix.slice(1)); setSlashIdx(0); setFloatPos(null); emitir(); return
       }
     } else if (slashPos) {
       setSlashPos(null)
@@ -601,10 +627,10 @@ export function RichTextEditor({
 
       {/* Slash menu */}
       {slashPos && slashItems.length > 0 && (
-        <div style={{ position: 'fixed', left: slashPos.x, top: slashPos.y, zIndex: 9999, background: 'var(--fe-bg)', border: '1px solid var(--fe-border-soft)', borderRadius: 10, boxShadow: '0 8px 24px rgba(0,0,0,0.12)', minWidth: 210, maxHeight: 320, overflowY: 'auto' }}>
+        <div ref={slashMenuRef} style={{ position: 'fixed', left: slashPos.x, top: slashPos.y, zIndex: 9999, background: 'var(--fe-bg)', border: '1px solid var(--fe-border-soft)', borderRadius: 10, boxShadow: '0 8px 24px rgba(0,0,0,0.12)', minWidth: 210, maxHeight: 320, overflowY: 'auto' }}>
           <div style={{ padding: '6px 10px 4px', fontSize: 10, color: 'var(--fe-text-faint)', textTransform: 'uppercase', letterSpacing: 0.6, borderBottom: '1px solid var(--fe-divider)', position: 'sticky', top: 0, background: 'var(--fe-bg)' }}>Blocos</div>
           {slashItems.map((item, i) => (
-            <div key={item.label} onMouseDown={(e) => { e.preventDefault(); applySlashItem(item) }} onMouseEnter={() => setSlashIdx(i)}
+            <div key={item.label} data-active={i === slashIdx} onMouseDown={(e) => { e.preventDefault(); applySlashItem(item) }} onMouseEnter={() => setSlashIdx(i)}
               style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '7px 10px', cursor: 'pointer', background: i === slashIdx ? 'var(--fe-hover)' : 'transparent', transition: 'background 80ms' }}>
               <span style={{ width: 26, height: 26, borderRadius: 6, border: '1px solid var(--fe-border-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, color: 'var(--fe-text-soft)', background: 'var(--fe-warm-white)', flexShrink: 0 }}>{item.icon}</span>
               <span style={{ fontSize: 13, color: 'var(--fe-text)' }}>{item.label}</span>
