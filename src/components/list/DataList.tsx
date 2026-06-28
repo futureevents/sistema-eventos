@@ -822,9 +822,9 @@ function SlideOver({ row, config, options, patch, remove, onFechar }: {
     <>
       <div className="fe-fade-in" onClick={onFechar} style={{ position: 'fixed', inset: 0, background: 'var(--fe-backdrop)', zIndex: 60 }} />
       <aside className="fe-slide-in" style={{ position: 'fixed', top: 0, right: 0, height: '100vh', width: 'var(--fe-panel-w)', maxWidth: '92vw', background: 'var(--fe-surface)', boxShadow: 'var(--fe-shadow-panel)', zIndex: 61, display: 'flex', flexDirection: 'column' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 46, padding: '0 12px 0 18px', borderBottom: '1px solid var(--fe-border-soft)', flexShrink: 0 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 12.5, color: 'var(--fe-text-muted)' }}>
-            <SpaceBadge space={config.space} size={17} />
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 52, padding: '0 14px 0 22px', borderBottom: '1px solid var(--fe-border-soft)', flexShrink: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: 'var(--fe-text-muted)' }}>
+            <SpaceBadge space={config.space} size={18} />
             <span style={{ color: 'var(--fe-text-soft)', fontWeight: 500 }}>{config.breadcrumb[config.breadcrumb.length - 1]}</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
@@ -841,13 +841,13 @@ function SlideOver({ row, config, options, patch, remove, onFechar }: {
           </div>
         </div>
 
-        <div style={{ flex: 1, overflowY: 'auto', padding: '20px 22px' }}>
+        <div style={{ flex: 1, overflowY: 'auto', padding: '28px 32px' }}>
           {statusField && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 18 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 22 }}>
               {doneOpt && openOpt && (
                 <button onClick={() => patch(row.id, { [config.statusField!]: concluida ? openOpt.value : doneOpt.value })}
-                  style={{ height: 32, padding: '0 12px', borderRadius: 'var(--fe-radius-md)', border: `1px solid ${concluida ? 'var(--fe-accent)' : 'var(--fe-border)'}`, background: concluida ? 'var(--fe-accent-dim)' : 'transparent', color: concluida ? 'var(--fe-status-done-text)' : 'var(--fe-text)', fontSize: 12.5, fontWeight: 600, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3 7.2L5.8 9.8L11 4" stroke={concluida ? 'var(--fe-accent)' : 'currentColor'} strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                  style={{ height: 36, padding: '0 15px', borderRadius: 'var(--fe-radius-md)', border: `1px solid ${concluida ? 'var(--fe-accent)' : 'var(--fe-border)'}`, background: concluida ? 'var(--fe-accent-dim)' : 'transparent', color: concluida ? 'var(--fe-status-done-text)' : 'var(--fe-text)', fontSize: 13.5, fontWeight: 600, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 7 }}>
+                  <svg width="15" height="15" viewBox="0 0 14 14" fill="none"><path d="M3 7.2L5.8 9.8L11 4" stroke={concluida ? 'var(--fe-accent)' : 'currentColor'} strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" /></svg>
                   {concluida ? 'Reabrir' : `Marcar ${doneOpt.label.toLowerCase()}`}
                 </button>
               )}
@@ -862,26 +862,26 @@ function SlideOver({ row, config, options, patch, remove, onFechar }: {
 
           <textarea value={nome} onChange={(e) => onNome(e.target.value)} rows={1} placeholder={config.titlePlaceholder ?? 'Sem título'}
             onInput={(e) => { const el = e.currentTarget; el.style.height = 'auto'; el.style.height = el.scrollHeight + 'px' }}
-            style={{ width: '100%', resize: 'none', border: 'none', outline: 'none', background: 'transparent', fontFamily: 'var(--font-geist), sans-serif', fontWeight: 600, fontSize: 24, lineHeight: 1.25, letterSpacing: '-0.01em', color: 'var(--fe-text-strong)', margin: '0 0 20px', padding: 0, overflow: 'hidden' }} />
+            style={{ width: '100%', resize: 'none', border: 'none', outline: 'none', background: 'transparent', fontFamily: 'var(--font-geist), sans-serif', fontWeight: 600, fontSize: 27, lineHeight: 1.22, letterSpacing: '-0.015em', color: 'var(--fe-text-strong)', margin: '0 0 26px', padding: 0, overflow: 'hidden' }} />
 
           {/* Responsável + datas — empilhados verticalmente sob o nome (menos poluição) */}
           {(assigneeField || startField || endField) && (
-            <div style={{ display: 'flex', flexDirection: 'column', marginBottom: descField ? 20 : 4 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', marginBottom: descField ? 26 : 4 }}>
               {assigneeField && (
-                <div style={{ display: 'grid', gridTemplateColumns: '120px minmax(0,1fr)', alignItems: 'center', minHeight: 34 }}>
-                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12.5, color: 'var(--fe-text-muted)' }}><PersonGlyph />{assigneeField.label}</span>
+                <div style={{ display: 'grid', gridTemplateColumns: '152px minmax(0,1fr)', alignItems: 'center', minHeight: 42 }}>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 'var(--fe-text-base)', color: 'var(--fe-text-muted)' }}><PersonGlyph />{assigneeField.label}</span>
                   <span style={{ minWidth: 0 }}><InlineField field={assigneeField} row={row} options={options} patch={(p) => patch(row.id, p)} variant="panel" /></span>
                 </div>
               )}
               {startField && (
-                <div style={{ display: 'grid', gridTemplateColumns: '120px minmax(0,1fr)', alignItems: 'center', minHeight: 34 }}>
-                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12.5, color: 'var(--fe-text-muted)' }}><DateGlyph />{startField.label}</span>
+                <div style={{ display: 'grid', gridTemplateColumns: '152px minmax(0,1fr)', alignItems: 'center', minHeight: 42 }}>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 'var(--fe-text-base)', color: 'var(--fe-text-muted)' }}><DateGlyph />{startField.label}</span>
                   <span style={{ minWidth: 0 }}><InlineField field={startField} row={row} options={options} patch={(p) => patch(row.id, p)} variant="panel" /></span>
                 </div>
               )}
               {endField && (
-                <div style={{ display: 'grid', gridTemplateColumns: '120px minmax(0,1fr)', alignItems: 'center', minHeight: 34 }}>
-                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12.5, color: 'var(--fe-text-muted)' }}><DateGlyph />{endField.label}</span>
+                <div style={{ display: 'grid', gridTemplateColumns: '152px minmax(0,1fr)', alignItems: 'center', minHeight: 42 }}>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 'var(--fe-text-base)', color: 'var(--fe-text-muted)' }}><DateGlyph />{endField.label}</span>
                   <span style={{ minWidth: 0 }}><InlineField field={endField} row={row} options={options} patch={(p) => patch(row.id, p)} variant="panel" /></span>
                 </div>
               )}
@@ -889,9 +889,9 @@ function SlideOver({ row, config, options, patch, remove, onFechar }: {
           )}
 
           {descField && (
-            <div style={{ marginBottom: 24 }}>
-              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7, fontSize: 12.5, color: 'var(--fe-text-muted)', marginBottom: 8 }}>
-                <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2.5 3.5H11.5M2.5 7H11.5M2.5 10.5H8" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" /></svg>
+            <div style={{ marginBottom: 30 }}>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 'var(--fe-text-base)', color: 'var(--fe-text-muted)', marginBottom: 10 }}>
+                <svg width="15" height="15" viewBox="0 0 14 14" fill="none"><path d="M2.5 3.5H11.5M2.5 7H11.5M2.5 10.5H8" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" /></svg>
                 Descrição
               </span>
               <RichTextEditor key={row.id} value={(row[config.descriptionField!] as string) ?? null} onChange={onDesc} />
@@ -907,9 +907,9 @@ function SlideOver({ row, config, options, patch, remove, onFechar }: {
                   key={f.key}
                   onMouseEnter={() => setHoveredField(f.key)}
                   onMouseLeave={() => setHoveredField(null)}
-                  style={{ display: 'grid', gridTemplateColumns: '140px 1fr 20px', alignItems: 'center', minHeight: 40 }}
+                  style={{ display: 'grid', gridTemplateColumns: '152px 1fr 20px', alignItems: 'center', minHeight: 44 }}
                 >
-                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 12.5, color: 'var(--fe-text-muted)' }}>{f.panelIcon}{f.label}</span>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 9, fontSize: 'var(--fe-text-base)', color: 'var(--fe-text-muted)' }}>{f.panelIcon}{f.label}</span>
                   <span style={{ minWidth: 0 }}><InlineField field={f} row={row} options={options} patch={(p) => patch(row.id, p)} variant="panel" /></span>
                   <button
                     onClick={() => toggleField(f.key)}

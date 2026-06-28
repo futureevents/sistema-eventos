@@ -82,7 +82,7 @@ export function InlineField({
   // Derivado / não editável → só exibe
   if (!editable) {
     const lbl = displayLabel(field, row, options)
-    return <span style={{ fontSize: variant === 'cell' ? 12.5 : 13, color: lbl ? muted : 'var(--fe-text-faint)' }}>{lbl ?? '—'}</span>
+    return <span style={{ fontSize: variant === 'cell' ? 12.5 : 14, color: lbl ? muted : 'var(--fe-text-faint)' }}>{lbl ?? '—'}</span>
   }
 
   switch (field.type) {
@@ -95,7 +95,7 @@ export function InlineField({
         <Dropdown align="left" width={252} fill={variant === 'cell'} onOpenChange={onOpenChange}
           trigger={({ toggle }) => (
             <HoverBtn onClick={toggle} title={`Alterar ${field.label.toLowerCase()}`}>
-              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: variant === 'cell' ? 12.5 : 13, color: iso ? muted : 'var(--fe-text-faint)', whiteSpace: 'nowrap' }}>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: variant === 'cell' ? 12.5 : 14, color: iso ? muted : 'var(--fe-text-faint)', whiteSpace: 'nowrap' }}>
                 <svg width="13" height="13" viewBox="0 0 14 14" fill="none" style={{ opacity: 0.85, flexShrink: 0 }}><rect x="2" y="2.8" width="10" height="9.2" rx="1.6" stroke="currentColor" strokeWidth="1.2" /><path d="M2 5.2H12M4.6 1.6V3.4M9.4 1.6V3.4" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" /></svg>
                 {iso ? dataCurta(iso) : (field.placeholder ?? '—')}
               </span>
@@ -131,11 +131,11 @@ export function InlineField({
             isAvatar ? (
               <button onClick={toggle} title={`Alterar ${field.label.toLowerCase()}`} style={{ border: 'none', background: 'transparent', padding: 2, borderRadius: '50%', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
                 <Avatar nome={lbl} size={variant === 'cell' ? 24 : 22} />
-                {variant === 'panel' && <span style={{ fontSize: 13, color: lbl ? 'var(--fe-text)' : 'var(--fe-text-faint)' }}>{lbl ?? `Sem ${field.label.toLowerCase()}`}</span>}
+                {variant === 'panel' && <span style={{ fontSize: 14, color: lbl ? 'var(--fe-text)' : 'var(--fe-text-faint)' }}>{lbl ?? `Sem ${field.label.toLowerCase()}`}</span>}
               </button>
             ) : (
               <HoverBtn onClick={toggle} title={`Alterar ${field.label.toLowerCase()}`}>
-                <span style={{ fontSize: variant === 'cell' ? 12.5 : 13, color: lbl ? muted : 'var(--fe-text-faint)', textAlign: 'left', overflow: variant === 'cell' ? 'hidden' : 'visible', textOverflow: 'ellipsis', whiteSpace: variant === 'cell' ? 'nowrap' : 'normal', wordBreak: 'break-word' }}>{lbl ?? '—'}</span>
+                <span style={{ fontSize: variant === 'cell' ? 12.5 : 14, color: lbl ? muted : 'var(--fe-text-faint)', textAlign: 'left', overflow: variant === 'cell' ? 'hidden' : 'visible', textOverflow: 'ellipsis', whiteSpace: variant === 'cell' ? 'nowrap' : 'normal', wordBreak: 'break-word' }}>{lbl ?? '—'}</span>
               </HoverBtn>
             )
           )}

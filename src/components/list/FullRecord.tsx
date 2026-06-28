@@ -108,12 +108,12 @@ export function FullRecord({ config, row: rowProp, options, embeds }: {
 
       <div style={{ flex: 1, display: 'flex', minHeight: 0 }}>
         <div style={{ flex: 1, minWidth: 0, overflowY: 'auto' }}>
-          <div style={{ maxWidth: 880, margin: '0 auto', padding: '32px 36px 80px' }}>
+          <div style={{ maxWidth: 880, margin: '0 auto', padding: '46px 52px 100px' }}>
             {statusField && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 18 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 24 }}>
                 {doneOpt && openOpt && (
-                  <button onClick={() => patch({ [config.statusField!]: concluida ? openOpt.value : doneOpt.value })} style={{ height: 34, padding: '0 14px', borderRadius: 'var(--fe-radius-md)', border: `1px solid ${concluida ? 'var(--fe-accent)' : 'var(--fe-border)'}`, background: concluida ? 'var(--fe-accent-dim)' : 'transparent', color: concluida ? 'var(--fe-status-done-text)' : 'var(--fe-text)', fontSize: 13, fontWeight: 600, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 7 }}>
-                    <svg width="15" height="15" viewBox="0 0 14 14" fill="none"><path d="M3 7.2L5.8 9.8L11 4" stroke={concluida ? 'var(--fe-accent)' : 'currentColor'} strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" /></svg>{concluida ? 'Reabrir' : `Marcar ${doneOpt.label.toLowerCase()}`}
+                  <button onClick={() => patch({ [config.statusField!]: concluida ? openOpt.value : doneOpt.value })} style={{ height: 38, padding: '0 16px', borderRadius: 'var(--fe-radius-md)', border: `1px solid ${concluida ? 'var(--fe-accent)' : 'var(--fe-border)'}`, background: concluida ? 'var(--fe-accent-dim)' : 'transparent', color: concluida ? 'var(--fe-status-done-text)' : 'var(--fe-text)', fontSize: 14, fontWeight: 600, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 7 }}>
+                    <svg width="16" height="16" viewBox="0 0 14 14" fill="none"><path d="M3 7.2L5.8 9.8L11 4" stroke={concluida ? 'var(--fe-accent)' : 'currentColor'} strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" /></svg>{concluida ? 'Reabrir' : `Marcar ${doneOpt.label.toLowerCase()}`}
                   </button>
                 )}
                 <SelectMenu options={statusField.options ?? []} value={String(row[config.statusField!] ?? '')} onChange={(v) => patch({ [config.statusField!]: v })}>
@@ -124,48 +124,48 @@ export function FullRecord({ config, row: rowProp, options, embeds }: {
 
             <textarea value={nome} onChange={(e) => onNome(e.target.value)} rows={1} placeholder={config.titlePlaceholder ?? 'Sem título'}
               onInput={(e) => { const el = e.currentTarget; el.style.height = 'auto'; el.style.height = el.scrollHeight + 'px' }}
-              style={{ width: '100%', resize: 'none', border: 'none', outline: 'none', background: 'transparent', fontFamily: 'var(--font-geist), sans-serif', fontWeight: 600, fontSize: 29, lineHeight: 1.2, letterSpacing: '-0.02em', color: 'var(--fe-text-strong)', margin: '0 0 24px', padding: 0, overflow: 'hidden' }} />
+              style={{ width: '100%', resize: 'none', border: 'none', outline: 'none', background: 'transparent', fontFamily: 'var(--font-geist), sans-serif', fontWeight: 600, fontSize: 33, lineHeight: 1.18, letterSpacing: '-0.022em', color: 'var(--fe-text-strong)', margin: '0 0 30px', padding: 0, overflow: 'hidden' }} />
 
             {/* Responsável + datas — empilhados verticalmente sob o nome (menos poluição) */}
             {(assigneeField || startField || endField) && (
-              <div style={{ display: 'flex', flexDirection: 'column', marginBottom: 22 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', marginBottom: 28 }}>
                 {assigneeField && (
-                  <div style={{ display: 'grid', gridTemplateColumns: 'minmax(110px,150px) minmax(0,1fr)', alignItems: 'center', minHeight: 34 }}>
-                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7, fontSize: 'var(--fe-text-sm)', color: 'var(--fe-text-muted)' }}><PersonIcon />{assigneeField.label}</span>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'minmax(120px,164px) minmax(0,1fr)', alignItems: 'center', minHeight: 42 }}>
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 'var(--fe-text-base)', color: 'var(--fe-text-muted)' }}><PersonIcon />{assigneeField.label}</span>
                     <span style={{ minWidth: 0 }}><InlineField field={assigneeField} row={row} options={options} patch={patch} variant="panel" /></span>
                   </div>
                 )}
                 {startField && (
-                  <div style={{ display: 'grid', gridTemplateColumns: 'minmax(110px,150px) minmax(0,1fr)', alignItems: 'center', minHeight: 34 }}>
-                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7, fontSize: 'var(--fe-text-sm)', color: 'var(--fe-text-muted)' }}><CalIcon />{startField.label}</span>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'minmax(120px,164px) minmax(0,1fr)', alignItems: 'center', minHeight: 42 }}>
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 'var(--fe-text-base)', color: 'var(--fe-text-muted)' }}><CalIcon />{startField.label}</span>
                     <span style={{ minWidth: 0 }}><InlineField field={startField} row={row} options={options} patch={patch} variant="panel" /></span>
                   </div>
                 )}
                 {endField && (
-                  <div style={{ display: 'grid', gridTemplateColumns: 'minmax(110px,150px) minmax(0,1fr)', alignItems: 'center', minHeight: 34 }}>
-                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7, fontSize: 'var(--fe-text-sm)', color: 'var(--fe-text-muted)' }}><CalIcon />{endField.label}</span>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'minmax(120px,164px) minmax(0,1fr)', alignItems: 'center', minHeight: 42 }}>
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 'var(--fe-text-base)', color: 'var(--fe-text-muted)' }}><CalIcon />{endField.label}</span>
                     <span style={{ minWidth: 0 }}><InlineField field={endField} row={row} options={options} patch={patch} variant="panel" /></span>
                   </div>
                 )}
               </div>
             )}
 
-            <div style={{ height: 1, background: 'var(--fe-divider)', margin: '2px 0 24px' }} />
+            <div style={{ height: 1, background: 'var(--fe-divider)', margin: '4px 0 30px' }} />
 
-            {descField ? <RichTextEditor key={row.id} value={(row[config.descriptionField!] as string) ?? null} onChange={onDesc} minHeight={200} /> : null}
+            {descField ? <RichTextEditor key={row.id} value={(row[config.descriptionField!] as string) ?? null} onChange={onDesc} minHeight={240} /> : null}
 
             {/* Custom fields — abaixo da descrição (estilo ClickUp) */}
             {(customFields.length > 0 || hidden.size > 0) && (
-              <div style={{ marginTop: 30 }}>
-                <div style={{ fontSize: 'var(--fe-text-xs)', fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--fe-text-muted)', marginBottom: 6 }}>Campos</div>
+              <div style={{ marginTop: 38 }}>
+                <div style={{ fontSize: 'var(--fe-text-xs)', fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--fe-text-muted)', marginBottom: 8 }}>Campos</div>
                 {customFields.map((f) => (
                   <div
                     key={f.key}
                     onMouseEnter={() => setHoveredField(f.key)}
                     onMouseLeave={() => setHoveredField(null)}
-                    style={{ display: 'grid', gridTemplateColumns: 'minmax(120px,170px) minmax(0,1fr) 20px', alignItems: 'center', minHeight: 38 }}
+                    style={{ display: 'grid', gridTemplateColumns: 'minmax(130px,184px) minmax(0,1fr) 20px', alignItems: 'center', minHeight: 44 }}
                   >
-                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 'var(--fe-text-sm)', color: 'var(--fe-text-muted)' }}>{f.panelIcon}{f.label}</span>
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 9, fontSize: 'var(--fe-text-base)', color: 'var(--fe-text-muted)' }}>{f.panelIcon}{f.label}</span>
                     <span style={{ minWidth: 0 }}><InlineField field={f} row={row} options={options} patch={patch} variant="panel" /></span>
                     <button
                       onClick={() => toggleField(f.key)}

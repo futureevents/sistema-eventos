@@ -81,7 +81,7 @@
   --fe-backdrop:          rgba(22,24,29,0.28);
 
   --fe-sidebar-w:   264px;
-  --fe-panel-w:     540px;
+  --fe-panel-w:     600px;
   --fe-kanban-col:  290px;
   --fe-list-min-w:  760px;  /* piso de legibilidade da tabela; abaixo disso rola na horizontal */
 
@@ -154,15 +154,44 @@
 .fe-richtext h2 { font-family: var(--font-geist), sans-serif; font-size: var(--fe-text-xl); font-weight: 600; letter-spacing: -0.012em; line-height: 1.25; color: var(--fe-text-strong); margin: 18px 0 6px; }
 .fe-richtext h3 { font-size: var(--fe-text-lg); font-weight: 600; letter-spacing: -0.006em; line-height: 1.35; color: var(--fe-text-strong); margin: 14px 0 4px; }
 .fe-richtext h4 { font-size: var(--fe-text-base); font-weight: 600; letter-spacing: -0.002em; line-height: 1.4; color: var(--fe-text-strong); margin: 12px 0 3px; }
-.fe-richtext p { margin: 0 0 12px; line-height: 1.6; }
-.fe-richtext ul { list-style: disc; padding-left: 20px; margin: 4px 0 12px; }
-.fe-richtext ol { list-style: decimal; padding-left: 20px; margin: 4px 0 12px; }
-.fe-richtext li { margin: 3px 0; }
+.fe-richtext h5 { font-size: var(--fe-text-sm); font-weight: 600; line-height: 1.4; color: var(--fe-text-strong); margin: 10px 0 3px; }
+.fe-richtext h6 { font-size: var(--fe-text-xs); font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; color: var(--fe-text-muted); margin: 10px 0 3px; }
+.fe-richtext p { margin: 0 0 14px; line-height: 1.72; }
+.fe-richtext ul { list-style: disc; padding-left: 22px; margin: 6px 0 14px; }
+.fe-richtext ol { list-style: decimal; padding-left: 22px; margin: 6px 0 14px; }
+.fe-richtext li { margin: 4px 0; line-height: 1.7; }
 .fe-richtext b, .fe-richtext strong { font-weight: 600; }
+.fe-richtext em, .fe-richtext i { font-style: italic; }
 .fe-richtext a { color: var(--fe-status-prog-text); text-decoration: underline; }
 .fe-richtext > *:first-child { margin-top: 0; }
 .fe-richtext > *:last-child { margin-bottom: 0; }
 .fe-comment-input:empty:before { content: attr(data-placeholder); color: var(--fe-text-faint); pointer-events: none; }
+
+/* Inline code + blocos de código */
+.fe-richtext code { font-family: var(--font-geist-mono, ui-monospace, SFMono-Regular, Menlo, monospace); font-size: 0.88em; background: var(--fe-warm-white); border: 1px solid var(--fe-border-soft); border-radius: 4px; padding: 1px 5px; }
+.fe-richtext pre { background: var(--fe-warm-white); border: 1px solid var(--fe-border-soft); border-radius: var(--fe-radius-md); padding: 12px 14px; margin: 8px 0 14px; overflow-x: auto; }
+.fe-richtext pre code { background: none; border: none; padding: 0; font-size: 12.5px; line-height: 1.5; display: block; white-space: pre; }
+
+/* Citação */
+.fe-richtext blockquote { margin: 8px 0 14px; padding: 4px 0 4px 14px; border-left: 3px solid var(--fe-accent); color: var(--fe-text-soft); font-style: italic; }
+
+/* Divisória */
+.fe-richtext hr { border: none; border-top: 1px solid var(--fe-border); margin: 18px 0; }
+
+/* Imagem */
+.fe-richtext img { max-width: 100%; height: auto; border-radius: var(--fe-radius-md); margin: 6px 0; }
+
+/* Tabela */
+.fe-richtext table { border-collapse: collapse; width: 100%; margin: 10px 0 16px; font-size: 13px; }
+.fe-richtext th, .fe-richtext td { border: 1px solid var(--fe-border); padding: 7px 10px; text-align: left; vertical-align: top; min-width: 40px; }
+.fe-richtext th { background: var(--fe-warm-white); font-weight: 600; color: var(--fe-text-strong); }
+.fe-richtext td:focus, .fe-richtext th:focus { outline: 2px solid var(--fe-accent); outline-offset: -2px; }
+
+/* Listas de tarefas (task lists) */
+.fe-richtext ul.contains-task-list, .fe-richtext ul.fe-tasklist { list-style: none; padding-left: 4px; }
+.fe-richtext li.task-list-item, .fe-richtext li.fe-task { display: flex; align-items: flex-start; gap: 8px; }
+.fe-richtext li.task-list-item input[type="checkbox"], .fe-richtext li.fe-task input[type="checkbox"] { margin-top: 4px; width: 14px; height: 14px; accent-color: var(--fe-accent); cursor: pointer; flex-shrink: 0; }
+.fe-richtext li.fe-task.done > span { color: var(--fe-text-faint); text-decoration: line-through; }
 
 /* Ações de linha visíveis só no hover da linha */
 .fe-row .fe-row-actions { opacity: 0; transition: opacity var(--fe-dur-fast); }
