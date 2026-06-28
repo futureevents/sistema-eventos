@@ -25,7 +25,8 @@ export function dataCurta(iso: string): string {
   const isTimestamp = iso.includes('T') || iso.endsWith('Z') || /[+-]\d{2}:\d{2}$/.test(iso)
   const d = isTimestamp ? new Date(iso) : new Date(iso + 'T00:00:00')
   const base = `${d.getDate()} ${MESES[d.getMonth()]}`
-  if (!isTimestamp) return base
+  // Meia-noite (00:00) = "só o dia", sem horário definido.
+  if (!isTimestamp || (d.getHours() === 0 && d.getMinutes() === 0)) return base
   const hh = String(d.getHours()).padStart(2, '0')
   const mm = String(d.getMinutes()).padStart(2, '0')
   return `${base} ${hh}:${mm}`
@@ -68,7 +69,24 @@ export function Avatar({ nome, size = 24 }: { nome: string | null; size?: number
 
 // ─── Pill (status / badge) ──────────────────────────────────────────────────
 
-export function Pill({ label, dot, bg, text, chevron = false }: { label: string; dot?: string; bg: string; text: string; chevron?: boolean }) {
+export function Pill({ label, dot, bg, text, chevron = false, solid = false, done = false }: { label: string; dot?: string; bg: string; text: string; chevron?: boolean; solid?: boolean; done?: boolean }) {
+  // Variante sólida (estilo ClickUp): fundo cheio da cor do status + texto branco
+  // maiúsculo + glifo de status (check-circle se concluído, círculo vazado caso
+  // contrário). Usada só no cabeçalho de grupo; as células seguem na tinta suave.
+  if (solid) {
+    const fill = dot ?? text
+    return (
+      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, height: 22, padding: '0 11px 0 7px', borderRadius: 'var(--fe-radius-pill)', background: fill, color: '#fff', fontSize: 11.5, fontWeight: 600, letterSpacing: '0.03em', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>
+        {done ? (
+          <svg width="13" height="13" viewBox="0 0 14 14" fill="none" style={{ flexShrink: 0 }}><circle cx="7" cy="7" r="6.2" fill="rgba(255,255,255,0.22)" /><path d="M4.3 7.1L6.1 8.9L9.7 5" stroke="#fff" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
+        ) : (
+          <svg width="13" height="13" viewBox="0 0 14 14" fill="none" style={{ flexShrink: 0 }}><circle cx="7" cy="7" r="5.3" stroke="#fff" strokeWidth="1.5" strokeOpacity="0.92" /></svg>
+        )}
+        {label}
+        {chevron && <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: 0.7, marginLeft: 1 }}><polyline points="6 9 12 15 18 9" /></svg>}
+      </span>
+    )
+  }
   return (
     <span style={{ display: 'inline-flex', alignItems: 'center', gap: dot ? 7 : 0, height: 24, padding: '0 10px', borderRadius: 'var(--fe-radius-md)', background: bg, color: text, fontSize: 12.5, fontWeight: 500, whiteSpace: 'nowrap' }}>
       {dot && <span style={{ width: 7, height: 7, borderRadius: 2, background: dot, flexShrink: 0 }} />}

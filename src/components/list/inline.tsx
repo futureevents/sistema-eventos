@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { type SelectOption, type OptionsMap, toISODate, parseISO } from './types'
+import { type SelectOption, type OptionsMap, toISODate, parseISO, hasTime } from './types'
 import { Pill } from './kit'
 
 // ─── Dropdown / Popover ancorado ──────────────────────────────────────────────
@@ -58,8 +58,8 @@ export function MenuItem({ children, onClick, ativo = false }: { children: React
 
 // ─── Pills / flags a partir de SelectOption ───────────────────────────────────
 
-export function OptionPill({ opt, chevron = false }: { opt: SelectOption; chevron?: boolean }) {
-  return <Pill label={opt.label} dot={opt.dot} bg={opt.bg ?? 'var(--fe-status-todo-tint)'} text={opt.text ?? 'var(--fe-status-todo-text)'} chevron={chevron} />
+export function OptionPill({ opt, chevron = false, solid = false }: { opt: SelectOption; chevron?: boolean; solid?: boolean }) {
+  return <Pill label={opt.label} dot={opt.dot} bg={opt.bg ?? 'var(--fe-status-todo-tint)'} text={opt.text ?? 'var(--fe-status-todo-text)'} chevron={chevron} solid={solid} done={opt.done} />
 }
 
 export function FlagInline({ color, label }: { color: string; label?: string }) {
@@ -285,8 +285,13 @@ export function CalendarPopover({ value, onChange, onClose, withTime = false }: 
   const hoje = new Date(); hoje.setHours(0, 0, 0, 0)
   const sel = value ? parseISO(value) : null
 
-  // pendingDate: data clicada mas ainda não confirmada (só usada em modo withTime).
-  // Em modo sem hora confirma imediatamente no clique.
+  // timeOn: o usuário optou por incluir horário neste valor. Todo calendário oferece
+  // a opção de adicionar OU NÃO hora. Inicia ligado se o valor já tem hora; para um
+  // valor novo, segue o default da List (field.withTime), p.ex. Data da reunião.
+  const [timeOn, setTimeOn] = useState<boolean>(() => value ? hasTime(value) : withTime)
+
+  // pendingDate: data clicada mas ainda não confirmada (usada quando há horário).
+  // Sem horário, o clique no dia confirma imediatamente.
   const [pendingDate, setPendingDate] = useState<string | null>(() => sel ? toISODate(sel) : null)
   const [hh, setHh] = useState(() => sel ? sel.getHours() : new Date().getHours())
   const [mm, setMm] = useState(() => sel ? sel.getMinutes() : 0)
@@ -302,8 +307,16 @@ export function CalendarPopover({ value, onChange, onClose, withTime = false }: 
 
   function confirmar(date: string, h: number, m: number) {
     const pad = (n: number) => String(n).padStart(2, '0')
-    onChange(withTime ? `${date}T${pad(h)}:${pad(m)}:00` : date)
+    // Sem horário grava só o dia (00:00); com horário grava o timestamp escolhido.
+    onChange(timeOn ? `${date}T${pad(h)}:${pad(m)}:00` : date)
     onClose()
+  }
+
+  function ativarHora() {
+    const base = new Date()
+    setTimeOn(true)
+    setPendingDate((prev) => prev ?? (sel ? toISODate(sel) : toISODate(hoje)))
+    if (!sel || !hasTime(value)) { setHh(base.getHours()); setMm(base.getMinutes()) }
   }
 
   function clampNum(n: number, min: number, max: number) { return isNaN(n) ? min : Math.min(max, Math.max(min, n)) }
@@ -322,12 +335,12 @@ export function CalendarPopover({ value, onChange, onClose, withTime = false }: 
         {celulas.map((d, i) => {
           if (!d) return <span key={i} />
           const iso = toISODate(d)
-          const isSel = withTime ? pendingDate === iso : (sel && toISODate(sel) === iso)
+          const isSel = timeOn ? pendingDate === iso : (sel && toISODate(sel) === iso)
           const isHoje = toISODate(hoje) === iso
           return (
             <button key={i} onClick={(e) => {
               e.stopPropagation()
-              if (withTime) { setPendingDate(iso) }
+              if (timeOn) { setPendingDate(iso) }
               else { confirmar(iso, hh, mm) }
             }}
               style={{ height: 30, borderRadius: 6, border: 'none', cursor: 'pointer', fontSize: 12.5, fontWeight: isSel ? 700 : isHoje ? 600 : 400, background: isSel ? 'var(--fe-accent)' : 'transparent', color: isSel ? 'var(--fe-accent-fg)' : isHoje ? 'var(--fe-accent-dark)' : 'var(--fe-text)', boxShadow: isHoje && !isSel ? 'inset 0 0 0 1px var(--fe-accent)' : 'none' }}
@@ -339,8 +352,24 @@ export function CalendarPopover({ value, onChange, onClose, withTime = false }: 
         })}
       </div>
 
-      {/* Seleção de hora — só quando withTime=true */}
-      {withTime && (
+      {/* Adicionar horário — toda agenda permite incluir OU NÃO uma hora */}
+      {!timeOn && (
+        <div style={{ marginTop: 8, paddingTop: 8, borderTop: '1px solid var(--fe-divider)' }}>
+          <button onClick={(e) => { e.stopPropagation(); ativarHora() }}
+            style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', height: 30, padding: '0 6px', borderRadius: 6, border: 'none', background: 'transparent', color: 'var(--fe-text-soft)', fontSize: 12, fontWeight: 500, cursor: 'pointer' }}
+            onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--fe-hover)')}
+            onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}>
+            <svg width="13" height="13" viewBox="0 0 14 14" fill="none" style={{ flexShrink: 0 }}>
+              <circle cx="7" cy="7" r="5.5" stroke="currentColor" strokeWidth="1.2" />
+              <path d="M7 4V7.2L9 9" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            Adicionar horário
+          </button>
+        </div>
+      )}
+
+      {/* Seleção de hora — quando o usuário optou por incluir horário */}
+      {timeOn && (
         <div style={{ marginTop: 8, paddingTop: 8, borderTop: '1px solid var(--fe-divider)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '0 4px 8px' }}>
             <svg width="13" height="13" viewBox="0 0 14 14" fill="none" style={{ flexShrink: 0, color: 'var(--fe-text-muted)' }}>
@@ -348,6 +377,12 @@ export function CalendarPopover({ value, onChange, onClose, withTime = false }: 
               <path d="M7 4V7.2L9 9" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
             <span style={{ fontSize: 12, color: 'var(--fe-text-soft)', fontWeight: 500 }}>Horário</span>
+            <button onClick={(e) => { e.stopPropagation(); setTimeOn(false) }} title="Remover horário"
+              style={{ width: 18, height: 18, borderRadius: 4, border: 'none', background: 'transparent', color: 'var(--fe-text-faint)', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: 0 }}
+              onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--fe-hover)'; e.currentTarget.style.color = 'var(--fe-prio-urgent)' }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--fe-text-faint)' }}>
+              <svg width="9" height="9" viewBox="0 0 10 10" fill="none"><path d="M1.5 1.5L8.5 8.5M8.5 1.5L1.5 8.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" /></svg>
+            </button>
             <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 3 }}>
               <input
                 type="text" inputMode="numeric" value={String(hh).padStart(2, '0')} onClick={(e) => e.stopPropagation()}
@@ -376,11 +411,10 @@ export function CalendarPopover({ value, onChange, onClose, withTime = false }: 
         </div>
       )}
 
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: withTime ? 4 : 8, paddingTop: withTime ? 4 : 8, borderTop: withTime ? 'none' : '1px solid var(--fe-divider)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: timeOn ? 4 : 8, paddingTop: timeOn ? 4 : 8, borderTop: timeOn ? 'none' : '1px solid var(--fe-divider)' }}>
         <button onClick={(e) => {
           e.stopPropagation()
-          const now = new Date()
-          if (withTime) { setPendingDate(toISODate(hoje)); setHh(now.getHours()); setMm(now.getMinutes()) }
+          if (timeOn) { setPendingDate(toISODate(hoje)) }
           else { confirmar(toISODate(hoje), hh, mm) }
         }} style={{ fontSize: 12, fontWeight: 600, color: 'var(--fe-accent-dark)', background: 'transparent', border: 'none', cursor: 'pointer', padding: '4px 6px' }}>Hoje</button>
         {value && <button onClick={(e) => { e.stopPropagation(); onChange(null); onClose() }} style={{ fontSize: 12, fontWeight: 500, color: 'var(--fe-prio-urgent)', background: 'transparent', border: 'none', cursor: 'pointer', padding: '4px 6px' }}>Remover data</button>}

@@ -119,8 +119,16 @@ export function toISODate(d: Date): string {
   return `${y}-${m}-${day}`
 }
 export function parseISO(iso: string): Date {
-  // Supabase devolve 'YYYY-MM-DD' para date e ISO full para timestamptz.
+  // Supabase devolve 'YYYY-MM-DD' para date e ISO full para timestamp(tz).
   // O sufixo 'T' ou '+'/'-' indica timestamp já parseável pelo construtor nativo.
   if (iso.includes('T') || iso.endsWith('Z') || /[+-]\d{2}:\d{2}$/.test(iso)) return new Date(iso)
   return new Date(iso + 'T00:00:00')
+}
+
+// Datas agora são guardadas como timestamp; meia-noite (00:00) significa "só o dia",
+// sem hora definida. Qualquer hora diferente de 00:00 indica que o usuário marcou um horário.
+export function hasTime(iso: string | null): boolean {
+  if (!iso) return false
+  const d = parseISO(iso)
+  return d.getHours() !== 0 || d.getMinutes() !== 0
 }
