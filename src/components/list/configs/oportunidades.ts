@@ -56,6 +56,22 @@ const PRIORIDADE: SelectOption[] = [
   { value: 'baixa',   label: 'Baixa',   flag: 'var(--fe-prio-low)' },
 ]
 
+// ── Origem da Prospeção Ativa (outbound) — canal pelo qual o lead foi encontrado.
+// Campo separado de utm_source (que é rastreio de anúncio pago, exclusivo do TP).
+const ORIGEM_PROSPECCAO: SelectOption[] = [
+  { value: 'networking',    label: 'Networking',     dot: '#3E63DD', bg: 'rgba(62,99,221,0.12)',   text: '#3A4FC0' },
+  { value: 'linkedin',      label: 'LinkedIn',        dot: '#0077B5', bg: 'rgba(0,119,181,0.12)',   text: '#005B8C' },
+  { value: 'instagram',     label: 'Instagram',       dot: '#D6409F', bg: 'rgba(214,64,159,0.12)',  text: '#B03088' },
+  { value: 'indicacao',     label: 'Indicação',       dot: '#2E9E62', bg: 'rgba(46,158,98,0.14)',   text: '#207A49' },
+  { value: 'whatsapp',      label: 'WhatsApp',        dot: '#25A85A', bg: 'rgba(37,168,90,0.14)',   text: '#1A7A42' },
+  { value: 'email',         label: 'E-mail',          dot: '#62708A', bg: 'rgba(98,112,138,0.14)',  text: '#465268' },
+  { value: 'evento_feira',  label: 'Evento / Feira',  dot: '#D5680B', bg: 'rgba(213,104,11,0.14)',  text: '#9A4E0A' },
+  { value: 'ligacao',       label: 'Ligação',         dot: '#8E4EC6', bg: 'rgba(142,78,198,0.12)',  text: '#7A3DAE' },
+  { value: 'facebook',      label: 'Facebook',        dot: '#1877F2', bg: 'rgba(24,119,242,0.12)',  text: '#1565CC' },
+  { value: 'youtube',       label: 'YouTube',         dot: '#E5484D', bg: 'rgba(229,72,77,0.12)',   text: '#C42A30' },
+  { value: 'site_organico', label: 'Site / Orgânico', dot: '#0E8FC4', bg: 'rgba(14,143,196,0.12)', text: '#0B6E97' },
+]
+
 const META: Record<TipoOportunidade, { plural: string; breadcrumb: string[]; basePath: string; status: SelectOption[] }> = {
   trafego_pago:     { plural: 'Tráfego Pago',     breadcrumb: ['Comercial', 'Oportunidades', 'Tráfego Pago'],     basePath: '/comercial/oportunidades/trafego-pago',     status: STATUS_TRAFEGO },
   prospeccao_ativa: { plural: 'Prospeção Ativa',  breadcrumb: ['Comercial', 'Oportunidades', 'Prospeção Ativa'],  basePath: '/comercial/oportunidades/prospeccao-ativa', status: STATUS_PROSPECCAO },
@@ -67,8 +83,17 @@ export function oportunidadeConfig(tipo: TipoOportunidade): ListConfig {
   const statusValues = statusOptions.map((s) => s.value)
   const isTrafego = tipo === 'trafego_pago'
 
-  // Nome da Task = Empresa; o contato (pessoa) vira subtítulo da linha (igual à
-  // List Clientes). Colunas enxutas; UTMs e demais contatos ficam no painel.
+  // UTM fields (Tráfego Pago) vs. Origem select (Prospeção Ativa) — mutuamente exclusivos.
+  const origemOuUtmFields: FieldDef[] = isTrafego ? [
+    { key: 'utm_source',   label: 'Origem (utm_source)',    type: 'text', filterable: true, groupable: true, column: { width: '140px', header: 'Origem' } },
+    { key: 'utm_medium',   label: 'Mídia (utm_medium)',     type: 'text', filterable: true },
+    { key: 'utm_campaign', label: 'Campanha (utm_campaign)', type: 'text', filterable: true, groupable: true },
+    { key: 'utm_term',     label: 'Termo (utm_term)',       type: 'text' },
+    { key: 'utm_content',  label: 'Conteúdo (utm_content)', type: 'text' },
+  ] : [
+    { key: 'origem', label: 'Origem', type: 'select', options: ORIGEM_PROSPECCAO, column: { width: '148px', display: 'pill', header: 'Origem' }, groupable: true, filterable: true },
+  ]
+
   const fields: FieldDef[] = [
     { key: 'nome', label: 'Empresa', type: 'text', required: true, column: { width: 'minmax(0,1fr)', primary: true, header: 'Empresa', subtitle: (r: Row) => (r.nome_contato as string) || null } },
     { key: 'status', label: 'Status', type: 'select', options: statusOptions, groupOrder: statusValues, column: { width: '188px', display: 'pill', header: 'Status' }, groupable: true, filterable: true },
@@ -83,12 +108,7 @@ export function oportunidadeConfig(tipo: TipoOportunidade): ListConfig {
     { key: 'whatsapp', label: 'WhatsApp', type: 'tel', column: { width: '150px' } },
     { key: 'telefone', label: 'Telefone', type: 'tel' },
     { key: 'email', label: 'E-mail', type: 'email' },
-    // Origem do lead (UTM): coluna só no Tráfego Pago; demais UTMs só no painel.
-    { key: 'utm_source', label: 'Origem (utm_source)', type: 'text', filterable: true, groupable: true, ...(isTrafego ? { column: { width: '140px', header: 'Origem' } } : {}) },
-    { key: 'utm_medium', label: 'Mídia (utm_medium)', type: 'text', filterable: true },
-    { key: 'utm_campaign', label: 'Campanha (utm_campaign)', type: 'text', filterable: true, groupable: true },
-    { key: 'utm_term', label: 'Termo (utm_term)', type: 'text' },
-    { key: 'utm_content', label: 'Conteúdo (utm_content)', type: 'text' },
+    ...origemOuUtmFields,
     { key: 'prioridade', label: 'Prioridade', type: 'select', options: PRIORIDADE, groupOrder: ['urgente', 'alta', 'media', 'baixa'], column: { width: '122px', display: 'flag' }, groupable: true, filterable: true },
     { key: 'data_inicio', label: 'Entrada', type: 'date', groupable: true, filterable: true },
     { key: 'data_fim', label: 'Término', type: 'date', groupable: true, filterable: true },
