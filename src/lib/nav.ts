@@ -133,6 +133,7 @@ export const NAV: NavSpace[] = [
           { label: 'Marketing', slug: 'marketing', href: '/gestao/processos/marketing' },
           { label: 'Comercial', slug: 'comercial', href: '/gestao/processos/comercial' },
           { label: 'Jurídico', slug: 'juridico', href: '/gestao/processos/juridico' },
+          { label: 'IA', slug: 'ia', href: '/gestao/processos/ia' },
         ],
       },
     ],

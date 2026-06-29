@@ -33,6 +33,7 @@ export const LIST_CONFIGS: Record<string, ListConfig> = {
   'proc:marketing': processoConfig('marketing'),
   'proc:comercial': processoConfig('comercial'),
   'proc:juridico': processoConfig('juridico'),
+  'proc:ia': processoConfig('ia'),
 }
 
 export type ListKey = keyof typeof LIST_CONFIGS

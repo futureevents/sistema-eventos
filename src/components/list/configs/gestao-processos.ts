@@ -1,7 +1,7 @@
 import { type ListConfig, type SelectOption, type ViewPreset } from '../types'
 import { SPACE_GESTAO } from '../spaces'
 
-export type TipoProcesso = 'entrada_cliente' | 'projetos' | 'cientifico' | 'marketing' | 'comercial' | 'juridico'
+export type TipoProcesso = 'entrada_cliente' | 'projetos' | 'cientifico' | 'marketing' | 'comercial' | 'juridico' | 'ia'
 
 const STATUS: SelectOption[] = [
   { value: 'para_fazer',  label: 'Para fazer',  dot: 'var(--fe-status-todo)',   bg: 'var(--fe-status-todo-tint)',   text: 'var(--fe-status-todo-text)' },
@@ -34,6 +34,7 @@ const META: Record<TipoProcesso, { singular: string; plural: string; breadcrumb:
   marketing:       { singular: 'Processo', plural: 'Marketing',          breadcrumb: ['Gestão', 'Processos', 'Marketing'],          basePath: '/gestao/processos/marketing' },
   comercial:       { singular: 'Processo', plural: 'Comercial',          breadcrumb: ['Gestão', 'Processos', 'Comercial'],          basePath: '/gestao/processos/comercial' },
   juridico:        { singular: 'Processo', plural: 'Jurídico',           breadcrumb: ['Gestão', 'Processos', 'Jurídico'],           basePath: '/gestao/processos/juridico' },
+  ia:              { singular: 'Processo', plural: 'IA',                 breadcrumb: ['Gestão', 'Processos', 'IA'],                 basePath: '/gestao/processos/ia' },
 }
 
 export function processoConfig(tipo: TipoProcesso): ListConfig {
