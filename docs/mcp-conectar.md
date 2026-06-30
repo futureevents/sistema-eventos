@@ -18,7 +18,7 @@ Cole no terminal, trocando `SEU_TOKEN` pelo token que você recebeu:
 
 ```bash
 claude mcp add --transport http sistema-eventos \
-  https://sistema-eventos-eosin.vercel.app/api/mcp \
+  https://sistema.futureevents.com.br/api/mcp \
   --header "Authorization: Bearer SEU_TOKEN"
 ```
 

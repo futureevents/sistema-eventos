@@ -2,7 +2,7 @@
   "mcpServers": {
     "sistema-eventos": {
       "type": "http",
-      "url": "https://sistema-eventos-eosin.vercel.app/api/mcp",
+      "url": "https://sistema.futureevents.com.br/api/mcp",
       "headers": {
         "Authorization": "Bearer ${SISTEMA_EVENTOS_TOKEN}"
       }
