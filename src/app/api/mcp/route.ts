@@ -7,15 +7,23 @@ export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 export const maxDuration = 60
 
-function extrairBearer(req: Request): string | undefined {
+function extrairToken(req: Request): string | undefined {
+  // 1) Cabeçalho Authorization: Bearer <token> — usado pelo Claude Code (CLI).
   const h = req.headers.get('authorization') ?? ''
   const m = h.match(/^Bearer\s+(.+)$/i)
-  return m?.[1]?.trim()
+  if (m?.[1]) return m[1].trim()
+  // 2) Query param ?token=<token> — usado pelos Conectores do app do Claude
+  //    (desktop/web), que só aceitam uma URL, sem cabeçalho.
+  try {
+    const q = new URL(req.url).searchParams.get('token')
+    if (q) return q.trim()
+  } catch {}
+  return undefined
 }
 
 async function handle(req: Request): Promise<Response> {
   // Autorização = token pessoal do membro (ver src/lib/mcp/auth.ts).
-  const membro = await validarToken(extrairBearer(req))
+  const membro = await validarToken(extrairToken(req))
   if (!membro) {
     return new Response(JSON.stringify({ error: 'Token MCP inválido ou inativo.' }), {
       status: 401,

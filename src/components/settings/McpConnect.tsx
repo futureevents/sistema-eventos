@@ -66,13 +66,48 @@ export function McpConnect({
   }
 
   const command = `claude mcp add --transport http sistema-eventos ${url} --header "Authorization: Bearer ${token}"`
+  const connectorUrl = `${url}?token=${token}`
+
+  const codeBox: React.CSSProperties = {
+    flex: 1,
+    minWidth: 0,
+    fontFamily: 'var(--font-geist-mono, monospace)',
+    fontSize: 12.5,
+    lineHeight: 1.6,
+    color: 'var(--fe-text)',
+    background: 'var(--fe-warm-white)',
+    border: '1px solid var(--fe-border-soft)',
+    borderRadius: 'var(--fe-radius-md)',
+    padding: '12px 14px',
+    wordBreak: 'break-all',
+    whiteSpace: 'pre-wrap',
+  }
 
   return (
     <div style={{ marginTop: 24, display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <p style={{ ...muted, marginBottom: 4 }}>
+        Conecte do jeito que preferir. Os dois usam o <strong>seu token pessoal</strong> — não
+        compartilhe com ninguém.
+      </p>
+
+      {/* Jeito 1 — App do Claude (desktop/web) */}
       <div style={card}>
-        <h2 style={stepTitle}>1. Instale o Claude Code (uma vez)</h2>
-        <p style={muted}>
-          Se ainda não tem, siga{' '}
+        <h2 style={stepTitle}>Jeito 1 — App do Claude (desktop ou web)</h2>
+        <p style={{ ...muted, marginBottom: 10 }}>
+          Em <strong>Configurações → Conectores → + (Adicionar) → Personalizado</strong>, dê um
+          nome (ex.: <em>Sistema de Eventos</em>) e cole esta URL no campo de endereço do servidor:
+        </p>
+        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+          <code style={codeBox}>{connectorUrl}</code>
+          <CopyButton text={connectorUrl} label="Copiar URL" />
+        </div>
+      </div>
+
+      {/* Jeito 2 — Claude Code (terminal) */}
+      <div style={card}>
+        <h2 style={stepTitle}>Jeito 2 — Claude Code (terminal)</h2>
+        <p style={{ ...muted, marginBottom: 10 }}>
+          Precisa ter o Claude Code instalado (
           <a
             href="https://docs.claude.com/claude-code"
             target="_blank"
@@ -81,53 +116,19 @@ export function McpConnect({
           >
             docs.claude.com/claude-code
           </a>
-          . No terminal, confirme com <code>claude --version</code>.
+          ). Cole este comando no terminal:
         </p>
-      </div>
-
-      <div style={card}>
-        <h2 style={stepTitle}>2. Cole este comando no seu terminal</h2>
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'flex-start',
-            gap: 10,
-            marginTop: 4,
-            marginBottom: 10,
-          }}
-        >
-          <code
-            style={{
-              flex: 1,
-              minWidth: 0,
-              fontFamily: 'var(--font-geist-mono, monospace)',
-              fontSize: 12.5,
-              lineHeight: 1.6,
-              color: 'var(--fe-text)',
-              background: 'var(--fe-warm-white)',
-              border: '1px solid var(--fe-border-soft)',
-              borderRadius: 'var(--fe-radius-md)',
-              padding: '12px 14px',
-              wordBreak: 'break-all',
-              whiteSpace: 'pre-wrap',
-            }}
-          >
-            {command}
-          </code>
+        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+          <code style={codeBox}>{command}</code>
           <CopyButton text={command} label="Copiar comando" />
         </div>
-        <p style={muted}>
-          ⚠️ Este comando é <strong>só seu</strong> — contém seu token pessoal. Não compartilhe
-          com ninguém. Se vazar, fale com o administrador para gerar outro.
-        </p>
       </div>
 
       <div style={card}>
-        <h2 style={stepTitle}>3. Pronto — é só perguntar</h2>
+        <h2 style={stepTitle}>Pronto — é só perguntar</h2>
         <p style={muted}>
-          Abra o Claude Code (digite <code>claude</code>) e pergunte, por exemplo:{' '}
-          <em>&ldquo;quais as principais urgências desta semana?&rdquo;</em> ou{' '}
-          <em>&ldquo;cadastre o cliente X e crie uma task de pré-evento&rdquo;</em>.
+          Pergunte, por exemplo: <em>&ldquo;quais as principais urgências desta semana?&rdquo;</em>{' '}
+          ou <em>&ldquo;cadastre o cliente X e crie uma task de pré-evento&rdquo;</em>.
         </p>
       </div>
     </div>
