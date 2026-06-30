@@ -68,6 +68,15 @@ export const SETTINGS_SECTIONS: SettingsSection[] = [
     ],
   },
   {
+    slug: 'mcp',
+    href: '/configuracoes/mcp',
+    label: 'Assistente (Claude Code)',
+    summary: 'Conecte o Claude Code ao sistema e converse com o assistente de IA.',
+    group: 'Sistema',
+    icon: 'terminal',
+    planned: [],
+  },
+  {
     slug: 'atividade',
     href: '/configuracoes/atividade',
     label: 'Log de atividade',
@@ -110,6 +119,7 @@ export type SettingsIconKey =
   | 'tag'
   | 'activity'
   | 'sliders'
+  | 'terminal'
   | 'gear'
 
 export function SettingsIcon({ icon, size = 16 }: { icon: SettingsIconKey; size?: number }) {
@@ -138,6 +148,13 @@ export function SettingsIcon({ icon, size = 16 }: { icon: SettingsIconKey; size?
       </>
     ),
     activity: <path d="M22 12h-4l-3 9L9 3l-3 9H2" />,
+    terminal: (
+      <>
+        <rect x="2" y="4" width="20" height="16" rx="2" />
+        <path d="M6 9l3 3-3 3" />
+        <line x1="12" y1="15" x2="16" y2="15" />
+      </>
+    ),
     sliders: (
       <>
         <line x1="4" y1="21" x2="4" y2="14" /><line x1="4" y1="10" x2="4" y2="3" />
