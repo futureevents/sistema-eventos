@@ -1,13 +1,20 @@
+import { headers } from 'next/headers'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { getSettingsSection } from '@/components/settings/sections'
 import { SectionScaffold } from '@/components/settings/SectionScaffold'
 import { McpConnect } from '@/components/settings/McpConnect'
 
-const MCP_URL = 'https://sistema-eventos-eosin.vercel.app/api/mcp'
-
 export default async function McpPage() {
   const s = getSettingsSection('mcp')!
+
+  // Detecta o domínio pelo qual a pessoa está acessando — assim, ao trocar o
+  // domínio de produção (ex.: subdomínio próprio), a URL do MCP se ajusta sozinha.
+  const h = await headers()
+  const host = h.get('x-forwarded-host') ?? h.get('host') ?? 'sistema-eventos-eosin.vercel.app'
+  const proto = h.get('x-forwarded-proto') ?? 'https'
+  const MCP_URL = `${proto}://${host}/api/mcp`
+
   const supabase = await createClient()
   const {
     data: { user },
