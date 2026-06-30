@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "sistema-eventos": {
+      "type": "http",
+      "url": "https://sistema-eventos-eosin.vercel.app/api/mcp",
+      "headers": {
+        "Authorization": "Bearer ${SISTEMA_EVENTOS_TOKEN}"
+      }
+    }
+  }
+}
