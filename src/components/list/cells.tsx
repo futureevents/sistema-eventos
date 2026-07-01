@@ -1,9 +1,9 @@
 'use client'
 
-import { type FieldDef, type Row, type OptionsMap, type SelectOption } from './types'
+import { type FieldDef, type Row, type OptionsMap, type SelectOption, type ListConfig } from './types'
 import { Avatar, Tag, dataCurta, Dash } from './kit'
 import {
-  Dropdown, CalendarPopover, SelectMenu, RelationMenu, MultiMenu, TextInline,
+  Dropdown, CalendarPopover, DateRangePopover, type DateRangeSpec, SelectMenu, RelationMenu, MultiMenu, TextInline,
   OptionPill, FlagInline, MoneyInline,
 } from './inline'
 import { useListEditable } from './perm-ctx'
@@ -11,6 +11,16 @@ import { useListEditable } from './perm-ctx'
 // ─── Leitura de valores ───────────────────────────────────────────────────────
 
 export function isDerived(f: FieldDef): boolean { return !!f.valuePath }
+
+/** Se o campo faz parte do par início/vencimento da List, devolve o spec do calendário duplo. */
+export function rangeSpecFor(config: ListConfig, field: FieldDef): DateRangeSpec | undefined {
+  if (!config.startDateField || !config.endDateField) return undefined
+  if (field.key !== config.startDateField && field.key !== config.endDateField) return undefined
+  const sf = config.fields.find((f) => f.key === config.startDateField)
+  const ef = config.fields.find((f) => f.key === config.endDateField)
+  if (!sf || !ef) return undefined
+  return { startKey: sf.key, endKey: ef.key, startLabel: sf.label, endLabel: ef.label, startWithTime: sf.withTime, endWithTime: ef.withTime }
+}
 
 export function rawValue(f: FieldDef, row: Row): unknown {
   if (f.valuePath) return f.valuePath(row)
@@ -73,7 +83,7 @@ function HoverBtn({ children, onClick, title }: { children: React.ReactNode; onC
 }
 
 export function InlineField({
-  field, row, options, patch, variant = 'cell', onOpenChange, dateColor,
+  field, row, options, patch, variant = 'cell', onOpenChange, dateColor, range,
 }: {
   field: FieldDef
   row: Row
@@ -82,6 +92,7 @@ export function InlineField({
   variant?: 'cell' | 'panel'
   onOpenChange?: (open: boolean) => void
   dateColor?: string                 // override de cor p/ datas (ex.: vencimento atrasado/no prazo)
+  range?: DateRangeSpec              // par início/vencimento → calendário duplo estilo ClickUp
 }) {
   const canEditList = useListEditable()
   const editable = field.editable !== false && !isDerived(field) && canEditList
@@ -99,16 +110,38 @@ export function InlineField({
 
     case 'date': {
       const iso = (row[field.key] as string) ?? null
+      const trigger = ({ toggle }: { toggle: (e: React.MouseEvent) => void }) => (
+        <HoverBtn onClick={toggle} title={`Alterar ${field.label.toLowerCase()}`}>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: variant === 'cell' ? 13 : 14, color: iso ? (dateColor ?? muted) : 'var(--fe-text-faint)', fontWeight: iso && dateColor ? 500 : undefined, fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>
+            <svg width="13" height="13" viewBox="0 0 14 14" fill="none" style={{ opacity: 0.85, flexShrink: 0 }}><rect x="2" y="2.8" width="10" height="9.2" rx="1.6" stroke="currentColor" strokeWidth="1.2" /><path d="M2 5.2H12M4.6 1.6V3.4M9.4 1.6V3.4" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" /></svg>
+            {iso ? dataCurta(iso) : (field.placeholder ?? '—')}
+          </span>
+        </HoverBtn>
+      )
+      // Par início/vencimento → calendário duplo (edita os dois campos no mesmo popover)
+      if (range) {
+        return (
+          <Dropdown align="left" width={448} fill={variant === 'cell'} onOpenChange={onOpenChange} trigger={trigger} portal>
+            {() => (
+              <DateRangePopover
+                start={(row[range.startKey] as string) ?? null}
+                end={(row[range.endKey] as string) ?? null}
+                focus={field.key === range.startKey ? 'start' : 'end'}
+                startLabel={range.startLabel} endLabel={range.endLabel}
+                startWithTime={range.startWithTime} endWithTime={range.endWithTime}
+                onChange={(ch) => {
+                  const p: Record<string, unknown> = {}
+                  if (ch.start !== undefined) p[range.startKey] = ch.start
+                  if (ch.end !== undefined) p[range.endKey] = ch.end
+                  patch(p)
+                }}
+              />
+            )}
+          </Dropdown>
+        )
+      }
       return (
-        <Dropdown align="left" width={252} fill={variant === 'cell'} onOpenChange={onOpenChange}
-          trigger={({ toggle }) => (
-            <HoverBtn onClick={toggle} title={`Alterar ${field.label.toLowerCase()}`}>
-              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: variant === 'cell' ? 13 : 14, color: iso ? (dateColor ?? muted) : 'var(--fe-text-faint)', fontWeight: iso && dateColor ? 500 : undefined, fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>
-                <svg width="13" height="13" viewBox="0 0 14 14" fill="none" style={{ opacity: 0.85, flexShrink: 0 }}><rect x="2" y="2.8" width="10" height="9.2" rx="1.6" stroke="currentColor" strokeWidth="1.2" /><path d="M2 5.2H12M4.6 1.6V3.4M9.4 1.6V3.4" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" /></svg>
-                {iso ? dataCurta(iso) : (field.placeholder ?? '—')}
-              </span>
-            </HoverBtn>
-          )}>
+        <Dropdown align="left" width={252} fill={variant === 'cell'} onOpenChange={onOpenChange} trigger={trigger}>
           {(close) => <CalendarPopover value={iso} withTime={field.withTime} onChange={(v) => patch({ [field.key]: v })} onClose={close} />}
         </Dropdown>
       )

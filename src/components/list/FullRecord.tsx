@@ -8,7 +8,7 @@ import { type ListConfig, type Row, type OptionsMap } from './types'
 import { type EmbedMap } from './load'
 import { SpaceBadge, dataLonga, useHiddenFields } from './kit'
 import { SelectMenu, OptionPill } from './inline'
-import { InlineField, optionOf } from './cells'
+import { InlineField, optionOf, rangeSpecFor } from './cells'
 import { RichTextEditor } from './RichText'
 import { TaskChecklists } from './TaskChecklists'
 import { TaskAttachments } from './TaskAttachments'
@@ -154,13 +154,13 @@ export function FullRecord({ config, row: rowProp, options, embeds, caps = CAPS_
                 {startField && (
                   <div style={{ display: 'grid', gridTemplateColumns: 'minmax(120px,164px) minmax(0,1fr)', alignItems: 'center', minHeight: 42 }}>
                     <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 'var(--fe-text-base)', color: 'var(--fe-text-muted)' }}><CalIcon />{startField.label}</span>
-                    <span style={{ minWidth: 0 }}><InlineField field={startField} row={row} options={options} patch={patch} variant="panel" /></span>
+                    <span style={{ minWidth: 0 }}><InlineField field={startField} row={row} options={options} patch={patch} variant="panel" range={rangeSpecFor(config, startField)} /></span>
                   </div>
                 )}
                 {endField && (
                   <div style={{ display: 'grid', gridTemplateColumns: 'minmax(120px,164px) minmax(0,1fr)', alignItems: 'center', minHeight: 42 }}>
                     <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 'var(--fe-text-base)', color: 'var(--fe-text-muted)' }}><CalIcon />{endField.label}</span>
-                    <span style={{ minWidth: 0 }}><InlineField field={endField} row={row} options={options} patch={patch} variant="panel" /></span>
+                    <span style={{ minWidth: 0 }}><InlineField field={endField} row={row} options={options} patch={patch} variant="panel" range={rangeSpecFor(config, endField)} /></span>
                   </div>
                 )}
               </div>

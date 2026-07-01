@@ -10,7 +10,7 @@ import {
 import { type EmbedMap } from './load'
 import { Breadcrumb, SpaceBadge, Avatar, EmptyState, dataLonga, useHiddenFields } from './kit'
 import { Dropdown, StatusDot, SelectMenu, RelationMenu, OptionPill, RowMenu } from './inline'
-import { InlineField, displayLabel, groupKey, optionOf, isDerived } from './cells'
+import { InlineField, displayLabel, groupKey, optionOf, isDerived, rangeSpecFor } from './cells'
 import { RichTextEditor } from './RichText'
 import { QuickAddRow } from './QuickAdd'
 import { TaskComments } from './TaskComments'
@@ -701,6 +701,7 @@ function RowLine({ row, grid, columns, config, options, patch, remove, onAbrir, 
             </div>
           ) : (
             <InlineField field={f} row={row} options={options} patch={(p) => patch(row.id, p)} variant="cell" onOpenChange={setPop}
+              range={f.type === 'date' ? rangeSpecFor(config, f) : undefined}
               dateColor={f.type === 'date' && f.key === config.endDateField ? dueTone(row[f.key] as string | null, concluida) : undefined} />
           )}
         </span>
@@ -1028,13 +1029,13 @@ function SlideOver({ row, config, options, patch, remove, onFechar, caps = CAPS_
               {startField && (
                 <div style={{ display: 'grid', gridTemplateColumns: '152px minmax(0,1fr)', alignItems: 'center', minHeight: 42 }}>
                   <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 'var(--fe-text-base)', color: 'var(--fe-text-muted)' }}><DateGlyph />{startField.label}</span>
-                  <span style={{ minWidth: 0 }}><InlineField field={startField} row={row} options={options} patch={(p) => patch(row.id, p)} variant="panel" /></span>
+                  <span style={{ minWidth: 0 }}><InlineField field={startField} row={row} options={options} patch={(p) => patch(row.id, p)} variant="panel" range={rangeSpecFor(config, startField)} /></span>
                 </div>
               )}
               {endField && (
                 <div style={{ display: 'grid', gridTemplateColumns: '152px minmax(0,1fr)', alignItems: 'center', minHeight: 42 }}>
                   <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 'var(--fe-text-base)', color: 'var(--fe-text-muted)' }}><DateGlyph />{endField.label}</span>
-                  <span style={{ minWidth: 0 }}><InlineField field={endField} row={row} options={options} patch={(p) => patch(row.id, p)} variant="panel" /></span>
+                  <span style={{ minWidth: 0 }}><InlineField field={endField} row={row} options={options} patch={(p) => patch(row.id, p)} variant="panel" range={rangeSpecFor(config, endField)} /></span>
                 </div>
               )}
             </div>
