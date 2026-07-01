@@ -8,9 +8,10 @@ import {
   type ListConfig, type FieldDef, type Row, type OptionsMap, type SelectOption, type ViewPreset, parseISO,
 } from './types'
 import { type EmbedMap } from './load'
-import { Breadcrumb, SpaceBadge, Avatar, EmptyState, dataLonga, useHiddenFields } from './kit'
+import { Breadcrumb, SpaceBadge, Avatar, EmptyState, dataCurta, dataLonga, useHiddenFields, useIsMobile } from './kit'
 import { Dropdown, StatusDot, SelectMenu, RelationMenu, OptionPill, RowMenu } from './inline'
-import { InlineField, displayLabel, groupKey, optionOf, isDerived, rangeSpecFor } from './cells'
+import { InlineField, displayLabel, groupKey, optionOf, isDerived, rangeSpecFor, dueTone } from './cells'
+import { Board } from './Board'
 import { RichTextEditor } from './RichText'
 import { QuickAddRow } from './QuickAdd'
 import { TaskComments } from './TaskComments'
@@ -27,6 +28,7 @@ export function DataList({ config, rows: rowsProp, options, embeds, caps = CAPS_
 }) {
   const supabase = useMemo(() => createClient(), [])
   const router = useRouter()
+  const mobile = useIsMobile()
   const [rows, setRows] = useState<Row[]>(rowsProp)
   const [sel, setSel] = useState<string | null>(null)
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
@@ -39,6 +41,18 @@ export function DataList({ config, rows: rowsProp, options, embeds, caps = CAPS_
   const [busca, setBusca] = useState('')
   const firstPreset = config.viewPresets?.[0]
   const [activeViewKey, setActiveViewKey] = useState<string | null>(firstPreset?.key ?? null)
+
+  // View ativa da List: Lista ou Quadro (kanban por status). Persistida por List.
+  const statusFieldDef = useMemo(() => (config.statusField ? config.fields.find((f) => f.key === config.statusField) ?? null : null), [config])
+  const [viewMode, setViewModeState] = useState<'list' | 'board'>('list')
+  const viewLsKey = `fe-view:${config.basePath}`
+  useEffect(() => {
+    try { if (localStorage.getItem(viewLsKey) === 'board' && statusFieldDef) setViewModeState('board') } catch {}
+  }, []) // eslint-disable-line
+  function setViewMode(m: 'list' | 'board') {
+    setViewModeState(m)
+    try { localStorage.setItem(viewLsKey, m) } catch {}
+  }
   const [groupBy, setGroupBy] = useState<string | null>(firstPreset?.groupBy !== undefined ? (firstPreset.groupBy ?? null) : (config.defaultGroupBy ?? config.statusField ?? null))
   const [filtros, setFiltros] = useState<FilterState>(firstPreset?.filter ?? {})
   const [salvando, setSalvando] = useState<'idle' | 'saving' | 'saved'>('idle')
@@ -185,6 +199,8 @@ export function DataList({ config, rows: rowsProp, options, embeds, caps = CAPS_
   const filtradas = useMemo(() => aplicarFiltros(rows, busca, filtros, config), [rows, busca, filtros, config])
   const groupByField = useMemo(() => (groupBy ? config.fields.find((f) => f.key === groupBy) ?? null : null), [groupBy, config])
   const grupos = useMemo(() => agrupar(filtradas, groupByField, options), [filtradas, groupByField, options])
+  // Quadro agrupa sempre por status, independente do "Agrupar" da Lista.
+  const boardGrupos = useMemo(() => (statusFieldDef ? agrupar(filtradas, statusFieldDef, options) : []), [filtradas, statusFieldDef, options])
   // Ordem visível achatada (todos os grupos em sequência) p/ o range do shift+clique.
   const orderedIds = useMemo(() => grupos.flatMap((g) => g.itens.map((r) => r.id)), [grupos])
   const nFiltros = contarFiltros(filtros)
@@ -209,6 +225,7 @@ export function DataList({ config, rows: rowsProp, options, embeds, caps = CAPS_
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: 'var(--fe-surface)' }}>
       {!config.hideBreadcrumb && <Breadcrumb space={config.space} segments={config.breadcrumb} />}
       {!caps.canEdit && <ReadOnlyBanner nivel={caps.canComment ? 'comentar' : 'ver'} />}
+      <ListTitle config={config} count={filtradas.length} />
       <Toolbar
         config={config} busca={busca} onBusca={setBusca}
         groupable={groupable} groupBy={groupBy} onGroupBy={setGroupBy}
@@ -216,17 +233,21 @@ export function DataList({ config, rows: rowsProp, options, embeds, caps = CAPS_
         rows={rows} options={options} salvando={salvando} addHref={addHref} addLabel={config.addLabel ?? `Adicionar ${config.singular}`}
         canCreate={caps.canEdit}
         viewPresets={config.viewPresets} activeViewKey={activeViewKey} onViewChange={applyView}
+        viewMode={statusFieldDef ? viewMode : 'list'} onViewMode={setViewMode} hasBoard={!!statusFieldDef}
       />
+      {viewMode === 'board' && statusFieldDef ? (
+        <Board grupos={boardGrupos} config={config} options={options} statusField={statusFieldDef} patch={patch} add={add} onAbrir={setSel} canEdit={caps.canEdit} />
+      ) : (
       <div className="fe-list-pad" style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
-        <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', background: 'var(--fe-surface)', border: '1px solid var(--fe-border)', borderRadius: 'var(--fe-radius-xl)', boxShadow: 'var(--fe-shadow-card)', overflow: 'hidden' }}>
+        <div className="fe-list-card" style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', background: 'var(--fe-surface)', border: '1px solid var(--fe-border)', borderRadius: 'var(--fe-radius-xl)', boxShadow: 'var(--fe-shadow-card)', overflow: 'hidden' }}>
           <div style={{ flex: 1, minHeight: 0, overflow: 'auto' }}>
             {rows.length === 0 && !(groupByField?.type === 'select' && groupByField.options) ? (
               <EmptyState icon={config.emptyIcon ?? <DefaultEmptyIcon />} titulo={`Nenhum registro em ${config.plural}`} descricao={`Crie o primeiro ${config.singular.toLowerCase()} para começar.`} addHref={addHref} addLabel={config.addLabel ?? `Adicionar ${config.singular}`} />
             ) : (
-              <div style={{ minWidth: 'var(--fe-list-min-w)' }}>
-                {!groupBy && <Header columns={columns} grid={grid} config={config} allSelected={allVisibleSelected} someSelected={someSelected} onToggleAll={() => toggleSelectAll(visibleIds)} />}
+              <div style={{ minWidth: mobile ? 0 : 'var(--fe-list-min-w)' }}>
+                {!groupBy && !mobile && <Header columns={columns} grid={grid} config={config} allSelected={allVisibleSelected} someSelected={someSelected} onToggleAll={() => toggleSelectAll(visibleIds)} />}
                 {grupos.map((g, i) => (
-                  <Grupo key={g.key} grupo={g} grid={grid} columns={columns} config={config} options={options} patch={patch} remove={remove} add={add} groupByField={groupByField} onAbrir={setSel} grouped={!!groupBy} first={i === 0} selectedIds={selectedIds} onToggle={toggleSelect} onToggleMany={toggleSelectAll} canEdit={caps.canEdit} canDelete={caps.canDelete} />
+                  <Grupo key={g.key} grupo={g} grid={grid} columns={columns} config={config} options={options} patch={patch} remove={remove} add={add} groupByField={groupByField} onAbrir={setSel} grouped={!!groupBy} first={i === 0} selectedIds={selectedIds} onToggle={toggleSelect} onToggleMany={toggleSelectAll} canEdit={caps.canEdit} canDelete={caps.canDelete} mobile={mobile} />
                 ))}
                 {rows.length > 0 && (busca.trim() !== '' || nFiltros > 0) && grupos.every((g) => g.itens.length === 0) && (
                   <div style={{ padding: '40px 24px', textAlign: 'center', fontSize: 13, color: 'var(--fe-text-muted)' }}>Nenhum registro corresponde aos filtros.</div>
@@ -237,6 +258,7 @@ export function DataList({ config, rows: rowsProp, options, embeds, caps = CAPS_
           </div>
         </div>
       </div>
+      )}
 
       {aberto && (
         <SlideOver key={aberto.id} row={aberto} config={config} options={options} patch={patch} remove={remove} onFechar={() => setSel(null)} caps={caps} />
@@ -322,16 +344,6 @@ function contarFiltros(filtros: FilterState): number {
 
 type GrupoView = { key: string; itens: Row[]; option?: SelectOption; label?: string }
 
-// Cor da data de vencimento (estilo ClickUp): verde quando ainda há prazo,
-// vermelha quando atrasada e a task não está concluída. Concluída/sem data → cor padrão.
-function dueTone(iso: string | null, done: boolean): string | undefined {
-  if (!iso || done) return undefined
-  const hoje = new Date(); hoje.setHours(0, 0, 0, 0)
-  const dias = Math.round((parseISO(iso).getTime() - hoje.getTime()) / 86400000)
-  if (dias < 0) return 'var(--fe-prio-urgent)'
-  return 'var(--fe-status-done-text)'
-}
-
 function dateBucket(iso: string | null): { ordem: number; key: string; label: string } {
   if (!iso) return { ordem: 5, key: 'sem', label: 'Sem data' }
   const hoje = new Date(); hoje.setHours(0, 0, 0, 0)
@@ -382,42 +394,61 @@ function agrupar(rows: Row[], field: FieldDef | null, options: OptionsMap): Grup
   }).map(([key, v]) => ({ key, itens: v.itens, label: v.label }))
 }
 
+// ─── Título da List (estilo ClickUp: nome grande + contagem) ─────────────────
+
+function ListTitle({ config, count }: { config: ListConfig; count: number }) {
+  return (
+    <div className="fe-bar-pad fe-list-title" style={{ display: 'flex', alignItems: 'baseline', gap: 10, padding: '14px 22px 0', flexShrink: 0, background: 'var(--fe-surface)' }}>
+      <h1 style={{ margin: 0, fontSize: 20, fontWeight: 600, letterSpacing: '-0.015em', lineHeight: 1.25, color: 'var(--fe-text-strong)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+        {config.breadcrumb[config.breadcrumb.length - 1]}
+      </h1>
+      <span style={{ fontFamily: 'var(--font-geist-mono), monospace', fontSize: 12.5, color: 'var(--fe-text-muted)' }}>{count}</span>
+    </div>
+  )
+}
+
 // ─── Toolbar ──────────────────────────────────────────────────────────────────
 
 function Toolbar({
-  config, busca, onBusca, groupable, groupBy, onGroupBy, filterable, filtros, onFiltros, nFiltros, rows, options, salvando, addHref, addLabel, canCreate = true, viewPresets, activeViewKey, onViewChange,
+  config, busca, onBusca, groupable, groupBy, onGroupBy, filterable, filtros, onFiltros, nFiltros, rows, options, salvando, addHref, addLabel, canCreate = true, viewPresets, activeViewKey, onViewChange, viewMode = 'list', onViewMode, hasBoard = false,
 }: {
   config: ListConfig; busca: string; onBusca: (v: string) => void
   groupable: FieldDef[]; groupBy: string | null; onGroupBy: (k: string | null) => void
   filterable: FieldDef[]; filtros: FilterState; onFiltros: (f: FilterState) => void; nFiltros: number
   rows: Row[]; options: OptionsMap; salvando: 'idle' | 'saving' | 'saved'; addHref: string; addLabel: string; canCreate?: boolean
   viewPresets?: ViewPreset[]; activeViewKey?: string | null; onViewChange?: (p: ViewPreset) => void
+  viewMode?: 'list' | 'board'; onViewMode?: (m: 'list' | 'board') => void; hasBoard?: boolean
 }) {
   const groupLabel = groupBy ? (config.fields.find((f) => f.key === groupBy)?.label ?? 'Nenhum') : 'Nenhum'
+  const listIcon = <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 4H12M2 7H12M2 10H9" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" /></svg>
+  const boardIcon = <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="1.5" y="2" width="3.4" height="10" rx="1" stroke="currentColor" strokeWidth="1.2" /><rect x="5.9" y="2" width="3.4" height="7" rx="1" stroke="currentColor" strokeWidth="1.2" /><rect x="10.3" y="2" width="2.2" height="10" rx="1" stroke="currentColor" strokeWidth="1.2" /></svg>
   return (
-    <div className="fe-bar-pad" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 44, padding: '0 18px 0 22px', flexShrink: 0, gap: 12, background: 'var(--fe-surface)' }}>
-      <div style={{ display: 'flex', alignItems: 'center', height: '100%' }}>
+    <div className="fe-bar-pad fe-toolbar" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 44, padding: '0 18px 0 22px', flexShrink: 0, gap: 12, background: 'var(--fe-surface)' }}>
+      <div className="fe-toolbar-tabs" style={{ display: 'flex', alignItems: 'center', height: '100%' }}>
         {viewPresets && viewPresets.length > 0 ? (
           viewPresets.map((p) => {
-            const active = p.key === activeViewKey
+            const active = viewMode === 'list' && p.key === activeViewKey
             return (
-              <button key={p.key} onClick={() => onViewChange?.(p)}
-                style={{ height: '100%', padding: '0 12px', borderTop: 'none', borderLeft: 'none', borderRight: 'none', borderBottom: active ? '2px solid var(--fe-black)' : '2px solid transparent', fontSize: 13, fontWeight: active ? 600 : 500, color: active ? 'var(--fe-black)' : 'var(--fe-text-soft)', background: 'none', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap' }}>
+              <ViewTabBtn key={p.key} active={active} onClick={() => { onViewMode?.('list'); onViewChange?.(p) }}>
                 {p.label}
-              </button>
+              </ViewTabBtn>
             )
           })
         ) : (
-          <span style={{ height: '100%', padding: '0 12px', borderBottom: '2px solid var(--fe-black)', fontSize: 13, fontWeight: 600, color: 'var(--fe-black)', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 4H12M2 7H12M2 10H9" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" /></svg>
+          <ViewTabBtn active={viewMode === 'list'} onClick={() => onViewMode?.('list')} icon={listIcon}>
             Lista
-          </span>
+          </ViewTabBtn>
+        )}
+        {hasBoard && (
+          <ViewTabBtn active={viewMode === 'board'} onClick={() => onViewMode?.('board')} icon={boardIcon}>
+            Quadro
+          </ViewTabBtn>
         )}
       </div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
+      <div className="fe-toolbar-actions" style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
         <SaveIndicator estado={salvando} />
         {filterable.length > 0 && <FiltrosBtn filterable={filterable} filtros={filtros} onFiltros={onFiltros} n={nFiltros} rows={rows} options={options} />}
-        {groupable.length > 0 && <AgruparBtn groupable={groupable} groupBy={groupBy} onGroupBy={onGroupBy} label={groupLabel} />}
+        {viewMode === 'list' && groupable.length > 0 && <AgruparBtn groupable={groupable} groupBy={groupBy} onGroupBy={onGroupBy} label={groupLabel} />}
         <div style={{ position: 'relative', display: 'flex', alignItems: 'center', minWidth: 0 }}>
           <svg width="13" height="13" viewBox="0 0 12 12" fill="none" style={{ position: 'absolute', left: 9, opacity: 0.4, pointerEvents: 'none' }}><circle cx="5" cy="5" r="3.5" stroke="currentColor" strokeWidth="1.3" /><path d="M8 8L10.5 10.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" /></svg>
           <input value={busca} onChange={(e) => onBusca(e.target.value)} placeholder="Buscar"
@@ -432,6 +463,17 @@ function Toolbar({
         )}
       </div>
     </div>
+  )
+}
+
+function ViewTabBtn({ active, onClick, icon, children }: { active: boolean; onClick: () => void; icon?: React.ReactNode; children: React.ReactNode }) {
+  return (
+    <button onClick={onClick}
+      style={{ height: '100%', padding: '0 12px', border: 'none', borderBottom: active ? '2px solid var(--fe-black)' : '2px solid transparent', fontSize: 13, fontWeight: active ? 600 : 500, color: active ? 'var(--fe-black)' : 'var(--fe-text-soft)', background: 'none', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap' }}
+      onMouseEnter={(e) => { if (!active) e.currentTarget.style.color = 'var(--fe-text)' }}
+      onMouseLeave={(e) => { if (!active) e.currentTarget.style.color = 'var(--fe-text-soft)' }}>
+      {icon}{children}
+    </button>
   )
 }
 
@@ -604,14 +646,14 @@ function Checkbox({ checked, indeterminate = false, onChange, visible = true, in
 
 // ─── Grupo ─────────────────────────────────────────────────────────────────────
 
-function Grupo({ grupo, grid, columns, config, options, patch, remove, add, groupByField, onAbrir, grouped, first, selectedIds, onToggle, onToggleMany, canEdit = true, canDelete = true }: {
+function Grupo({ grupo, grid, columns, config, options, patch, remove, add, groupByField, onAbrir, grouped, first, selectedIds, onToggle, onToggleMany, canEdit = true, canDelete = true, mobile = false }: {
   grupo: GrupoView; grid: string; columns: FieldDef[]; config: ListConfig; options: OptionsMap
   patch: (id: string, p: Record<string, unknown>) => void; remove: (id: string) => void
   add: (p: Record<string, unknown>) => Promise<boolean>; groupByField: FieldDef | null
   onAbrir: (id: string) => void; grouped: boolean; first?: boolean
   selectedIds: Set<string>; onToggle: (id: string, shift?: boolean) => void
   onToggleMany: (ids: string[]) => void
-  canEdit?: boolean; canDelete?: boolean
+  canEdit?: boolean; canDelete?: boolean; mobile?: boolean
 }) {
   const [aberto, setAberto] = useState(true)
   const [adicionando, setAdicionando] = useState(false)
@@ -640,7 +682,7 @@ function Grupo({ grupo, grid, columns, config, options, patch, remove, add, grou
           {canEdit && <button onClick={(e) => { e.stopPropagation(); setAberto(true); setAdicionando(true) }} style={{ marginLeft: 6, border: 'none', background: 'transparent', padding: 0, cursor: 'pointer', fontSize: 12.5, color: 'var(--fe-text-faint)' }} onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--fe-text-soft)')} onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--fe-text-faint)')}>+ Adicionar</button>}
         </div>
       )}
-      {grouped && aberto && grupo.itens.length > 0 && (
+      {grouped && aberto && !mobile && grupo.itens.length > 0 && (
         <div style={{ display: 'grid', gridTemplateColumns: grid, gap: 12, padding: '0 24px', height: 30, alignItems: 'center', borderBottom: '1px solid var(--fe-divider)' }}>
           <span onClick={(e) => e.stopPropagation()} style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
             <Checkbox checked={allGroupSel} indeterminate={someGroupSel && !allGroupSel} onChange={() => onToggleMany(groupIds)} />
@@ -650,7 +692,7 @@ function Grupo({ grupo, grid, columns, config, options, patch, remove, add, grou
         </div>
       )}
       {aberto && grupo.itens.map((r) => (
-        <RowLine key={r.id} row={r} grid={grid} columns={columns} config={config} options={options} patch={patch} remove={remove} onAbrir={onAbrir} selected={selectedIds.has(r.id)} onToggle={(shift) => onToggle(r.id, shift)} anySelected={selectedIds.size > 0} canDelete={canDelete} />
+        <RowLine key={r.id} row={r} grid={grid} columns={columns} config={config} options={options} patch={patch} remove={remove} onAbrir={onAbrir} selected={selectedIds.has(r.id)} onToggle={(shift) => onToggle(r.id, shift)} anySelected={selectedIds.size > 0} canDelete={canDelete} mobile={mobile} />
       ))}
       {aberto && canEdit && (
         <QuickAddRow config={config} defaults={groupDefaults} active={adicionando} onActiveChange={setAdicionando} onCreate={add} placeholder={grouped ? 'Adicionar task' : undefined} />
@@ -659,10 +701,10 @@ function Grupo({ grupo, grid, columns, config, options, patch, remove, add, grou
   )
 }
 
-function RowLine({ row, grid, columns, config, options, patch, remove, onAbrir, selected, onToggle, anySelected, canDelete = true }: {
+function RowLine({ row, grid, columns, config, options, patch, remove, onAbrir, selected, onToggle, anySelected, canDelete = true, mobile = false }: {
   row: Row; grid: string; columns: FieldDef[]; config: ListConfig; options: OptionsMap
   patch: (id: string, p: Record<string, unknown>) => void; remove: (id: string) => void; onAbrir: (id: string) => void
-  selected: boolean; onToggle: (shift: boolean) => void; anySelected: boolean; canDelete?: boolean
+  selected: boolean; onToggle: (shift: boolean) => void; anySelected: boolean; canDelete?: boolean; mobile?: boolean
 }) {
   const [pop, setPop] = useState(false)
   const [hovered, setHovered] = useState(false)
@@ -672,6 +714,44 @@ function RowLine({ row, grid, columns, config, options, patch, remove, onAbrir, 
   const concluida = !!doneOpt?.done
   const primaryCol = columns.find((f) => f.column!.primary)?.column
   const twoLine = !!primaryCol?.subtitle
+
+  // Celular: linha compacta em coluna única (sem grid nem rolagem horizontal) —
+  // título + meta (subtítulo, vencimento colorido, responsável), estilo app do ClickUp.
+  if (mobile) {
+    const endField = config.endDateField ? config.fields.find((f) => f.key === config.endDateField) ?? null : null
+    const assigneeField = config.assigneeField ? config.fields.find((f) => f.key === config.assigneeField) ?? null : null
+    const endIso = endField ? ((row[endField.key] as string | null) ?? null) : null
+    const assignee = assigneeField ? displayLabel(assigneeField, row, options) : null
+    const subtitle = twoLine ? primaryCol!.subtitle!(row) : null
+    const meta: React.ReactNode[] = []
+    if (subtitle) meta.push(<span key="sub" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0 }}>{subtitle}</span>)
+    if (endIso) meta.push(<span key="due" style={{ fontFamily: 'var(--font-geist-mono), monospace', fontSize: 12, color: dueTone(endIso, concluida) ?? 'var(--fe-text-muted)', flexShrink: 0 }}>{dataCurta(endIso)}</span>)
+    if (assignee) meta.push(<span key="who" style={{ display: 'inline-flex', alignItems: 'center', gap: 5, flexShrink: 0, minWidth: 0 }}><Avatar nome={assignee} size={16} /><span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{assignee}</span></span>)
+
+    return (
+      <div className="fe-row" role="button" tabIndex={0} aria-label={`Abrir ${titulo || 'registro sem título'}`}
+        style={{ display: 'flex', flexDirection: 'column', gap: 3, padding: '11px 16px', borderBottom: '1px solid var(--fe-divider)', cursor: 'pointer', background: selected ? 'var(--fe-accent-dim)' : 'var(--fe-surface)', boxShadow: selected ? 'inset 2px 0 0 var(--fe-accent)' : 'none' }}
+        onClick={() => { if (!pop) onAbrir(row.id) }}
+        onKeyDown={(e) => { if ((e.key === 'Enter' || e.key === ' ') && e.target === e.currentTarget) { e.preventDefault(); if (!pop) onAbrir(row.id) } }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 9, minWidth: 0 }}>
+          {statusField && (
+            <span onClick={(e) => e.stopPropagation()} style={{ display: 'inline-flex', alignItems: 'center', flexShrink: 0 }}>
+              <StatusDot options={statusField.options ?? []} value={String(row[config.statusField!] ?? '')} onChange={(v) => patch(row.id, { [config.statusField!]: v })} />
+            </span>
+          )}
+          {config.titleAvatar && <Avatar nome={titulo || null} size={24} />}
+          <span style={{ fontSize: 'var(--fe-text-md)', fontWeight: 500, color: 'var(--fe-text-strong)', opacity: concluida ? 0.5 : 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0, flex: 1 }}>
+            {titulo || <span style={{ color: 'var(--fe-text-faint)' }}>Sem título</span>}
+          </span>
+        </div>
+        {meta.length > 0 && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, paddingLeft: statusField ? 23 : 0, fontSize: 'var(--fe-text-sm)', color: 'var(--fe-text-muted)', minWidth: 0 }}>
+            {meta}
+          </div>
+        )}
+      </div>
+    )
+  }
 
   return (
     <div className="fe-row" role="button" tabIndex={0} aria-label={`Abrir ${titulo || 'registro sem título'}`}
@@ -757,8 +837,8 @@ function BulkBar({ selectedIds, config, options, onPatch, onRemove, onClear, can
   }
 
   return (
-    <div style={{ position: 'fixed', bottom: 28, left: '50%', transform: 'translateX(-50%)', zIndex: 90, animation: 'feBulkIn 180ms var(--fe-ease) both' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '0 8px', height: 50, background: '#1a1a2e', borderRadius: 14, boxShadow: '0 8px 40px rgba(0,0,0,0.45), 0 2px 8px rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.1)', whiteSpace: 'nowrap' }}>
+    <div className="fe-bulkbar" style={{ position: 'fixed', bottom: 28, left: '50%', transform: 'translateX(-50%)', zIndex: 90, animation: 'feBulkIn 180ms var(--fe-ease) both' }}>
+      <div className="fe-bulkbar-inner" style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '0 8px', height: 50, background: '#1a1a2e', borderRadius: 14, boxShadow: '0 8px 40px rgba(0,0,0,0.45), 0 2px 8px rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.1)', whiteSpace: 'nowrap' }}>
 
         {/* Contador + limpar */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '0 8px 0 4px', marginRight: 4, borderRight: '1px solid rgba(255,255,255,0.1)' }}>
@@ -965,7 +1045,7 @@ function SlideOver({ row, config, options, patch, remove, onFechar, caps = CAPS_
   return (
     <>
       <div className="fe-fade-in" onClick={onFechar} style={{ position: 'fixed', inset: 0, background: 'var(--fe-backdrop)', zIndex: 60 }} />
-      <aside className="fe-slide-in" style={{ position: 'fixed', top: 0, right: 0, height: '100vh', width: 'var(--fe-panel-w)', maxWidth: '92vw', background: 'var(--fe-surface)', boxShadow: 'var(--fe-shadow-panel)', zIndex: 61, display: 'flex', flexDirection: 'column' }}>
+      <aside className="fe-slide-in fe-panel fe-vh-full" style={{ position: 'fixed', top: 0, right: 0, height: '100vh', width: 'var(--fe-panel-w)', maxWidth: '92vw', background: 'var(--fe-surface)', boxShadow: 'var(--fe-shadow-panel)', zIndex: 61, display: 'flex', flexDirection: 'column' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 52, padding: '0 14px 0 22px', borderBottom: '1px solid var(--fe-border-soft)', flexShrink: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: 'var(--fe-text-muted)' }}>
             <SpaceBadge space={config.space} size={18} />
@@ -987,7 +1067,7 @@ function SlideOver({ row, config, options, patch, remove, onFechar, caps = CAPS_
           </div>
         </div>
 
-        <div style={{ flex: 1, overflowY: 'auto', padding: '28px 32px' }}>
+        <div className="fe-panel-body" style={{ flex: 1, overflowY: 'auto', padding: '28px 32px' }}>
           {statusField && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 22 }}>
               {caps.canEdit ? (
@@ -1013,7 +1093,7 @@ function SlideOver({ row, config, options, patch, remove, onFechar, caps = CAPS_
             </div>
           )}
 
-          <textarea value={nome} onChange={(e) => onNome(e.target.value)} rows={1} placeholder={config.titlePlaceholder ?? 'Sem título'} readOnly={!caps.canEdit}
+          <textarea className="fe-panel-title" value={nome} onChange={(e) => onNome(e.target.value)} rows={1} placeholder={config.titlePlaceholder ?? 'Sem título'} readOnly={!caps.canEdit}
             onInput={(e) => { const el = e.currentTarget; el.style.height = 'auto'; el.style.height = el.scrollHeight + 'px' }}
             style={{ width: '100%', resize: 'none', border: 'none', outline: 'none', background: 'transparent', fontFamily: 'var(--font-geist), sans-serif', fontWeight: 600, fontSize: 27, lineHeight: 1.22, letterSpacing: '-0.015em', color: 'var(--fe-text-strong)', margin: '0 0 26px', padding: 0, overflow: 'hidden', cursor: caps.canEdit ? 'text' : 'default' }} />
 
@@ -1021,19 +1101,19 @@ function SlideOver({ row, config, options, patch, remove, onFechar, caps = CAPS_
           {(assigneeField || startField || endField) && (
             <div style={{ display: 'flex', flexDirection: 'column', marginBottom: descField ? 26 : 4 }}>
               {assigneeField && (
-                <div style={{ display: 'grid', gridTemplateColumns: '152px minmax(0,1fr)', alignItems: 'center', minHeight: 42 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'var(--fe-prop-label) minmax(0,1fr)', alignItems: 'center', minHeight: 42 }}>
                   <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 'var(--fe-text-base)', color: 'var(--fe-text-muted)' }}><PersonGlyph />{assigneeField.label}</span>
                   <span style={{ minWidth: 0 }}><InlineField field={assigneeField} row={row} options={options} patch={(p) => patch(row.id, p)} variant="panel" /></span>
                 </div>
               )}
               {startField && (
-                <div style={{ display: 'grid', gridTemplateColumns: '152px minmax(0,1fr)', alignItems: 'center', minHeight: 42 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'var(--fe-prop-label) minmax(0,1fr)', alignItems: 'center', minHeight: 42 }}>
                   <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 'var(--fe-text-base)', color: 'var(--fe-text-muted)' }}><DateGlyph />{startField.label}</span>
                   <span style={{ minWidth: 0 }}><InlineField field={startField} row={row} options={options} patch={(p) => patch(row.id, p)} variant="panel" range={rangeSpecFor(config, startField)} /></span>
                 </div>
               )}
               {endField && (
-                <div style={{ display: 'grid', gridTemplateColumns: '152px minmax(0,1fr)', alignItems: 'center', minHeight: 42 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'var(--fe-prop-label) minmax(0,1fr)', alignItems: 'center', minHeight: 42 }}>
                   <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 'var(--fe-text-base)', color: 'var(--fe-text-muted)' }}><DateGlyph />{endField.label}</span>
                   <span style={{ minWidth: 0 }}><InlineField field={endField} row={row} options={options} patch={(p) => patch(row.id, p)} variant="panel" range={rangeSpecFor(config, endField)} /></span>
                 </div>
@@ -1069,7 +1149,7 @@ function SlideOver({ row, config, options, patch, remove, onFechar, caps = CAPS_
                   key={f.key}
                   onMouseEnter={() => setHoveredField(f.key)}
                   onMouseLeave={() => setHoveredField(null)}
-                  style={{ display: 'grid', gridTemplateColumns: '152px 1fr 20px', alignItems: 'center', minHeight: 44 }}
+                  style={{ display: 'grid', gridTemplateColumns: 'var(--fe-prop-label) 1fr 20px', alignItems: 'center', minHeight: 44 }}
                 >
                   <span style={{ display: 'inline-flex', alignItems: 'center', gap: 9, fontSize: 'var(--fe-text-base)', color: 'var(--fe-text-muted)' }}>{f.panelIcon}{f.label}</span>
                   <span style={{ minWidth: 0 }}><InlineField field={f} row={row} options={options} patch={(p) => patch(row.id, p)} variant="panel" /></span>

@@ -19,6 +19,24 @@ const MESES = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'o
 export type { Space }
 export { SPACE_ENTREGAS, SPACE_COMERCIAL, SPACE_GESTAO, SPACE_MARKETING }
 
+// ─── Viewport ───────────────────────────────────────────────────────────────
+
+/**
+ * true quando a tela é estreita (celular). Começa false no servidor e ajusta
+ * após a hidratação — telas que dependem disso trocam de layout no cliente.
+ */
+export function useIsMobile(bp = 640) {
+  const [mobile, setMobile] = useState(false)
+  useEffect(() => {
+    const mq = window.matchMedia(`(max-width: ${bp}px)`)
+    const sync = () => setMobile(mq.matches)
+    sync()
+    mq.addEventListener('change', sync)
+    return () => mq.removeEventListener('change', sync)
+  }, [bp])
+  return mobile
+}
+
 // ─── Datas ──────────────────────────────────────────────────────────────────
 
 export function dataCurta(iso: string): string {
@@ -110,14 +128,14 @@ export function Dash() { return <span style={{ color: 'var(--fe-icon)' }}>—</s
 
 export function Breadcrumb({ space, segments }: { space: Space; segments: string[] }) {
   return (
-    <div className="fe-bar-pad" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 52, padding: '0 22px', borderBottom: '1px solid var(--fe-border-soft)', flexShrink: 0, background: 'var(--fe-surface)' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13.5, minWidth: 0 }}>
-        <SpaceBadge space={space} size={20} />
+    <div className="fe-bar-pad fe-crumb-bar" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 44, padding: '0 22px', borderBottom: '1px solid var(--fe-border-soft)', flexShrink: 0, background: 'var(--fe-surface)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, minWidth: 0 }}>
+        <SpaceBadge space={space} size={18} />
         {segments.map((s, i) => {
           const last = i === segments.length - 1
           return (
-            <span key={i} style={{ display: 'inline-flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
-              <span style={{ fontSize: last ? 15 : 13.5, fontWeight: last ? 600 : 400, color: last ? 'var(--fe-text-strong)' : 'var(--fe-text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s}</span>
+            <span key={i} className={last ? undefined : 'fe-crumb-mid'} style={{ display: 'inline-flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+              <span style={{ fontSize: 13, fontWeight: last ? 500 : 400, color: last ? 'var(--fe-text)' : 'var(--fe-text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s}</span>
               {!last && <span style={{ color: 'var(--fe-icon)' }}>/</span>}
             </span>
           )
@@ -266,12 +284,12 @@ export function SlideOver({ space, segments, expandHref, onClose, statusSlot, ti
   return (
     <>
       <div className="fe-fade-in" onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'var(--fe-backdrop)', zIndex: 60 }} />
-      <aside className="fe-slide-in" style={{ position: 'fixed', top: 0, right: 0, height: '100vh', width: 'var(--fe-panel-w)', maxWidth: '92vw', background: 'var(--fe-surface)', boxShadow: 'var(--fe-shadow-panel)', zIndex: 61, display: 'flex', flexDirection: 'column' }}>
+      <aside className="fe-slide-in fe-panel fe-vh-full" style={{ position: 'fixed', top: 0, right: 0, height: '100vh', width: 'var(--fe-panel-w)', maxWidth: '92vw', background: 'var(--fe-surface)', boxShadow: 'var(--fe-shadow-panel)', zIndex: 61, display: 'flex', flexDirection: 'column' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 52, padding: '0 12px 0 18px', borderBottom: '1px solid var(--fe-border-soft)', flexShrink: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 12.5, color: 'var(--fe-text-muted)', minWidth: 0 }}>
             <SpaceBadge space={space} size={17} />
             {segments.map((s, i) => (
-              <span key={i} style={{ display: 'inline-flex', alignItems: 'center', gap: 7, minWidth: 0 }}>
+              <span key={i} className={i === segments.length - 1 ? undefined : 'fe-crumb-mid'} style={{ display: 'inline-flex', alignItems: 'center', gap: 7, minWidth: 0 }}>
                 <span style={{ color: i === segments.length - 1 ? 'var(--fe-text-soft)' : 'var(--fe-text-muted)', fontWeight: i === segments.length - 1 ? 500 : 400, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s}</span>
                 {i < segments.length - 1 && <Sep />}
               </span>
@@ -283,7 +301,7 @@ export function SlideOver({ space, segments, expandHref, onClose, statusSlot, ti
             <button onClick={onClose} title="Fechar" aria-label="Fechar painel" style={iconBtn as React.CSSProperties}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg></button>
           </div>
         </div>
-        <div style={{ flex: 1, overflowY: 'auto', padding: '22px 28px 40px' }}>
+        <div className="fe-panel-body" style={{ flex: 1, overflowY: 'auto', padding: '22px 28px 40px' }}>
           {statusSlot && <div style={{ marginBottom: 18 }}>{statusSlot}</div>}
           <h1 style={{ fontFamily: 'var(--font-geist), sans-serif', fontWeight: 600, fontSize: 'var(--fe-text-2xl)', lineHeight: 1.25, letterSpacing: '-0.015em', color: 'var(--fe-text-strong)', margin: '0 0 22px' }}>{title}</h1>
           <div style={{ display: 'flex', flexDirection: 'column' }}>{children}</div>

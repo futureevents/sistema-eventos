@@ -84,6 +84,7 @@
   --fe-panel-w:     600px;
   --fe-kanban-col:  290px;
   --fe-list-min-w:  760px;  /* piso de legibilidade da tabela; abaixo disso rola na horizontal */
+  --fe-prop-label:  152px;  /* coluna de rótulo das property rows (painel/página da task) */
 
   --fe-ease:        cubic-bezier(.16,1,.3,1);
   --fe-dur-fast:    .14s;
@@ -276,18 +277,97 @@ select:focus-visible,
   .fe-fullpage-grid > aside { position: static !important; }
 }
 
+/* Altura real da janela no celular (100vh fica atrás da barra do Safari/Chrome).
+   Sobrepõe os `height: 100vh` inline dos contêineres de tela cheia. */
+@supports (height: 100dvh) {
+  .fe-vh-full { height: 100dvh !important; }
+  .fe-sidebar { height: 100dvh; }
+}
+
 /* Telas estreitas: esconder rótulos auxiliares e apertar gutters */
 @media (max-width: 640px) {
   .fe-hide-sm { display: none !important; }
-  .fe-list-pad { padding: 10px 12px 14px; }
   .fe-bar-pad { padding-left: 12px !important; padding-right: 12px !important; }
-  :root { --fe-list-min-w: 680px; }
+
+  /* Breadcrumb: só o nome da List (os níveis do meio somem) */
+  .fe-crumb-mid { display: none !important; }
+
+  /* Barra de breadcrumb some no celular — o título grande da List assume */
+  .fe-crumb-bar { display: none !important; }
+
+  /* Título da List compacto */
+  .fe-list-title { padding: 12px 16px 0 !important; }
+  .fe-list-title h1 { font-size: 17px !important; }
+
+  /* Quadro: colunas um pouco mais estreitas e gutter menor */
+  .fe-board { padding: 10px 12px 12px !important; gap: 10px !important; }
+  :root { --fe-kanban-col: 264px; }
+
+  /* Lista vai de borda a borda (estilo app): sem card flutuando */
+  .fe-list-pad { padding: 0 !important; }
+  .fe-list-card { border-radius: 0 !important; border-left: none !important; border-right: none !important; box-shadow: none !important; }
+
+  /* Toolbar em duas linhas: tabs de view em cima (roláveis), ações embaixo */
+  .fe-toolbar { height: auto !important; flex-wrap: wrap; row-gap: 0 !important; }
+  .fe-toolbar-tabs { order: 1; width: 100%; height: 40px !important; overflow-x: auto; scrollbar-width: none; }
+  .fe-toolbar-tabs::-webkit-scrollbar { display: none; }
+  .fe-toolbar-actions { order: 2; width: 100%; height: 46px; justify-content: flex-end; border-top: 1px solid var(--fe-border-soft); }
+
+  /* Slide-over da task: tela cheia */
+  .fe-panel { width: 100vw !important; max-width: 100vw !important; }
+  .fe-panel-body { padding: 20px 16px 48px !important; }
+  .fe-panel-title { font-size: 22px !important; margin-bottom: 18px !important; }
+  :root { --fe-prop-label: 116px; }
+
+  /* Barra de seleção em massa: largura da tela, rolável, acima do safe-area */
+  .fe-bulkbar { left: 8px !important; right: 8px !important; transform: none !important; bottom: calc(10px + env(safe-area-inset-bottom)) !important; animation: feFadeIn 180ms var(--fe-ease) both !important; }
+  .fe-bulkbar-inner { overflow-x: auto; max-width: 100%; scrollbar-width: none; }
+  .fe-bulkbar-inner::-webkit-scrollbar { display: none; }
+
+  /* Calendário duplo: cabe na tela (some a coluna de atalhos) */
+  .fe-daterange { width: min(448px, calc(100vw - 32px)) !important; }
+  .fe-daterange-shortcuts { display: none !important; }
+
+  /* Formulário de novo registro: campos empilhados em coluna única */
+  .fe-form-grid { grid-template-columns: 1fr !important; }
+
+  /* Gutters alinhados na lista mobile (linhas usam 16px) */
+  .fe-group-head { padding: 0 16px !important; }
+  .fe-quickadd { padding-left: 16px !important; padding-right: 16px !important; }
+}
+
+/* Página cheia da task no celular */
+@media (max-width: 768px) {
+  .fe-record-main { padding: 24px 16px 90px !important; }
+  .fe-record-title { font-size: 26px !important; }
+  /* Painel de atividade vira overlay sob a topbar (em vez de esmagar o conteúdo) */
+  .fe-activity-panel {
+    position: fixed;
+    top: 52px; left: 0; right: 0; bottom: 0;
+    width: 100% !important;
+    height: auto !important;
+    z-index: 75;
+    border-left: none !important;
+    box-shadow: 0 -8px 40px rgba(22,24,29,0.16);
+  }
 }
 
 /* Ações de linha e alvos de toque maiores em telas sem hover (toque) */
 @media (hover: none) {
   .fe-row .fe-row-actions { opacity: 1; }
   .fe-row-actions button { width: 30px; height: 30px; }
+  .fe-group-head { height: auto !important; min-height: 44px; }
+}
+
+/* iOS dá zoom automático em campos com fonte < 16px — neutraliza no toque.
+   Os títulos grandes da task (textarea) ficam de fora. */
+@media (pointer: coarse) and (max-width: 768px) {
+  input[type="text"], input[type="search"], input[type="email"], input[type="tel"],
+  input[type="date"], input[type="datetime-local"], input[type="password"], input:not([type]),
+  select, [contenteditable="true"],
+  textarea:not(.fe-panel-title):not(.fe-record-title) {
+    font-size: 16px !important;
+  }
 }
 
 /* ── Configurações — nav secundária ────────────────────── */

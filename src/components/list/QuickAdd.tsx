@@ -83,6 +83,7 @@ export function QuickAddRow({
   if (!active) {
     return (
       <button
+        className="fe-quickadd"
         onClick={() => onActiveChange(true)}
         style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', height: 38, padding: '0 24px', border: 'none', borderBottom: '1px solid var(--fe-divider)', background: 'transparent', cursor: 'pointer', color: 'var(--fe-text-faint)', fontSize: 13, fontWeight: 500, textAlign: 'left' }}
         onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--fe-warm-white)'; e.currentTarget.style.color = 'var(--fe-text-soft)' }}
@@ -95,7 +96,7 @@ export function QuickAddRow({
   }
 
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 10, minHeight: 46, padding: '0 24px', borderBottom: '1px solid var(--fe-divider)', background: 'var(--fe-warm-white)' }}>
+    <div className="fe-quickadd" style={{ display: 'flex', alignItems: 'center', gap: 10, minHeight: 46, padding: '0 24px', borderBottom: '1px solid var(--fe-divider)', background: 'var(--fe-warm-white)' }}>
       <span style={{ width: 16, display: 'inline-flex', justifyContent: 'center', color: 'var(--fe-accent)', flexShrink: 0 }}><PlusIcon /></span>
       <div style={{ position: 'relative', flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
         {pendingLabel && (

@@ -1,6 +1,6 @@
 'use client'
 
-import { type FieldDef, type Row, type OptionsMap, type SelectOption, type ListConfig } from './types'
+import { type FieldDef, type Row, type OptionsMap, type SelectOption, type ListConfig, parseISO } from './types'
 import { Avatar, Tag, dataCurta, Dash } from './kit'
 import {
   Dropdown, CalendarPopover, DateRangePopover, type DateRangeSpec, SelectMenu, RelationMenu, MultiMenu, TextInline,
@@ -11,6 +11,16 @@ import { useListEditable } from './perm-ctx'
 // ─── Leitura de valores ───────────────────────────────────────────────────────
 
 export function isDerived(f: FieldDef): boolean { return !!f.valuePath }
+
+// Cor da data de vencimento (estilo ClickUp): verde quando ainda há prazo,
+// vermelha quando atrasada e a task não está concluída. Concluída/sem data → cor padrão.
+export function dueTone(iso: string | null, done: boolean): string | undefined {
+  if (!iso || done) return undefined
+  const hoje = new Date(); hoje.setHours(0, 0, 0, 0)
+  const dias = Math.round((parseISO(iso).getTime() - hoje.getTime()) / 86400000)
+  if (dias < 0) return 'var(--fe-prio-urgent)'
+  return 'var(--fe-status-done-text)'
+}
 
 /** Se o campo faz parte do par início/vencimento da List, devolve o spec do calendário duplo. */
 export function rangeSpecFor(config: ListConfig, field: FieldDef): DateRangeSpec | undefined {

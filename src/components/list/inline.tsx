@@ -621,7 +621,7 @@ export function DateRangePopover({ start, end, focus, startLabel, endLabel, star
   const navBtn: React.CSSProperties = { width: 24, height: 24, borderRadius: 6, border: 'none', background: 'transparent', color: 'var(--fe-text-soft)', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: 0 }
 
   return (
-    <div style={{ width: 448, padding: 4 }}>
+    <div className="fe-daterange" style={{ width: 448, padding: 4 }}>
       {/* Data inicial antes, vencimento ao lado */}
       <div style={{ display: 'flex', gap: 8, padding: '2px 2px 10px' }}>
         <DateChip label={startLabel} value={start} active={focused === 'start'} onFocus={() => focar('start')} onClear={() => onChange({ start: null })} />
@@ -630,7 +630,7 @@ export function DateRangePopover({ start, end, focus, startLabel, endLabel, star
 
       <div style={{ display: 'flex', borderTop: '1px solid var(--fe-divider)' }}>
         {/* Atalhos rápidos */}
-        <div style={{ width: 178, flexShrink: 0, padding: '8px 8px 8px 2px', borderRight: '1px solid var(--fe-divider)', display: 'flex', flexDirection: 'column' }}>
+        <div className="fe-daterange-shortcuts" style={{ width: 178, flexShrink: 0, padding: '8px 8px 8px 2px', borderRight: '1px solid var(--fe-divider)', display: 'flex', flexDirection: 'column' }}>
           {atalhos.map((a) => (
             <button key={a.label} onClick={(e) => { e.stopPropagation(); escolherDia(toISODate(a.d)) }}
               style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, height: 28, padding: '0 8px', border: 'none', background: 'transparent', borderRadius: 6, cursor: 'pointer', textAlign: 'left' }}
