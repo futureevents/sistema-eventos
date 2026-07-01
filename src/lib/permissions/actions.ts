@@ -28,6 +28,33 @@ function revalidar() {
   revalidatePath('/', 'layout')
 }
 
+// ── Criar novo membro (novo login no sistema) ────────────────────────────────
+
+export async function criarMembro(nome: string, email: string, senha: string, papel: Papel): Promise<void> {
+  const caller = await exigirAdmin()
+
+  const emailLimpo = email.trim().toLowerCase()
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailLimpo)) throw new Error('E-mail inválido.')
+  if (senha.length < 6) throw new Error('A senha temporária precisa de ao menos 6 caracteres.')
+  if (papel === 'proprietario' && caller.papel !== 'proprietario') {
+    throw new Error('Apenas um Proprietário pode criar outro Proprietário.')
+  }
+
+  const admin = createAdminClient()
+  const { error } = await admin.auth.admin.createUser({
+    email: emailLimpo,
+    password: senha,
+    email_confirm: true, // já pode logar por e-mail/senha, sem confirmação por e-mail
+    user_metadata: { full_name: nome.trim() },
+  })
+  if (error) throw new Error(error.message.includes('already') ? 'Já existe um acesso com esse e-mail.' : error.message)
+
+  // O trigger cria o perfil como 'membro'; garante o papel escolhido.
+  await admin.from('membro_perfil')
+    .upsert({ email: emailLimpo, papel, ativo: true }, { onConflict: 'email' })
+  revalidar()
+}
+
 // ── Papel do membro ──────────────────────────────────────────────────────────
 
 export async function definirPapel(email: string, papel: Papel): Promise<void> {

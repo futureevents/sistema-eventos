@@ -4,7 +4,7 @@ import { useMemo, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { SectionScaffold } from './SectionScaffold'
 import {
-  definirPapel, definirAtivo, definirPrivado, definirAcesso, removerAcesso,
+  definirPapel, definirAtivo, definirPrivado, definirAcesso, removerAcesso, criarMembro,
 } from '@/lib/permissions/actions'
 import {
   PAPEIS, NIVEIS, PAPEL_LABEL, NIVEL_LABEL,
@@ -66,7 +66,8 @@ export function AcessosManager({ data, arvore, callerPapel, callerEmail }: {
 
       {/* 1. Membros */}
       <Bloco titulo="Membros" descricao="Papel de cada pessoa e se o acesso está ativo.">
-        <div style={cardStyle}>
+        <NovoMembro podeCriarProprietario={podeMexerProprietario} onCriado={() => router.refresh()} />
+        <div style={{ ...cardStyle, marginTop: 12 }}>
           {data.membros.map((m, i) => {
             const ehProprietario = m.papel === 'proprietario'
             const travado = ehProprietario && !podeMexerProprietario
@@ -155,6 +156,95 @@ export function AcessosManager({ data, arvore, callerPapel, callerEmail }: {
   )
 }
 
+function gerarSenha(): string {
+  const a = new Uint32Array(3)
+  crypto.getRandomValues(a)
+  return 'Fe-' + Array.from(a).map((n) => n.toString(36)).join('').slice(0, 10)
+}
+
+function NovoMembro({ podeCriarProprietario, onCriado }: { podeCriarProprietario: boolean; onCriado: () => void }) {
+  const [aberto, setAberto] = useState(false)
+  const [nome, setNome] = useState('')
+  const [email, setEmail] = useState('')
+  const [senha, setSenha] = useState('')
+  const [papel, setPapel] = useState<Papel>('membro')
+  const [erro, setErro] = useState<string | null>(null)
+  const [criado, setCriado] = useState<{ email: string; senha: string } | null>(null)
+  const [pending, start] = useTransition()
+
+  function abrir() { setErro(null); setNome(''); setEmail(''); setPapel('membro'); setSenha(gerarSenha()); setAberto(true) }
+
+  function criar() {
+    setErro(null)
+    start(async () => {
+      try {
+        await criarMembro(nome, email, senha, papel)
+        setCriado({ email: email.trim().toLowerCase(), senha })
+        setAberto(false)
+        onCriado()
+      } catch (e) { setErro(e instanceof Error ? e.message : 'Erro ao criar acesso.') }
+    })
+  }
+
+  if (!aberto) {
+    return (
+      <>
+        {criado && <CredenciaisCriadas email={criado.email} senha={criado.senha} onFechar={() => setCriado(null)} />}
+        <button onClick={abrir} style={addPessoaBtn}>
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 2.5V11.5M2.5 7H11.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" /></svg>
+          Adicionar pessoa
+        </button>
+      </>
+    )
+  }
+
+  return (
+    <div style={{ border: '1px solid var(--fe-border)', borderRadius: 'var(--fe-radius-lg)', padding: 14, background: 'var(--fe-warm-white)' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        <input value={nome} onChange={(e) => setNome(e.target.value)} placeholder="Nome completo" style={inputStyle} />
+        <input value={email} onChange={(e) => setEmail(e.target.value)} type="email" placeholder="email@futureevents.com.br" autoComplete="off" style={inputStyle} />
+        <div style={{ display: 'flex', gap: 8 }}>
+          <input value={senha} onChange={(e) => setSenha(e.target.value)} placeholder="Senha temporária" style={{ ...inputStyle, flex: 1, fontFamily: 'var(--font-geist-mono), monospace' }} />
+          <button onClick={() => setSenha(gerarSenha())} style={ghostBtn} title="Gerar nova senha">Gerar</button>
+        </div>
+        <select value={papel} onChange={(e) => setPapel(e.target.value as Papel)} style={{ ...selectStyle, height: 38 }}>
+          {PAPEIS.filter((p) => p !== 'proprietario' || podeCriarProprietario).map((p) => (
+            <option key={p} value={p}>{PAPEL_LABEL[p]}</option>
+          ))}
+        </select>
+        {erro && <div style={{ fontSize: 12, color: 'var(--fe-prio-urgent)' }}>{erro}</div>}
+        <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 2 }}>
+          <button onClick={() => setAberto(false)} style={ghostBtn}>Cancelar</button>
+          <button onClick={criar} disabled={pending || !nome.trim() || !email.trim()} style={{ ...primaryBtn, opacity: (pending || !nome.trim() || !email.trim()) ? 0.5 : 1 }}>
+            {pending ? 'Criando…' : 'Criar acesso'}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function CredenciaisCriadas({ email, senha, onFechar }: { email: string; senha: string; onFechar: () => void }) {
+  const [copiado, setCopiado] = useState(false)
+  function copiar() {
+    navigator.clipboard?.writeText(`Acesso ao Sistema Future Events\nSite: https://sistema.futureevents.com.br\nE-mail: ${email}\nSenha: ${senha}`)
+      .then(() => { setCopiado(true); setTimeout(() => setCopiado(false), 2000) })
+  }
+  return (
+    <div style={{ border: '1px solid var(--fe-accent)', background: 'var(--fe-accent-dim)', borderRadius: 'var(--fe-radius-lg)', padding: '12px 14px', marginBottom: 12 }}>
+      <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--fe-accent-dark)', marginBottom: 6 }}>Acesso criado — envie estas credenciais para a pessoa:</div>
+      <div style={{ fontFamily: 'var(--font-geist-mono), monospace', fontSize: 12.5, color: 'var(--fe-text)', lineHeight: 1.7 }}>
+        <div>E-mail: <strong>{email}</strong></div>
+        <div>Senha temporária: <strong>{senha}</strong></div>
+      </div>
+      <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
+        <button onClick={copiar} style={{ ...primaryBtn, height: 30 }}>{copiado ? 'Copiado!' : 'Copiar credenciais'}</button>
+        <button onClick={onFechar} style={{ ...ghostBtn, height: 30 }}>Fechar</button>
+      </div>
+    </div>
+  )
+}
+
 function NovoAcesso({ membros, scopeOpts, pending, onAdd }: {
   membros: AcessosData['membros']
   scopeOpts: ScopeOpt[]
@@ -231,4 +321,24 @@ const pillBtn: React.CSSProperties = {
 }
 const hintStyle: React.CSSProperties = {
   fontSize: 12, color: 'var(--fe-accent-dark)', marginTop: 6,
+}
+const inputStyle: React.CSSProperties = {
+  height: 38, padding: '0 11px', borderRadius: 'var(--fe-radius-md)',
+  border: '1px solid var(--fe-border)', background: 'var(--fe-surface)',
+  fontSize: 13.5, color: 'var(--fe-text)', outline: 'none', width: '100%',
+}
+const addPessoaBtn: React.CSSProperties = {
+  display: 'inline-flex', alignItems: 'center', gap: 7, height: 36, padding: '0 14px',
+  borderRadius: 'var(--fe-radius-md)', border: '1px dashed var(--fe-border)',
+  background: 'transparent', color: 'var(--fe-text-soft)', fontSize: 13, fontWeight: 600, cursor: 'pointer',
+}
+const ghostBtn: React.CSSProperties = {
+  height: 38, padding: '0 14px', borderRadius: 'var(--fe-radius-md)',
+  border: '1px solid var(--fe-border)', background: 'var(--fe-surface)',
+  fontSize: 13, fontWeight: 500, color: 'var(--fe-text-soft)', cursor: 'pointer', whiteSpace: 'nowrap',
+}
+const primaryBtn: React.CSSProperties = {
+  height: 38, padding: '0 16px', borderRadius: 'var(--fe-radius-md)',
+  border: 'none', background: 'var(--fe-accent)', color: 'var(--fe-accent-fg)',
+  fontSize: 13, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap',
 }
