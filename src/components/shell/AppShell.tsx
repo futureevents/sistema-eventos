@@ -3,13 +3,16 @@
 import { useState, useEffect } from 'react'
 import { usePathname } from 'next/navigation'
 import { Sidebar } from './Sidebar'
+import type { NavSpace } from '@/lib/nav'
 
 /**
  * Shell responsivo do app. Em ≥1024px a sidebar fica fixa em coluna; abaixo
  * disso ela vira uma gaveta off-canvas controlada pelo botão de menu da barra
  * móvel (some por CSS no desktop — ver globals.css, Parte 4 /adapt).
+ *
+ * `nav` chega já filtrado pelo layout (só os Spaces/Lists que o usuário pode ver).
  */
-export function AppShell({ children }: { children: React.ReactNode }) {
+export function AppShell({ children, nav }: { children: React.ReactNode; nav?: NavSpace[] }) {
   const pathname = usePathname()
   const [mobileOpen, setMobileOpen] = useState(false)
   const [collapsed, setCollapsed] = useState(false)
@@ -19,7 +22,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div style={{ display: 'flex', height: '100vh', overflow: 'hidden', background: 'var(--fe-surface)' }}>
-      <Sidebar mobileOpen={mobileOpen} onClose={() => setMobileOpen(false)} collapsed={collapsed} onToggleCollapse={() => setCollapsed(c => !c)} />
+      <Sidebar nav={nav} mobileOpen={mobileOpen} onClose={() => setMobileOpen(false)} collapsed={collapsed} onToggleCollapse={() => setCollapsed(c => !c)} />
       {mobileOpen && <div className="fe-sidebar-backdrop" onClick={() => setMobileOpen(false)} />}
 
       <main style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>

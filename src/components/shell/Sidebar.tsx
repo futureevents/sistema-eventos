@@ -6,13 +6,13 @@ import { usePathname, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { NAV, type NavSpace, type NavFolder } from '@/lib/nav'
 
-export function Sidebar({ mobileOpen = false, onClose, collapsed = false, onToggleCollapse }: { mobileOpen?: boolean; onClose?: () => void; collapsed?: boolean; onToggleCollapse?: () => void } = {}) {
+export function Sidebar({ nav = NAV, mobileOpen = false, onClose, collapsed = false, onToggleCollapse }: { nav?: NavSpace[]; mobileOpen?: boolean; onClose?: () => void; collapsed?: boolean; onToggleCollapse?: () => void } = {}) {
   const pathname = usePathname()
   const router = useRouter()
 
   const initialOpenSpaces = useMemo(() => {
     const set = new Set<string>()
-    for (const space of NAV) {
+    for (const space of nav) {
       for (const folder of space.folders) {
         for (const list of folder.lists) {
           if (pathname.startsWith(list.href)) {
@@ -23,11 +23,11 @@ export function Sidebar({ mobileOpen = false, onClose, collapsed = false, onTogg
     }
     if (set.size === 0) set.add('entregas')
     return set
-  }, [pathname])
+  }, [pathname, nav])
 
   const initialOpenFolders = useMemo(() => {
     const set = new Set<string>()
-    for (const space of NAV) {
+    for (const space of nav) {
       for (const folder of space.folders) {
         for (const list of folder.lists) {
           if (pathname.startsWith(list.href)) {
@@ -38,7 +38,7 @@ export function Sidebar({ mobileOpen = false, onClose, collapsed = false, onTogg
     }
     if (set.size === 0) set.add('entregas/base-de-dados')
     return set
-  }, [pathname])
+  }, [pathname, nav])
 
   const [openSpaces, setOpenSpaces] = useState<Set<string>>(initialOpenSpaces)
   const [openFolders, setOpenFolders] = useState<Set<string>>(initialOpenFolders)
@@ -233,7 +233,7 @@ export function Sidebar({ mobileOpen = false, onClose, collapsed = false, onTogg
               </svg>
             </CollapsedIconLink>
             <div style={{ width: 24, height: 1, background: 'var(--fe-border)', margin: '10px 0' }} />
-            {NAV.map((space) => (
+            {nav.map((space) => (
               <CollapsedIconLink key={space.slug} href={space.folders[0]?.lists[0]?.href ?? '#'} label={space.label} pathname={pathname}>
                 <span style={{ width: 20, height: 20, borderRadius: 5, background: space.color, color: '#fff', fontSize: 11, fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   {space.label[0]}
@@ -269,7 +269,7 @@ export function Sidebar({ mobileOpen = false, onClose, collapsed = false, onTogg
             </div>
 
             {/* Spaces */}
-            {NAV.map((space) => (
+            {nav.map((space) => (
               <SpaceSection
                 key={space.slug}
                 space={space}

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { useListEditable } from './perm-ctx'
 
 interface Item {
   id: string
@@ -19,6 +20,7 @@ interface Checklist {
 }
 
 export function TaskChecklists({ taskId, taskTable }: { taskId: string; taskTable: string }) {
+  const canEdit = useListEditable()
   const supabase = useRef(createClient()).current
   const [lists, setLists] = useState<Checklist[]>([])
   const [adding, setAdding] = useState(false)
@@ -111,6 +113,7 @@ export function TaskChecklists({ taskId, taskTable }: { taskId: string; taskTabl
   }
 
   if (lists.length === 0 && !adding) {
+    if (!canEdit) return null
     return (
       <div style={{ marginTop: 24 }}>
         <button onClick={addChecklist} style={addBtnStyle}>
@@ -134,6 +137,7 @@ export function TaskChecklists({ taskId, taskTable }: { taskId: string; taskTabl
             pct={pct}
             done={done}
             total={total}
+            canEdit={canEdit}
             newItemRef={(el) => { newItemRefs.current[cl.id] = el }}
             onRename={(title) => renameChecklist(cl.id, title)}
             onDelete={() => deleteChecklist(cl.id)}
@@ -144,16 +148,18 @@ export function TaskChecklists({ taskId, taskTable }: { taskId: string; taskTabl
           />
         )
       })}
-      <button onClick={addChecklist} disabled={adding} style={{ ...addBtnStyle, marginTop: 8 }}>
-        <svg width="13" height="13" viewBox="0 0 14 14" fill="none"><path d="M7 2.5V11.5M2.5 7H11.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /></svg>
-        {adding ? 'Criando…' : 'Adicionar checklist'}
-      </button>
+      {canEdit && (
+        <button onClick={addChecklist} disabled={adding} style={{ ...addBtnStyle, marginTop: 8 }}>
+          <svg width="13" height="13" viewBox="0 0 14 14" fill="none"><path d="M7 2.5V11.5M2.5 7H11.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /></svg>
+          {adding ? 'Criando…' : 'Adicionar checklist'}
+        </button>
+      )}
     </div>
   )
 }
 
-function ChecklistBlock({ cl, pct, done, total, newItemRef, onRename, onDelete, onAddItem, onToggle, onRenameItem, onDeleteItem }: {
-  cl: Checklist; pct: number; done: number; total: number
+function ChecklistBlock({ cl, pct, done, total, canEdit = true, newItemRef, onRename, onDelete, onAddItem, onToggle, onRenameItem, onDeleteItem }: {
+  cl: Checklist; pct: number; done: number; total: number; canEdit?: boolean
   newItemRef: (el: HTMLInputElement | null) => void
   onRename: (t: string) => void; onDelete: () => void
   onAddItem: (l: string) => void; onToggle: (id: string, v: boolean) => void
@@ -171,17 +177,20 @@ function ChecklistBlock({ cl, pct, done, total, newItemRef, onRename, onDelete, 
         </svg>
         <input
           defaultValue={cl.title}
-          onBlur={(e) => { if (e.target.value.trim() && e.target.value !== cl.title) onRename(e.target.value.trim()) }}
+          readOnly={!canEdit}
+          onBlur={(e) => { if (canEdit && e.target.value.trim() && e.target.value !== cl.title) onRename(e.target.value.trim()) }}
           onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.blur() }}
           style={{ flex: 1, fontSize: 12.5, fontWeight: 600, color: 'var(--fe-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', border: 'none', outline: 'none', background: 'transparent' }}
         />
         <span style={{ fontSize: 11.5, color: 'var(--fe-text-faint)', whiteSpace: 'nowrap' }}>{done}/{total}</span>
-        <button onClick={onDelete} title="Excluir checklist" style={{ width: 20, height: 20, border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--fe-text-faint)', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 4, padding: 0 }}
-          onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--fe-prio-urgent)')}
-          onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--fe-text-faint)')}
-        >
-          <svg width="11" height="11" viewBox="0 0 10 10" fill="none"><path d="M2 2L8 8M8 2L2 8" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" /></svg>
-        </button>
+        {canEdit && (
+          <button onClick={onDelete} title="Excluir checklist" style={{ width: 20, height: 20, border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--fe-text-faint)', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 4, padding: 0 }}
+            onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--fe-prio-urgent)')}
+            onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--fe-text-faint)')}
+          >
+            <svg width="11" height="11" viewBox="0 0 10 10" fill="none"><path d="M2 2L8 8M8 2L2 8" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" /></svg>
+          </button>
+        )}
       </div>
 
       {/* Progress bar */}
@@ -204,48 +213,53 @@ function ChecklistBlock({ cl, pct, done, total, newItemRef, onRename, onDelete, 
             style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '3px 0', borderRadius: 'var(--fe-radius-sm)' }}
           >
             <button
-              onClick={() => onToggle(item.id, !item.done)}
-              style={{ width: 16, height: 16, borderRadius: 4, border: `1.5px solid ${item.done ? 'var(--fe-accent)' : 'var(--fe-border)'}`, background: item.done ? 'var(--fe-accent)' : 'transparent', flexShrink: 0, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 150ms', padding: 0 }}
+              onClick={() => { if (canEdit) onToggle(item.id, !item.done) }}
+              style={{ width: 16, height: 16, borderRadius: 4, border: `1.5px solid ${item.done ? 'var(--fe-accent)' : 'var(--fe-border)'}`, background: item.done ? 'var(--fe-accent)' : 'transparent', flexShrink: 0, cursor: canEdit ? 'pointer' : 'default', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 150ms', padding: 0 }}
             >
               {item.done && <svg width="9" height="9" viewBox="0 0 10 10" fill="none"><path d="M2 5.2L4.2 7.5L8.5 2.5" stroke="#fff" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" /></svg>}
             </button>
             <input
               defaultValue={item.label}
-              onBlur={(e) => onRenameItem(item.id, e.target.value)}
+              readOnly={!canEdit}
+              onBlur={(e) => { if (canEdit) onRenameItem(item.id, e.target.value) }}
               onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.blur() }}
               style={{ flex: 1, fontSize: 13.5, color: item.done ? 'var(--fe-text-faint)' : 'var(--fe-text)', textDecoration: item.done ? 'line-through' : 'none', border: 'none', outline: 'none', background: 'transparent', lineHeight: 1.5 }}
             />
-            <button
-              onClick={() => onDeleteItem(item.id)}
-              style={{ width: 18, height: 18, border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--fe-text-faint)', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: hoveredItem === item.id ? 0.5 : 0, transition: 'opacity 100ms', padding: 0, borderRadius: 4 }}
-            >
-              <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 2L8 8M8 2L2 8" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" /></svg>
-            </button>
+            {canEdit && (
+              <button
+                onClick={() => onDeleteItem(item.id)}
+                style={{ width: 18, height: 18, border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--fe-text-faint)', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: hoveredItem === item.id ? 0.5 : 0, transition: 'opacity 100ms', padding: 0, borderRadius: 4 }}
+              >
+                <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 2L8 8M8 2L2 8" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" /></svg>
+              </button>
+            )}
           </div>
         ))}
 
         {/* New item input */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '3px 0' }}>
-          <div style={{ width: 16, height: 16, borderRadius: 4, border: '1.5px solid var(--fe-border-soft)', flexShrink: 0 }} />
-          <input
-            ref={newItemRef}
-            value={newLabel}
-            onChange={(e) => setNewLabel(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && newLabel.trim()) { onAddItem(newLabel); setNewLabel('') }
-            }}
-            placeholder="Adicionar item…"
-            style={{ flex: 1, fontSize: 13.5, color: 'var(--fe-text)', border: 'none', outline: 'none', background: 'transparent', lineHeight: 1.5 }}
-          />
-          {newLabel.trim() && (
-            <button
-              onClick={() => { onAddItem(newLabel); setNewLabel('') }}
-              style={{ fontSize: 11.5, fontWeight: 600, color: 'var(--fe-accent)', background: 'transparent', border: 'none', cursor: 'pointer', padding: 0, whiteSpace: 'nowrap' }}
-            >
-              ↵ Salvar
-            </button>
-          )}
-        </div>
+        {canEdit && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '3px 0' }}>
+            <div style={{ width: 16, height: 16, borderRadius: 4, border: '1.5px solid var(--fe-border-soft)', flexShrink: 0 }} />
+            <input
+              ref={newItemRef}
+              value={newLabel}
+              onChange={(e) => setNewLabel(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && newLabel.trim()) { onAddItem(newLabel); setNewLabel('') }
+              }}
+              placeholder="Adicionar item…"
+              style={{ flex: 1, fontSize: 13.5, color: 'var(--fe-text)', border: 'none', outline: 'none', background: 'transparent', lineHeight: 1.5 }}
+            />
+            {newLabel.trim() && (
+              <button
+                onClick={() => { onAddItem(newLabel); setNewLabel('') }}
+                style={{ fontSize: 11.5, fontWeight: 600, color: 'var(--fe-accent)', background: 'transparent', border: 'none', cursor: 'pointer', padding: 0, whiteSpace: 'nowrap' }}
+              >
+                ↵ Salvar
+              </button>
+            )}
+          </div>
+        )}
       </div>
     </div>
   )

@@ -3,6 +3,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { type SelectOption, type OptionsMap, toISODate, parseISO, hasTime } from './types'
 import { Pill } from './kit'
+import { useListEditable } from './perm-ctx'
 
 // ─── Dropdown / Popover ancorado ──────────────────────────────────────────────
 
@@ -96,6 +97,7 @@ export function FlagInline({ color, label }: { color: string; label?: string }) 
 // ─── Boinha de status (dot) + dropdown ────────────────────────────────────────
 
 export function StatusDot({ options, value, onChange, size = 14 }: { options: SelectOption[]; value: string; onChange: (v: string) => void; size?: number }) {
+  const canEdit = useListEditable()
   const opt = options.find((o) => o.value === value)
   const done = !!opt?.done
   const dot = opt?.dot ?? 'var(--fe-status-todo)'
@@ -104,6 +106,15 @@ export function StatusDot({ options, value, onChange, size = 14 }: { options: Se
   const doneIdx = options.findIndex((o) => o.done)
   const denom = doneIdx > 0 ? doneIdx : Math.max(options.length - 1, 1)
   const frac = done ? 1 : curIdx <= 0 ? 0 : Math.min(curIdx / denom, 1)
+  // Somente-leitura: dot estático, sem dropdown.
+  if (!canEdit) {
+    return (
+      <span aria-label="Status" style={{ width: size, height: size, flexShrink: 0, borderRadius: 4, border: `2px solid ${dot}`, background: 'transparent', position: 'relative', overflow: 'hidden', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+        {frac > 0 && <span aria-hidden style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: `${frac * 100}%`, background: dot }} />}
+        {done && <svg width={size * 0.6} height={size * 0.6} viewBox="0 0 12 12" fill="none" style={{ position: 'relative' }}><path d="M2.5 6.2L5 8.5L9.5 3.5" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>}
+      </span>
+    )
+  }
   return (
     <Dropdown align="left" width={190}
       trigger={({ toggle }) => (

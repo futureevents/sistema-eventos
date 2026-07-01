@@ -6,6 +6,7 @@ import {
   Dropdown, CalendarPopover, SelectMenu, RelationMenu, MultiMenu, TextInline,
   OptionPill, FlagInline, MoneyInline,
 } from './inline'
+import { useListEditable } from './perm-ctx'
 
 // ─── Leitura de valores ───────────────────────────────────────────────────────
 
@@ -82,10 +83,11 @@ export function InlineField({
   onOpenChange?: (open: boolean) => void
   dateColor?: string                 // override de cor p/ datas (ex.: vencimento atrasado/no prazo)
 }) {
-  const editable = field.editable !== false && !isDerived(field)
+  const canEditList = useListEditable()
+  const editable = field.editable !== false && !isDerived(field) && canEditList
   const muted = 'var(--fe-text)'
 
-  // Derivado / não editável → só exibe
+  // Derivado / não editável / sem permissão → só exibe
   if (!editable) {
     const lbl = displayLabel(field, row, options)
     return <span style={{ fontSize: variant === 'cell' ? 13 : 14, color: lbl ? muted : 'var(--fe-text-faint)' }}>{lbl ?? '—'}</span>

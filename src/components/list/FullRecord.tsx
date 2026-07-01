@@ -14,9 +14,11 @@ import { TaskChecklists } from './TaskChecklists'
 import { TaskAttachments } from './TaskAttachments'
 import { TaskRelationships } from './TaskRelationships'
 import { TaskActivityPanel } from './TaskActivityPanel'
+import { ListEditProvider } from './perm-ctx'
+import { CAPS_TOTAL, type Capacidades } from '@/lib/permissions/types'
 
-export function FullRecord({ config, row: rowProp, options, embeds }: {
-  config: ListConfig; row: Row; options: OptionsMap; embeds: EmbedMap
+export function FullRecord({ config, row: rowProp, options, embeds, caps = CAPS_TOTAL }: {
+  config: ListConfig; row: Row; options: OptionsMap; embeds: EmbedMap; caps?: Capacidades
 }) {
   const router = useRouter()
   const supabase = useMemo(() => createClient(), [])
@@ -56,6 +58,7 @@ export function FullRecord({ config, row: rowProp, options, embeds }: {
   function marcarSalvo() { setSalvando('saved'); if (savedTimer.current) clearTimeout(savedTimer.current); savedTimer.current = setTimeout(() => setSalvando('idle'), 1600) }
 
   async function patch(partial: Record<string, unknown>) {
+    if (!caps.canEdit) return
     const augmented = { ...partial }
     for (const k of Object.keys(partial)) {
       const f = config.fields.find((x) => x.key === k)
@@ -82,6 +85,7 @@ export function FullRecord({ config, row: rowProp, options, embeds }: {
   const concluida = statusField ? !!optionOf(statusField, String(row[config.statusField!] ?? ''))?.done : false
 
   async function excluir() {
+    if (!caps.canDelete) return
     if (!confirm('Excluir este registro?')) return
     setExcluindo(true)
     await supabase.from(config.table).delete().eq('id', row.id)
@@ -89,6 +93,7 @@ export function FullRecord({ config, row: rowProp, options, embeds }: {
   }
 
   return (
+   <ListEditProvider caps={caps}>
     <div style={{ position: 'fixed', inset: 0, zIndex: 70, background: 'var(--fe-surface)', display: 'flex', flexDirection: 'column' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 52, padding: '0 16px 0 22px', borderBottom: '1px solid var(--fe-border-soft)', background: 'var(--fe-surface)', flexShrink: 0 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: 'var(--fe-text-muted)', minWidth: 0 }}>
@@ -118,20 +123,24 @@ export function FullRecord({ config, row: rowProp, options, embeds }: {
           <div style={{ maxWidth: 880, margin: '0 auto', padding: '46px 52px 100px' }}>
             {statusField && (
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 24 }}>
-                {doneOpt && openOpt && (
-                  <button onClick={() => patch({ [config.statusField!]: concluida ? openOpt.value : doneOpt.value })} style={{ height: 38, padding: '0 16px', borderRadius: 'var(--fe-radius-md)', border: `1px solid ${concluida ? 'var(--fe-accent)' : 'var(--fe-border)'}`, background: concluida ? 'var(--fe-accent-dim)' : 'transparent', color: concluida ? 'var(--fe-status-done-text)' : 'var(--fe-text)', fontSize: 14, fontWeight: 600, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 7 }}>
-                    <svg width="16" height="16" viewBox="0 0 14 14" fill="none"><path d="M3 7.2L5.8 9.8L11 4" stroke={concluida ? 'var(--fe-accent)' : 'currentColor'} strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" /></svg>{concluida ? 'Reabrir' : `Marcar ${doneOpt.label.toLowerCase()}`}
-                  </button>
-                )}
-                <SelectMenu options={statusField.options ?? []} value={String(row[config.statusField!] ?? '')} onChange={(v) => patch({ [config.statusField!]: v })}>
-                  {({ toggle }) => { const opt = optionOf(statusField, String(row[config.statusField!] ?? '')); return <button onClick={toggle} style={{ border: 'none', background: 'transparent', padding: 0, cursor: 'pointer' }}>{opt ? <OptionPill opt={opt} chevron /> : <span style={{ fontSize: 13, color: 'var(--fe-text-faint)' }}>Status</span>}</button> }}
-                </SelectMenu>
+                {caps.canEdit ? (
+                  <>
+                    {doneOpt && openOpt && (
+                      <button onClick={() => patch({ [config.statusField!]: concluida ? openOpt.value : doneOpt.value })} style={{ height: 38, padding: '0 16px', borderRadius: 'var(--fe-radius-md)', border: `1px solid ${concluida ? 'var(--fe-accent)' : 'var(--fe-border)'}`, background: concluida ? 'var(--fe-accent-dim)' : 'transparent', color: concluida ? 'var(--fe-status-done-text)' : 'var(--fe-text)', fontSize: 14, fontWeight: 600, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 7 }}>
+                        <svg width="16" height="16" viewBox="0 0 14 14" fill="none"><path d="M3 7.2L5.8 9.8L11 4" stroke={concluida ? 'var(--fe-accent)' : 'currentColor'} strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" /></svg>{concluida ? 'Reabrir' : `Marcar ${doneOpt.label.toLowerCase()}`}
+                      </button>
+                    )}
+                    <SelectMenu options={statusField.options ?? []} value={String(row[config.statusField!] ?? '')} onChange={(v) => patch({ [config.statusField!]: v })}>
+                      {({ toggle }) => { const opt = optionOf(statusField, String(row[config.statusField!] ?? '')); return <button onClick={toggle} style={{ border: 'none', background: 'transparent', padding: 0, cursor: 'pointer' }}>{opt ? <OptionPill opt={opt} chevron /> : <span style={{ fontSize: 13, color: 'var(--fe-text-faint)' }}>Status</span>}</button> }}
+                    </SelectMenu>
+                  </>
+                ) : (() => { const opt = optionOf(statusField, String(row[config.statusField!] ?? '')); return opt ? <OptionPill opt={opt} /> : null })()}
               </div>
             )}
 
-            <textarea value={nome} onChange={(e) => onNome(e.target.value)} rows={1} placeholder={config.titlePlaceholder ?? 'Sem título'}
+            <textarea value={nome} onChange={(e) => onNome(e.target.value)} rows={1} placeholder={config.titlePlaceholder ?? 'Sem título'} readOnly={!caps.canEdit}
               onInput={(e) => { const el = e.currentTarget; el.style.height = 'auto'; el.style.height = el.scrollHeight + 'px' }}
-              style={{ width: '100%', resize: 'none', border: 'none', outline: 'none', background: 'transparent', fontFamily: 'var(--font-geist), sans-serif', fontWeight: 600, fontSize: 33, lineHeight: 1.18, letterSpacing: '-0.022em', color: 'var(--fe-text-strong)', margin: '0 0 30px', padding: 0, overflow: 'hidden' }} />
+              style={{ width: '100%', resize: 'none', border: 'none', outline: 'none', background: 'transparent', fontFamily: 'var(--font-geist), sans-serif', fontWeight: 600, fontSize: 33, lineHeight: 1.18, letterSpacing: '-0.022em', color: 'var(--fe-text-strong)', margin: '0 0 30px', padding: 0, overflow: 'hidden', cursor: caps.canEdit ? 'text' : 'default' }} />
 
             {/* Responsável + datas — empilhados verticalmente sob o nome (menos poluição) */}
             {(assigneeField || startField || endField) && (
@@ -159,7 +168,13 @@ export function FullRecord({ config, row: rowProp, options, embeds }: {
 
             <div style={{ height: 1, background: 'var(--fe-divider)', margin: '4px 0 30px' }} />
 
-            {descField ? <RichTextEditor key={row.id} value={(row[config.descriptionField!] as string) ?? null} onChange={onDesc} minHeight={240} /> : null}
+            {descField ? (
+              caps.canEdit
+                ? <RichTextEditor key={row.id} value={(row[config.descriptionField!] as string) ?? null} onChange={onDesc} minHeight={240} />
+                : ((row[config.descriptionField!] as string) ?? '').trim()
+                  ? <div className="fe-rich-content" style={{ fontSize: 15, color: 'var(--fe-text)', lineHeight: 1.6 }} dangerouslySetInnerHTML={{ __html: (row[config.descriptionField!] as string) ?? '' }} />
+                  : <span style={{ fontSize: 15, color: 'var(--fe-text-faint)' }}>Sem descrição.</span>
+            ) : null}
 
             {/* Custom fields — abaixo da descrição (estilo ClickUp) */}
             {(customFields.length > 0 || hidden.size > 0) && (
@@ -205,9 +220,11 @@ export function FullRecord({ config, row: rowProp, options, embeds }: {
             <TaskRelationships config={config} rowId={String(row.id)} />
 
             <div style={{ marginTop: 28, display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
-              <button type="button" onClick={excluir} disabled={excluindo} style={{ fontSize: 12.5, fontWeight: 500, color: 'var(--fe-prio-urgent)', background: 'transparent', border: 'none', cursor: 'pointer', padding: 0, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-                <svg width="13" height="13" viewBox="0 0 14 14" fill="none"><path d="M2.5 3.5H11.5M5 3.5V2.5C5 2.2 5.2 2 5.5 2H8.5C8.8 2 9 2.2 9 2.5V3.5M3.5 3.5L4 11.5C4 11.8 4.2 12 4.5 12H9.5C9.8 12 10 11.8 10 11.5L10.5 3.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" /></svg>{excluindo ? 'Excluindo…' : 'Excluir'}
-              </button>
+              {caps.canDelete && (
+                <button type="button" onClick={excluir} disabled={excluindo} style={{ fontSize: 12.5, fontWeight: 500, color: 'var(--fe-prio-urgent)', background: 'transparent', border: 'none', cursor: 'pointer', padding: 0, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                  <svg width="13" height="13" viewBox="0 0 14 14" fill="none"><path d="M2.5 3.5H11.5M5 3.5V2.5C5 2.2 5.2 2 5.5 2H8.5C8.8 2 9 2.2 9 2.5V3.5M3.5 3.5L4 11.5C4 11.8 4.2 12 4.5 12H9.5C9.8 12 10 11.8 10 11.5L10.5 3.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" /></svg>{excluindo ? 'Excluindo…' : 'Excluir'}
+                </button>
+              )}
               {row.criado_em ? <span style={{ fontSize: 11.5, color: 'var(--fe-text-faint)' }}>Criado em {dataLonga(String(row.criado_em).slice(0, 10))}</span> : null}
             </div>
           </div>
@@ -217,6 +234,7 @@ export function FullRecord({ config, row: rowProp, options, embeds }: {
         )}
       </div>
     </div>
+   </ListEditProvider>
   )
 }
 

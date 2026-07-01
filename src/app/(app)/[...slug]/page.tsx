@@ -1,4 +1,6 @@
 import { NAV } from '@/lib/nav'
+import { getMyPermissions } from '@/lib/permissions/resolve'
+import { AcessoNegado } from '@/components/permissions/AcessoNegado'
 
 function findList(slug: string[]) {
   const href = '/' + slug.join('/')
@@ -17,6 +19,12 @@ function findList(slug: string[]) {
 export default async function PlaceholderPage({ params }: { params: Promise<{ slug: string[] }> }) {
   const { slug } = await params
   const found = findList(slug)
+
+  // Se é uma List conhecida mas privada para este usuário, bloqueia.
+  if (found) {
+    const perm = await getMyPermissions()
+    if (!perm.podeVerPath('/' + slug.join('/'))) return <AcessoNegado />
+  }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { useListEditable } from './perm-ctx'
 
 interface Attachment {
   id: string
@@ -35,6 +36,7 @@ function fileIcon(mime: string): React.ReactNode {
 }
 
 export function TaskAttachments({ taskId, taskTable }: { taskId: string; taskTable: string }) {
+  const canEdit = useListEditable()
   const supabase = useRef(createClient()).current
   const [attachments, setAttachments] = useState<Attachment[]>([])
   const [uploading, setUploading] = useState(false)
@@ -86,6 +88,9 @@ export function TaskAttachments({ taskId, taskTable }: { taskId: string; taskTab
     if (e.dataTransfer.files.length) upload(e.dataTransfer.files)
   }
 
+  // Sem permissão de editar e sem anexos: nada a mostrar.
+  if (!canEdit && attachments.length === 0) return null
+
   return (
     <div style={{ marginTop: 28 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
@@ -97,8 +102,8 @@ export function TaskAttachments({ taskId, taskTable }: { taskId: string; taskTab
         </span>
       </div>
 
-      {/* Drop zone */}
-      <div
+      {/* Drop zone — só com permissão de editar */}
+      {canEdit && <div
         onDragOver={(e) => { e.preventDefault(); setDragging(true) }}
         onDragLeave={() => setDragging(false)}
         onDrop={onDrop}
@@ -124,7 +129,7 @@ export function TaskAttachments({ taskId, taskTable }: { taskId: string; taskTab
           {uploading ? 'Enviando…' : 'Clique ou arraste arquivos aqui'}
         </span>
         <input ref={inputRef} type="file" multiple style={{ display: 'none' }} onChange={(e) => e.target.files && upload(e.target.files)} />
-      </div>
+      </div>}
 
       {/* Lista de arquivos */}
       {attachments.length > 0 && (
@@ -159,9 +164,9 @@ export function TaskAttachments({ taskId, taskTable }: { taskId: string; taskTab
                   <a href={url} download={att.name} target="_blank" rel="noopener noreferrer" title="Baixar" style={{ width: 28, height: 28, borderRadius: 6, border: '1px solid var(--fe-border)', background: 'var(--fe-surface)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--fe-text-muted)', textDecoration: 'none' }}>
                     <svg width="13" height="13" viewBox="0 0 14 14" fill="none"><path d="M7 2V10M4 7L7 10L10 7" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/><path d="M2.5 12H11.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/></svg>
                   </a>
-                  <button onClick={() => remove(att)} title="Excluir" style={{ width: 28, height: 28, borderRadius: 6, border: '1px solid var(--fe-border)', background: 'var(--fe-surface)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--fe-prio-urgent)' }}>
+                  {canEdit && <button onClick={() => remove(att)} title="Excluir" style={{ width: 28, height: 28, borderRadius: 6, border: '1px solid var(--fe-border)', background: 'var(--fe-surface)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--fe-prio-urgent)' }}>
                     <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 3H10M4.5 3V2H7.5V3M3 3L3.5 10H8.5L9 3" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                  </button>
+                  </button>}
                 </div>
               </div>
             )

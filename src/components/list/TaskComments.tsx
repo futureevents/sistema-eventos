@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { markdownToHtml, RICHTEXT_CORES, FtBtn, FtSep } from './RichText'
+import { useListCaps } from './perm-ctx'
 
 interface Comment {
   id: string
@@ -314,6 +315,7 @@ function extractMentionIds(body: string, membros: Membro[]): string[] {
 }
 
 export function TaskComments({ taskId, taskTable }: { taskId: string; taskTable: string }) {
+  const { canComment } = useListCaps()
   const supabase = useRef(createClient()).current
   const [comments, setComments] = useState<Comment[]>([])
   const [sending, setSending] = useState(false)
@@ -387,13 +389,15 @@ export function TaskComments({ taskId, taskTable }: { taskId: string; taskTable:
         <div ref={bottomRef} />
       </div>
 
-      {/* Input de comentário rich text */}
-      <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start', marginTop: comments.length > 0 ? 20 : 8 }}>
-        <div style={{ width: 30, height: 30, borderRadius: '50%', background: 'var(--fe-accent-dim)', color: 'var(--fe-accent)', fontSize: 11, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 5 }}>
-          {initials(author)}
+      {/* Input de comentário rich text — só com permissão de comentar. */}
+      {canComment && (
+        <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start', marginTop: comments.length > 0 ? 20 : 8 }}>
+          <div style={{ width: 30, height: 30, borderRadius: '50%', background: 'var(--fe-accent-dim)', color: 'var(--fe-accent)', fontSize: 11, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 5 }}>
+            {initials(author)}
+          </div>
+          <RichCommentInput membros={membros} onSend={handleSend} />
         </div>
-        <RichCommentInput membros={membros} onSend={handleSend} />
-      </div>
+      )}
     </div>
   )
 }

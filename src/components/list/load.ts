@@ -1,7 +1,21 @@
 import { createClient } from '@/lib/supabase/server'
+import { getMyPermissions } from '@/lib/permissions/resolve'
+import { cadeiaDaHref } from '@/lib/permissions/scopes'
 import { type ListConfig, type Row, type OptionsMap, type FieldDef } from './types'
 
 export type EmbedMap = Record<string, Record<string, Record<string, unknown>>>
+
+/**
+ * Gate de leitura: se o `basePath` da config é uma List gerenciada e o usuário
+ * não pode vê-la, o carregamento devolve vazio — protege os dados mesmo se
+ * alguém acessar a rota (ou a rota /novo, /[id]) direto pela URL.
+ */
+async function podeVerLista(config: ListConfig): Promise<boolean> {
+  const cadeia = cadeiaDaHref(config.basePath)
+  if (!cadeia) return true // não é uma List do nav (ex.: landing de Folder) → não bloqueia
+  const perm = await getMyPermissions()
+  return perm.capsDaLista(config.basePath) !== null
+}
 
 function relAlias(fk: string) { return fk.replace(/_id$/, '') }
 
@@ -75,6 +89,7 @@ async function loadRelations(config: ListConfig): Promise<{ options: OptionsMap;
 }
 
 export async function loadListData(config: ListConfig): Promise<{ rows: Row[]; options: OptionsMap; embeds: EmbedMap }> {
+  if (!(await podeVerLista(config))) return { rows: [], options: {}, embeds: {} }
   const supabase = await createClient()
   let q = supabase.from(config.table).select(buildSelect(config))
   if (config.baseFilter) q = q.eq(config.baseFilter.col, config.baseFilter.value)
@@ -87,6 +102,7 @@ export async function loadListData(config: ListConfig): Promise<{ rows: Row[]; o
 }
 
 export async function loadRecord(config: ListConfig, id: string): Promise<{ row: Row | null; options: OptionsMap; embeds: EmbedMap }> {
+  if (!(await podeVerLista(config))) return { row: null, options: {}, embeds: {} }
   const supabase = await createClient()
   const rec = supabase.from(config.table).select(buildSelect(config)).eq('id', id).single()
   const [{ data }, rel] = await Promise.all([rec, loadRelations(config)])
@@ -95,6 +111,7 @@ export async function loadRecord(config: ListConfig, id: string): Promise<{ row:
 }
 
 export async function loadOptions(config: ListConfig): Promise<OptionsMap> {
+  if (!(await podeVerLista(config))) return {}
   const { options } = await loadRelations(config)
   return options
 }

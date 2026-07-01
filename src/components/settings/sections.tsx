@@ -47,12 +47,7 @@ export const SETTINGS_SECTIONS: SettingsSection[] = [
     summary: 'Membros do workspace e o que cada papel pode fazer.',
     group: 'Equipe',
     icon: 'users',
-    planned: [
-      'Lista de colaboradores com papel atribuído',
-      'Papéis fixos: administrador, gestor e colaborador',
-      'O que cada papel pode fazer (deletar task, alterar status, etc.)',
-      'Convidar e desativar membros',
-    ],
+    planned: [],
   },
   {
     slug: 'statuses',

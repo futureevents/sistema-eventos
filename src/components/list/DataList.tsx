@@ -17,11 +17,13 @@ import { TaskComments } from './TaskComments'
 import { TaskAttachments } from './TaskAttachments'
 import { TaskActivity } from './TaskActivity'
 import { TaskChecklists } from './TaskChecklists'
+import { ListEditProvider } from './perm-ctx'
+import { CAPS_TOTAL, type Capacidades } from '@/lib/permissions/types'
 
 type FilterState = Record<string, unknown>
 
-export function DataList({ config, rows: rowsProp, options, embeds }: {
-  config: ListConfig; rows: Row[]; options: OptionsMap; embeds: EmbedMap
+export function DataList({ config, rows: rowsProp, options, embeds, caps = CAPS_TOTAL }: {
+  config: ListConfig; rows: Row[]; options: OptionsMap; embeds: EmbedMap; caps?: Capacidades
 }) {
   const supabase = useMemo(() => createClient(), [])
   const router = useRouter()
@@ -52,6 +54,7 @@ export function DataList({ config, rows: rowsProp, options, embeds }: {
   }
 
   async function patch(id: string, partial: Record<string, unknown>) {
+    if (!caps.canEdit) return
     const augmented = { ...partial }
     for (const k of Object.keys(partial)) {
       const f = config.fields.find((x) => x.key === k)
@@ -69,6 +72,7 @@ export function DataList({ config, rows: rowsProp, options, embeds }: {
   }
 
   async function add(partial: Record<string, unknown>): Promise<boolean> {
+    if (!caps.canEdit) return false
     const payload: Record<string, unknown> = { ...partial }
     if (config.baseFilter) payload[config.baseFilter.col] = config.baseFilter.value
     if (config.baseFilterIn && payload[config.baseFilterIn.col] == null) payload[config.baseFilterIn.col] = config.baseFilterIn.values[0]
@@ -103,6 +107,7 @@ export function DataList({ config, rows: rowsProp, options, embeds }: {
   }
 
   async function patchMany(ids: string[], partial: Record<string, unknown>) {
+    if (!caps.canEdit) return
     setRows((prev) => prev.map((r) => (ids.includes(r.id) ? { ...r, ...partial } : r)))
     setSalvando('saving')
     const { error } = await supabase.from(config.table).update(partial).in('id', ids)
@@ -111,6 +116,7 @@ export function DataList({ config, rows: rowsProp, options, embeds }: {
   }
 
   async function remove(id: string) {
+    if (!caps.canDelete) return
     setRows((prev) => prev.filter((r) => r.id !== id))
     if (sel === id) setSel(null)
     setSelectedIds((prev) => { const next = new Set(prev); next.delete(id); return next })
@@ -121,6 +127,7 @@ export function DataList({ config, rows: rowsProp, options, embeds }: {
   }
 
   async function removeMany(ids: string[]) {
+    if (!caps.canDelete) return
     setRows((prev) => prev.filter((r) => !ids.includes(r.id)))
     if (sel && ids.includes(sel)) setSel(null)
     setSelectedIds(new Set())
@@ -198,13 +205,16 @@ export function DataList({ config, rows: rowsProp, options, embeds }: {
   const selectedArr = useMemo(() => [...selectedIds], [selectedIds])
 
   return (
+   <ListEditProvider caps={caps}>
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: 'var(--fe-surface)' }}>
       {!config.hideBreadcrumb && <Breadcrumb space={config.space} segments={config.breadcrumb} />}
+      {!caps.canEdit && <ReadOnlyBanner nivel={caps.canComment ? 'comentar' : 'ver'} />}
       <Toolbar
         config={config} busca={busca} onBusca={setBusca}
         groupable={groupable} groupBy={groupBy} onGroupBy={setGroupBy}
         filterable={filterable} filtros={filtros} onFiltros={setFiltros} nFiltros={nFiltros}
         rows={rows} options={options} salvando={salvando} addHref={addHref} addLabel={config.addLabel ?? `Adicionar ${config.singular}`}
+        canCreate={caps.canEdit}
         viewPresets={config.viewPresets} activeViewKey={activeViewKey} onViewChange={applyView}
       />
       <div className="fe-list-pad" style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
@@ -216,7 +226,7 @@ export function DataList({ config, rows: rowsProp, options, embeds }: {
               <div style={{ minWidth: 'var(--fe-list-min-w)' }}>
                 {!groupBy && <Header columns={columns} grid={grid} config={config} allSelected={allVisibleSelected} someSelected={someSelected} onToggleAll={() => toggleSelectAll(visibleIds)} />}
                 {grupos.map((g, i) => (
-                  <Grupo key={g.key} grupo={g} grid={grid} columns={columns} config={config} options={options} patch={patch} remove={remove} add={add} groupByField={groupByField} onAbrir={setSel} grouped={!!groupBy} first={i === 0} selectedIds={selectedIds} onToggle={toggleSelect} onToggleMany={toggleSelectAll} />
+                  <Grupo key={g.key} grupo={g} grid={grid} columns={columns} config={config} options={options} patch={patch} remove={remove} add={add} groupByField={groupByField} onAbrir={setSel} grouped={!!groupBy} first={i === 0} selectedIds={selectedIds} onToggle={toggleSelect} onToggleMany={toggleSelectAll} canEdit={caps.canEdit} canDelete={caps.canDelete} />
                 ))}
                 {rows.length > 0 && (busca.trim() !== '' || nFiltros > 0) && grupos.every((g) => g.itens.length === 0) && (
                   <div style={{ padding: '40px 24px', textAlign: 'center', fontSize: 13, color: 'var(--fe-text-muted)' }}>Nenhum registro corresponde aos filtros.</div>
@@ -229,19 +239,33 @@ export function DataList({ config, rows: rowsProp, options, embeds }: {
       </div>
 
       {aberto && (
-        <SlideOver key={aberto.id} row={aberto} config={config} options={options} patch={patch} remove={remove} onFechar={() => setSel(null)} />
+        <SlideOver key={aberto.id} row={aberto} config={config} options={options} patch={patch} remove={remove} onFechar={() => setSel(null)} caps={caps} />
       )}
 
-      {selectedArr.length > 0 && (
+      {selectedArr.length > 0 && (caps.canEdit || caps.canDelete) && (
         <BulkBar
           selectedIds={selectedArr}
           config={config}
           options={options}
+          canEdit={caps.canEdit}
+          canDelete={caps.canDelete}
           onPatch={(partial) => patchMany(selectedArr, partial)}
           onRemove={() => { if (confirm(`Excluir ${selectedArr.length} tarefa${selectedArr.length !== 1 ? 's' : ''}? Esta ação não pode ser desfeita.`)) removeMany(selectedArr) }}
           onClear={() => setSelectedIds(new Set())}
         />
       )}
+    </div>
+   </ListEditProvider>
+  )
+}
+
+function ReadOnlyBanner({ nivel }: { nivel: 'ver' | 'comentar' }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '7px 22px', background: 'var(--fe-warm-white)', borderBottom: '1px solid var(--fe-border)', fontSize: 12.5, color: 'var(--fe-text-muted)' }}>
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg>
+      {nivel === 'comentar'
+        ? 'Acesso de comentário — você pode ver e comentar, mas não editar as tasks.'
+        : 'Acesso de visualização — você pode ver, mas não editar as tasks.'}
     </div>
   )
 }
@@ -361,12 +385,12 @@ function agrupar(rows: Row[], field: FieldDef | null, options: OptionsMap): Grup
 // ─── Toolbar ──────────────────────────────────────────────────────────────────
 
 function Toolbar({
-  config, busca, onBusca, groupable, groupBy, onGroupBy, filterable, filtros, onFiltros, nFiltros, rows, options, salvando, addHref, addLabel, viewPresets, activeViewKey, onViewChange,
+  config, busca, onBusca, groupable, groupBy, onGroupBy, filterable, filtros, onFiltros, nFiltros, rows, options, salvando, addHref, addLabel, canCreate = true, viewPresets, activeViewKey, onViewChange,
 }: {
   config: ListConfig; busca: string; onBusca: (v: string) => void
   groupable: FieldDef[]; groupBy: string | null; onGroupBy: (k: string | null) => void
   filterable: FieldDef[]; filtros: FilterState; onFiltros: (f: FilterState) => void; nFiltros: number
-  rows: Row[]; options: OptionsMap; salvando: 'idle' | 'saving' | 'saved'; addHref: string; addLabel: string
+  rows: Row[]; options: OptionsMap; salvando: 'idle' | 'saving' | 'saved'; addHref: string; addLabel: string; canCreate?: boolean
   viewPresets?: ViewPreset[]; activeViewKey?: string | null; onViewChange?: (p: ViewPreset) => void
 }) {
   const groupLabel = groupBy ? (config.fields.find((f) => f.key === groupBy)?.label ?? 'Nenhum') : 'Nenhum'
@@ -400,10 +424,12 @@ function Toolbar({
             style={{ height: 30, width: 'clamp(96px, 22vw, 150px)', minWidth: 0, padding: '0 10px 0 26px', borderRadius: 'var(--fe-radius-md)', border: '1px solid var(--fe-border)', background: 'var(--fe-surface)', fontSize: 12.5, color: 'var(--fe-text)', outline: 'none' }}
             onFocus={(e) => (e.currentTarget.style.borderColor = 'var(--fe-accent)')} onBlur={(e) => (e.currentTarget.style.borderColor = 'var(--fe-border)')} />
         </div>
-        <Link href={addHref} style={{ height: 30, padding: '0 14px', borderRadius: 'var(--fe-radius-md)', background: 'var(--fe-accent)', color: 'var(--fe-accent-fg)', fontSize: 12.5, fontWeight: 600, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap', flexShrink: 0 }}>
-          <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M6 2V10M2 6H10" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" /></svg>
-          {addLabel}
-        </Link>
+        {canCreate && (
+          <Link href={addHref} style={{ height: 30, padding: '0 14px', borderRadius: 'var(--fe-radius-md)', background: 'var(--fe-accent)', color: 'var(--fe-accent-fg)', fontSize: 12.5, fontWeight: 600, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap', flexShrink: 0 }}>
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M6 2V10M2 6H10" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" /></svg>
+            {addLabel}
+          </Link>
+        )}
       </div>
     </div>
   )
@@ -578,13 +604,14 @@ function Checkbox({ checked, indeterminate = false, onChange, visible = true, in
 
 // ─── Grupo ─────────────────────────────────────────────────────────────────────
 
-function Grupo({ grupo, grid, columns, config, options, patch, remove, add, groupByField, onAbrir, grouped, first, selectedIds, onToggle, onToggleMany }: {
+function Grupo({ grupo, grid, columns, config, options, patch, remove, add, groupByField, onAbrir, grouped, first, selectedIds, onToggle, onToggleMany, canEdit = true, canDelete = true }: {
   grupo: GrupoView; grid: string; columns: FieldDef[]; config: ListConfig; options: OptionsMap
   patch: (id: string, p: Record<string, unknown>) => void; remove: (id: string) => void
   add: (p: Record<string, unknown>) => Promise<boolean>; groupByField: FieldDef | null
   onAbrir: (id: string) => void; grouped: boolean; first?: boolean
   selectedIds: Set<string>; onToggle: (id: string, shift?: boolean) => void
   onToggleMany: (ids: string[]) => void
+  canEdit?: boolean; canDelete?: boolean
 }) {
   const [aberto, setAberto] = useState(true)
   const [adicionando, setAdicionando] = useState(false)
@@ -610,7 +637,7 @@ function Grupo({ grupo, grid, columns, config, options, patch, remove, add, grou
           </span>
           {grupo.option ? <OptionPill opt={grupo.option} solid /> : <span style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--fe-text-strong)' }}>{grupo.label}</span>}
           <span style={{ fontFamily: 'var(--font-geist-mono), monospace', fontSize: 12, color: 'var(--fe-text-muted)' }}>{grupo.itens.length}</span>
-          <button onClick={(e) => { e.stopPropagation(); setAberto(true); setAdicionando(true) }} style={{ marginLeft: 6, border: 'none', background: 'transparent', padding: 0, cursor: 'pointer', fontSize: 12.5, color: 'var(--fe-text-faint)' }} onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--fe-text-soft)')} onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--fe-text-faint)')}>+ Adicionar</button>
+          {canEdit && <button onClick={(e) => { e.stopPropagation(); setAberto(true); setAdicionando(true) }} style={{ marginLeft: 6, border: 'none', background: 'transparent', padding: 0, cursor: 'pointer', fontSize: 12.5, color: 'var(--fe-text-faint)' }} onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--fe-text-soft)')} onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--fe-text-faint)')}>+ Adicionar</button>}
         </div>
       )}
       {grouped && aberto && grupo.itens.length > 0 && (
@@ -623,19 +650,19 @@ function Grupo({ grupo, grid, columns, config, options, patch, remove, add, grou
         </div>
       )}
       {aberto && grupo.itens.map((r) => (
-        <RowLine key={r.id} row={r} grid={grid} columns={columns} config={config} options={options} patch={patch} remove={remove} onAbrir={onAbrir} selected={selectedIds.has(r.id)} onToggle={(shift) => onToggle(r.id, shift)} anySelected={selectedIds.size > 0} />
+        <RowLine key={r.id} row={r} grid={grid} columns={columns} config={config} options={options} patch={patch} remove={remove} onAbrir={onAbrir} selected={selectedIds.has(r.id)} onToggle={(shift) => onToggle(r.id, shift)} anySelected={selectedIds.size > 0} canDelete={canDelete} />
       ))}
-      {aberto && (
+      {aberto && canEdit && (
         <QuickAddRow config={config} defaults={groupDefaults} active={adicionando} onActiveChange={setAdicionando} onCreate={add} placeholder={grouped ? 'Adicionar task' : undefined} />
       )}
     </div>
   )
 }
 
-function RowLine({ row, grid, columns, config, options, patch, remove, onAbrir, selected, onToggle, anySelected }: {
+function RowLine({ row, grid, columns, config, options, patch, remove, onAbrir, selected, onToggle, anySelected, canDelete = true }: {
   row: Row; grid: string; columns: FieldDef[]; config: ListConfig; options: OptionsMap
   patch: (id: string, p: Record<string, unknown>) => void; remove: (id: string) => void; onAbrir: (id: string) => void
-  selected: boolean; onToggle: (shift: boolean) => void; anySelected: boolean
+  selected: boolean; onToggle: (shift: boolean) => void; anySelected: boolean; canDelete?: boolean
 }) {
   const [pop, setPop] = useState(false)
   const [hovered, setHovered] = useState(false)
@@ -679,7 +706,7 @@ function RowLine({ row, grid, columns, config, options, patch, remove, onAbrir, 
         </span>
       ))}
       <span className="fe-row-actions" onClick={(e) => e.stopPropagation()} style={{ display: 'inline-flex', justifyContent: 'flex-end' }}>
-        <RowMenu onExcluir={() => { if (confirm(`Excluir "${titulo}"?`)) remove(row.id) }} />
+        {canDelete && <RowMenu onExcluir={() => { if (confirm(`Excluir "${titulo}"?`)) remove(row.id) }} />}
       </span>
     </div>
   )
@@ -687,13 +714,15 @@ function RowLine({ row, grid, columns, config, options, patch, remove, onAbrir, 
 
 // ─── Bulk Action Bar ──────────────────────────────────────────────────────────
 
-function BulkBar({ selectedIds, config, options, onPatch, onRemove, onClear }: {
+function BulkBar({ selectedIds, config, options, onPatch, onRemove, onClear, canEdit = true, canDelete = true }: {
   selectedIds: string[]
   config: ListConfig
   options: OptionsMap
   onPatch: (partial: Record<string, unknown>) => void
   onRemove: () => void
   onClear: () => void
+  canEdit?: boolean
+  canDelete?: boolean
 }) {
   const n = selectedIds.length
   const statusField = config.statusField ? config.fields.find((f) => f.key === config.statusField) : null
@@ -744,7 +773,7 @@ function BulkBar({ selectedIds, config, options, onPatch, onRemove, onClear }: {
         </div>
 
         {/* Status */}
-        {statusField && (
+        {canEdit && statusField && (
           <BulkDropdown
             label={<><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><circle cx="6" cy="6" r="4.5" stroke="currentColor" strokeWidth="1.3" /><path d="M4 6.2L5.5 7.5L8 4.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" /></svg>Status</>}
             btnStyle={bulkBtnStyle}
@@ -766,7 +795,7 @@ function BulkBar({ selectedIds, config, options, onPatch, onRemove, onClear }: {
         )}
 
         {/* Responsável */}
-        {assigneeField && (
+        {canEdit && assigneeField && (
           <RelationMenu options={assigneeOptions} value={null} semLabel={`Sem ${assigneeField.label.toLowerCase()}`}
             onChange={(id) => onPatch({ [assigneeField.key]: id })}>
             {({ toggle }) => (
@@ -781,7 +810,7 @@ function BulkBar({ selectedIds, config, options, onPatch, onRemove, onClear }: {
         )}
 
         {/* Campos select adicionais */}
-        {actionFields.map((f) => f.type === 'select' ? (
+        {canEdit && actionFields.map((f) => f.type === 'select' ? (
           <BulkDropdown
             key={f.key}
             label={<>{f.label}</>}
@@ -817,7 +846,7 @@ function BulkBar({ selectedIds, config, options, onPatch, onRemove, onClear }: {
         ) : null)}
 
         {/* Demais custom fields da List */}
-        {moreFields.length > 0 && (
+        {canEdit && moreFields.length > 0 && (
           <BulkDropdown
             label={<><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M1.5 3.5H10.5M1.5 6H10.5M1.5 8.5H10.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" /><circle cx="4" cy="3.5" r="1.3" fill="var(--fe-surface,#1a1a2e)" stroke="currentColor" strokeWidth="1.1" /><circle cx="8" cy="6" r="1.3" fill="var(--fe-surface,#1a1a2e)" stroke="currentColor" strokeWidth="1.1" /><circle cx="5" cy="8.5" r="1.3" fill="var(--fe-surface,#1a1a2e)" stroke="currentColor" strokeWidth="1.1" /></svg>Campos</>}
             btnStyle={bulkBtnStyle}
@@ -838,17 +867,19 @@ function BulkBar({ selectedIds, config, options, onPatch, onRemove, onClear }: {
           </BulkDropdown>
         )}
 
-        <div style={{ width: 1, height: 22, background: 'rgba(255,255,255,0.1)', margin: '0 4px' }} />
+        {canDelete && <>
+          <div style={{ width: 1, height: 22, background: 'rgba(255,255,255,0.1)', margin: '0 4px' }} />
 
-        {/* Excluir */}
-        <button
-          onClick={onRemove}
-          style={{ ...bulkBtnStyle, color: '#ff7b7b', border: '1px solid rgba(255,100,100,0.25)', background: 'rgba(255,80,80,0.1)' }}
-          onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,80,80,0.2)' }}
-          onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255,80,80,0.1)' }}>
-          <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 3H10M4.5 3V2C4.5 1.7 4.7 1.5 5 1.5H7C7.3 1.5 7.5 1.7 7.5 2V3M3 3L3.5 9.5C3.5 9.8 3.7 10 4 10H8C8.3 10 8.5 9.8 8.5 9.5L9 3" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" /></svg>
-          Excluir
-        </button>
+          {/* Excluir */}
+          <button
+            onClick={onRemove}
+            style={{ ...bulkBtnStyle, color: '#ff7b7b', border: '1px solid rgba(255,100,100,0.25)', background: 'rgba(255,80,80,0.1)' }}
+            onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,80,80,0.2)' }}
+            onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255,80,80,0.1)' }}>
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 3H10M4.5 3V2C4.5 1.7 4.7 1.5 5 1.5H7C7.3 1.5 7.5 1.7 7.5 2V3M3 3L3.5 9.5C3.5 9.8 3.7 10 4 10H8C8.3 10 8.5 9.8 8.5 9.5L9 3" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" /></svg>
+            Excluir
+          </button>
+        </>}
       </div>
     </div>
   )
@@ -891,9 +922,10 @@ function BulkDropdown({ label, btnStyle, panelStyle, children }: {
 
 // ─── Slide-over ─────────────────────────────────────────────────────────────────
 
-function SlideOver({ row, config, options, patch, remove, onFechar }: {
+function SlideOver({ row, config, options, patch, remove, onFechar, caps = CAPS_TOTAL }: {
   row: Row; config: ListConfig; options: OptionsMap
   patch: (id: string, p: Record<string, unknown>) => void; remove: (id: string) => void; onFechar: () => void
+  caps?: Capacidades
 }) {
   const statusField = config.statusField ? config.fields.find((f) => f.key === config.statusField) : null
   const allPanelFields = config.fields.filter((f) => (f.inPanel ?? (!f.column?.primary && f.type !== 'richtext')) && f.key !== config.titleField && f.key !== config.descriptionField && f.key !== config.statusField)
@@ -940,14 +972,16 @@ function SlideOver({ row, config, options, patch, remove, onFechar }: {
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
             <Link href={`${config.rowBasePath?.(row) ?? config.basePath}/${row.id}`} title="Expandir" aria-label="Expandir em tela cheia" style={iconBtn}><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M8.5 2H12V5.5M12 2L8 6M5.5 12H2V8.5M2 12L6 8" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" /></svg></Link>
-            <Dropdown align="right" width={160} trigger={({ toggle }) => <button onClick={toggle} title="Mais" aria-label="Mais ações" style={iconBtn as React.CSSProperties}>⋯</button>}>
-              {(close) => (
-                <button onClick={() => { close(); if (confirm(`Excluir "${String(row[config.titleField] ?? '')}"?`)) remove(row.id) }} style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '7px 8px', border: 'none', background: 'transparent', borderRadius: 6, cursor: 'pointer', fontSize: 13, color: 'var(--fe-prio-urgent)' }}
-                  onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--fe-hover)')} onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}>
-                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2.5 3.5H11.5M5 3.5V2.5C5 2.2 5.2 2 5.5 2H8.5C8.8 2 9 2.2 9 2.5V3.5M3.5 3.5L4 11.5C4 11.8 4.2 12 4.5 12H9.5C9.8 12 10 11.8 10 11.5L10.5 3.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" /></svg>Excluir
-                </button>
-              )}
-            </Dropdown>
+            {caps.canDelete && (
+              <Dropdown align="right" width={160} trigger={({ toggle }) => <button onClick={toggle} title="Mais" aria-label="Mais ações" style={iconBtn as React.CSSProperties}>⋯</button>}>
+                {(close) => (
+                  <button onClick={() => { close(); if (confirm(`Excluir "${String(row[config.titleField] ?? '')}"?`)) remove(row.id) }} style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '7px 8px', border: 'none', background: 'transparent', borderRadius: 6, cursor: 'pointer', fontSize: 13, color: 'var(--fe-prio-urgent)' }}
+                    onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--fe-hover)')} onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}>
+                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2.5 3.5H11.5M5 3.5V2.5C5 2.2 5.2 2 5.5 2H8.5C8.8 2 9 2.2 9 2.5V3.5M3.5 3.5L4 11.5C4 11.8 4.2 12 4.5 12H9.5C9.8 12 10 11.8 10 11.5L10.5 3.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" /></svg>Excluir
+                  </button>
+                )}
+              </Dropdown>
+            )}
             <button onClick={onFechar} title="Fechar" aria-label="Fechar painel" style={iconBtn as React.CSSProperties}><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3.5 3.5L10.5 10.5M10.5 3.5L3.5 10.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" /></svg></button>
           </div>
         </div>
@@ -955,25 +989,32 @@ function SlideOver({ row, config, options, patch, remove, onFechar }: {
         <div style={{ flex: 1, overflowY: 'auto', padding: '28px 32px' }}>
           {statusField && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 22 }}>
-              {doneOpt && openOpt && (
-                <button onClick={() => patch(row.id, { [config.statusField!]: concluida ? openOpt.value : doneOpt.value })}
-                  style={{ height: 36, padding: '0 15px', borderRadius: 'var(--fe-radius-md)', border: `1px solid ${concluida ? 'var(--fe-accent)' : 'var(--fe-border)'}`, background: concluida ? 'var(--fe-accent-dim)' : 'transparent', color: concluida ? 'var(--fe-status-done-text)' : 'var(--fe-text)', fontSize: 13.5, fontWeight: 600, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 7 }}>
-                  <svg width="15" height="15" viewBox="0 0 14 14" fill="none"><path d="M3 7.2L5.8 9.8L11 4" stroke={concluida ? 'var(--fe-accent)' : 'currentColor'} strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" /></svg>
-                  {concluida ? 'Reabrir' : `Marcar ${doneOpt.label.toLowerCase()}`}
-                </button>
-              )}
-              <SelectMenu options={statusField.options ?? []} value={String(row[config.statusField!] ?? '')} onChange={(v) => patch(row.id, { [config.statusField!]: v })}>
-                {({ toggle }) => {
-                  const opt = optionOf(statusField, String(row[config.statusField!] ?? ''))
-                  return <button onClick={toggle} style={{ border: 'none', background: 'transparent', padding: 0, cursor: 'pointer' }}>{opt ? <OptionPill opt={opt} chevron /> : <span style={{ fontSize: 12.5, color: 'var(--fe-text-faint)' }}>Status</span>}</button>
-                }}
-              </SelectMenu>
+              {caps.canEdit ? (
+                <>
+                  {doneOpt && openOpt && (
+                    <button onClick={() => patch(row.id, { [config.statusField!]: concluida ? openOpt.value : doneOpt.value })}
+                      style={{ height: 36, padding: '0 15px', borderRadius: 'var(--fe-radius-md)', border: `1px solid ${concluida ? 'var(--fe-accent)' : 'var(--fe-border)'}`, background: concluida ? 'var(--fe-accent-dim)' : 'transparent', color: concluida ? 'var(--fe-status-done-text)' : 'var(--fe-text)', fontSize: 13.5, fontWeight: 600, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 7 }}>
+                      <svg width="15" height="15" viewBox="0 0 14 14" fill="none"><path d="M3 7.2L5.8 9.8L11 4" stroke={concluida ? 'var(--fe-accent)' : 'currentColor'} strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                      {concluida ? 'Reabrir' : `Marcar ${doneOpt.label.toLowerCase()}`}
+                    </button>
+                  )}
+                  <SelectMenu options={statusField.options ?? []} value={String(row[config.statusField!] ?? '')} onChange={(v) => patch(row.id, { [config.statusField!]: v })}>
+                    {({ toggle }) => {
+                      const opt = optionOf(statusField, String(row[config.statusField!] ?? ''))
+                      return <button onClick={toggle} style={{ border: 'none', background: 'transparent', padding: 0, cursor: 'pointer' }}>{opt ? <OptionPill opt={opt} chevron /> : <span style={{ fontSize: 12.5, color: 'var(--fe-text-faint)' }}>Status</span>}</button>
+                    }}
+                  </SelectMenu>
+                </>
+              ) : (() => {
+                const opt = optionOf(statusField, String(row[config.statusField!] ?? ''))
+                return opt ? <OptionPill opt={opt} /> : null
+              })()}
             </div>
           )}
 
-          <textarea value={nome} onChange={(e) => onNome(e.target.value)} rows={1} placeholder={config.titlePlaceholder ?? 'Sem título'}
+          <textarea value={nome} onChange={(e) => onNome(e.target.value)} rows={1} placeholder={config.titlePlaceholder ?? 'Sem título'} readOnly={!caps.canEdit}
             onInput={(e) => { const el = e.currentTarget; el.style.height = 'auto'; el.style.height = el.scrollHeight + 'px' }}
-            style={{ width: '100%', resize: 'none', border: 'none', outline: 'none', background: 'transparent', fontFamily: 'var(--font-geist), sans-serif', fontWeight: 600, fontSize: 27, lineHeight: 1.22, letterSpacing: '-0.015em', color: 'var(--fe-text-strong)', margin: '0 0 26px', padding: 0, overflow: 'hidden' }} />
+            style={{ width: '100%', resize: 'none', border: 'none', outline: 'none', background: 'transparent', fontFamily: 'var(--font-geist), sans-serif', fontWeight: 600, fontSize: 27, lineHeight: 1.22, letterSpacing: '-0.015em', color: 'var(--fe-text-strong)', margin: '0 0 26px', padding: 0, overflow: 'hidden', cursor: caps.canEdit ? 'text' : 'default' }} />
 
           {/* Responsável + datas — empilhados verticalmente sob o nome (menos poluição) */}
           {(assigneeField || startField || endField) && (
@@ -1005,7 +1046,16 @@ function SlideOver({ row, config, options, patch, remove, onFechar }: {
                 <svg width="15" height="15" viewBox="0 0 14 14" fill="none"><path d="M2.5 3.5H11.5M2.5 7H11.5M2.5 10.5H8" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" /></svg>
                 Descrição
               </span>
-              <RichTextEditor key={row.id} value={(row[config.descriptionField!] as string) ?? null} onChange={onDesc} />
+              {caps.canEdit ? (
+                <RichTextEditor key={row.id} value={(row[config.descriptionField!] as string) ?? null} onChange={onDesc} />
+              ) : (
+                (() => {
+                  const html = (row[config.descriptionField!] as string) ?? ''
+                  return html.trim()
+                    ? <div className="fe-rich-content" style={{ fontSize: 14, color: 'var(--fe-text)', lineHeight: 1.6 }} dangerouslySetInnerHTML={{ __html: html }} />
+                    : <span style={{ fontSize: 14, color: 'var(--fe-text-faint)' }}>Sem descrição.</span>
+                })()
+              )}
             </div>
           )}
 
