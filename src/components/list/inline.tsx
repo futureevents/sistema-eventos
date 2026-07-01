@@ -682,8 +682,9 @@ export function DateRangePopover({ start, end, focus, startLabel, endLabel, star
         </div>
       </div>
 
-      {/* Horário opcional do campo em foco */}
-      {focusedVal && (
+      {/* Horário opcional do campo em foco — sempre visível; sem data ainda, a hora
+          escolhida entra junto quando o dia for clicado */}
+      {(
         <div style={{ marginTop: 4, paddingTop: 6, borderTop: '1px solid var(--fe-divider)' }}>
           {!timeOn[focused] ? (
             <button onClick={(e) => { e.stopPropagation(); ativarHora() }}
