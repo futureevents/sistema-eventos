@@ -11,7 +11,6 @@ import { type EmbedMap } from './load'
 import { Breadcrumb, SpaceBadge, Avatar, EmptyState, dataCurta, dataLonga, useHiddenFields, useIsMobile } from './kit'
 import { Dropdown, StatusDot, SelectMenu, RelationMenu, OptionPill, RowMenu } from './inline'
 import { InlineField, displayLabel, groupKey, optionOf, isDerived, rangeSpecFor, dueTone } from './cells'
-import { Board } from './Board'
 import { RichTextEditor } from './RichText'
 import { QuickAddRow } from './QuickAdd'
 import { TaskComments } from './TaskComments'
@@ -41,18 +40,6 @@ export function DataList({ config, rows: rowsProp, options, embeds, caps = CAPS_
   const [busca, setBusca] = useState('')
   const firstPreset = config.viewPresets?.[0]
   const [activeViewKey, setActiveViewKey] = useState<string | null>(firstPreset?.key ?? null)
-
-  // View ativa da List: Lista ou Quadro (kanban por status). Persistida por List.
-  const statusFieldDef = useMemo(() => (config.statusField ? config.fields.find((f) => f.key === config.statusField) ?? null : null), [config])
-  const [viewMode, setViewModeState] = useState<'list' | 'board'>('list')
-  const viewLsKey = `fe-view:${config.basePath}`
-  useEffect(() => {
-    try { if (localStorage.getItem(viewLsKey) === 'board' && statusFieldDef) setViewModeState('board') } catch {}
-  }, []) // eslint-disable-line
-  function setViewMode(m: 'list' | 'board') {
-    setViewModeState(m)
-    try { localStorage.setItem(viewLsKey, m) } catch {}
-  }
   const [groupBy, setGroupBy] = useState<string | null>(firstPreset?.groupBy !== undefined ? (firstPreset.groupBy ?? null) : (config.defaultGroupBy ?? config.statusField ?? null))
   const [filtros, setFiltros] = useState<FilterState>(firstPreset?.filter ?? {})
   const [salvando, setSalvando] = useState<'idle' | 'saving' | 'saved'>('idle')
@@ -199,8 +186,6 @@ export function DataList({ config, rows: rowsProp, options, embeds, caps = CAPS_
   const filtradas = useMemo(() => aplicarFiltros(rows, busca, filtros, config), [rows, busca, filtros, config])
   const groupByField = useMemo(() => (groupBy ? config.fields.find((f) => f.key === groupBy) ?? null : null), [groupBy, config])
   const grupos = useMemo(() => agrupar(filtradas, groupByField, options), [filtradas, groupByField, options])
-  // Quadro agrupa sempre por status, independente do "Agrupar" da Lista.
-  const boardGrupos = useMemo(() => (statusFieldDef ? agrupar(filtradas, statusFieldDef, options) : []), [filtradas, statusFieldDef, options])
   // Ordem visível achatada (todos os grupos em sequência) p/ o range do shift+clique.
   const orderedIds = useMemo(() => grupos.flatMap((g) => g.itens.map((r) => r.id)), [grupos])
   const nFiltros = contarFiltros(filtros)
@@ -225,7 +210,6 @@ export function DataList({ config, rows: rowsProp, options, embeds, caps = CAPS_
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: 'var(--fe-surface)' }}>
       {!config.hideBreadcrumb && <Breadcrumb space={config.space} segments={config.breadcrumb} />}
       {!caps.canEdit && <ReadOnlyBanner nivel={caps.canComment ? 'comentar' : 'ver'} />}
-      <ListTitle config={config} count={filtradas.length} />
       <Toolbar
         config={config} busca={busca} onBusca={setBusca}
         groupable={groupable} groupBy={groupBy} onGroupBy={setGroupBy}
@@ -233,11 +217,7 @@ export function DataList({ config, rows: rowsProp, options, embeds, caps = CAPS_
         rows={rows} options={options} salvando={salvando} addHref={addHref} addLabel={config.addLabel ?? `Adicionar ${config.singular}`}
         canCreate={caps.canEdit}
         viewPresets={config.viewPresets} activeViewKey={activeViewKey} onViewChange={applyView}
-        viewMode={statusFieldDef ? viewMode : 'list'} onViewMode={setViewMode} hasBoard={!!statusFieldDef}
       />
-      {viewMode === 'board' && statusFieldDef ? (
-        <Board grupos={boardGrupos} config={config} options={options} statusField={statusFieldDef} patch={patch} add={add} onAbrir={setSel} canEdit={caps.canEdit} />
-      ) : (
       <div className="fe-list-pad" style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
         <div className="fe-list-card" style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', background: 'var(--fe-surface)', border: '1px solid var(--fe-border)', borderRadius: 'var(--fe-radius-xl)', boxShadow: 'var(--fe-shadow-card)', overflow: 'hidden' }}>
           <div style={{ flex: 1, minHeight: 0, overflow: 'auto' }}>
@@ -258,7 +238,6 @@ export function DataList({ config, rows: rowsProp, options, embeds, caps = CAPS_
           </div>
         </div>
       </div>
-      )}
 
       {aberto && (
         <SlideOver key={aberto.id} row={aberto} config={config} options={options} patch={patch} remove={remove} onFechar={() => setSel(null)} caps={caps} />
@@ -394,61 +373,42 @@ function agrupar(rows: Row[], field: FieldDef | null, options: OptionsMap): Grup
   }).map(([key, v]) => ({ key, itens: v.itens, label: v.label }))
 }
 
-// ─── Título da List (estilo ClickUp: nome grande + contagem) ─────────────────
-
-function ListTitle({ config, count }: { config: ListConfig; count: number }) {
-  return (
-    <div className="fe-bar-pad fe-list-title" style={{ display: 'flex', alignItems: 'baseline', gap: 10, padding: '14px 22px 0', flexShrink: 0, background: 'var(--fe-surface)' }}>
-      <h1 style={{ margin: 0, fontSize: 20, fontWeight: 600, letterSpacing: '-0.015em', lineHeight: 1.25, color: 'var(--fe-text-strong)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-        {config.breadcrumb[config.breadcrumb.length - 1]}
-      </h1>
-      <span style={{ fontFamily: 'var(--font-geist-mono), monospace', fontSize: 12.5, color: 'var(--fe-text-muted)' }}>{count}</span>
-    </div>
-  )
-}
-
 // ─── Toolbar ──────────────────────────────────────────────────────────────────
 
 function Toolbar({
-  config, busca, onBusca, groupable, groupBy, onGroupBy, filterable, filtros, onFiltros, nFiltros, rows, options, salvando, addHref, addLabel, canCreate = true, viewPresets, activeViewKey, onViewChange, viewMode = 'list', onViewMode, hasBoard = false,
+  config, busca, onBusca, groupable, groupBy, onGroupBy, filterable, filtros, onFiltros, nFiltros, rows, options, salvando, addHref, addLabel, canCreate = true, viewPresets, activeViewKey, onViewChange,
 }: {
   config: ListConfig; busca: string; onBusca: (v: string) => void
   groupable: FieldDef[]; groupBy: string | null; onGroupBy: (k: string | null) => void
   filterable: FieldDef[]; filtros: FilterState; onFiltros: (f: FilterState) => void; nFiltros: number
   rows: Row[]; options: OptionsMap; salvando: 'idle' | 'saving' | 'saved'; addHref: string; addLabel: string; canCreate?: boolean
   viewPresets?: ViewPreset[]; activeViewKey?: string | null; onViewChange?: (p: ViewPreset) => void
-  viewMode?: 'list' | 'board'; onViewMode?: (m: 'list' | 'board') => void; hasBoard?: boolean
 }) {
   const groupLabel = groupBy ? (config.fields.find((f) => f.key === groupBy)?.label ?? 'Nenhum') : 'Nenhum'
-  const listIcon = <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 4H12M2 7H12M2 10H9" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" /></svg>
-  const boardIcon = <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="1.5" y="2" width="3.4" height="10" rx="1" stroke="currentColor" strokeWidth="1.2" /><rect x="5.9" y="2" width="3.4" height="7" rx="1" stroke="currentColor" strokeWidth="1.2" /><rect x="10.3" y="2" width="2.2" height="10" rx="1" stroke="currentColor" strokeWidth="1.2" /></svg>
   return (
     <div className="fe-bar-pad fe-toolbar" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 44, padding: '0 18px 0 22px', flexShrink: 0, gap: 12, background: 'var(--fe-surface)' }}>
       <div className="fe-toolbar-tabs" style={{ display: 'flex', alignItems: 'center', height: '100%' }}>
         {viewPresets && viewPresets.length > 0 ? (
           viewPresets.map((p) => {
-            const active = viewMode === 'list' && p.key === activeViewKey
+            const active = p.key === activeViewKey
             return (
-              <ViewTabBtn key={p.key} active={active} onClick={() => { onViewMode?.('list'); onViewChange?.(p) }}>
+              <button key={p.key} onClick={() => onViewChange?.(p)}
+                style={{ height: '100%', padding: '0 12px', borderTop: 'none', borderLeft: 'none', borderRight: 'none', borderBottom: active ? '2px solid var(--fe-black)' : '2px solid transparent', fontSize: 13, fontWeight: active ? 600 : 500, color: active ? 'var(--fe-black)' : 'var(--fe-text-soft)', background: 'none', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap' }}>
                 {p.label}
-              </ViewTabBtn>
+              </button>
             )
           })
         ) : (
-          <ViewTabBtn active={viewMode === 'list'} onClick={() => onViewMode?.('list')} icon={listIcon}>
+          <span style={{ height: '100%', padding: '0 12px', borderBottom: '2px solid var(--fe-black)', fontSize: 13, fontWeight: 600, color: 'var(--fe-black)', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 4H12M2 7H12M2 10H9" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" /></svg>
             Lista
-          </ViewTabBtn>
-        )}
-        {hasBoard && (
-          <ViewTabBtn active={viewMode === 'board'} onClick={() => onViewMode?.('board')} icon={boardIcon}>
-            Quadro
-          </ViewTabBtn>
+          </span>
         )}
       </div>
       <div className="fe-toolbar-actions" style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
         <SaveIndicator estado={salvando} />
         {filterable.length > 0 && <FiltrosBtn filterable={filterable} filtros={filtros} onFiltros={onFiltros} n={nFiltros} rows={rows} options={options} />}
-        {viewMode === 'list' && groupable.length > 0 && <AgruparBtn groupable={groupable} groupBy={groupBy} onGroupBy={onGroupBy} label={groupLabel} />}
+        {groupable.length > 0 && <AgruparBtn groupable={groupable} groupBy={groupBy} onGroupBy={onGroupBy} label={groupLabel} />}
         <div style={{ position: 'relative', display: 'flex', alignItems: 'center', minWidth: 0 }}>
           <svg width="13" height="13" viewBox="0 0 12 12" fill="none" style={{ position: 'absolute', left: 9, opacity: 0.4, pointerEvents: 'none' }}><circle cx="5" cy="5" r="3.5" stroke="currentColor" strokeWidth="1.3" /><path d="M8 8L10.5 10.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" /></svg>
           <input value={busca} onChange={(e) => onBusca(e.target.value)} placeholder="Buscar"
@@ -463,17 +423,6 @@ function Toolbar({
         )}
       </div>
     </div>
-  )
-}
-
-function ViewTabBtn({ active, onClick, icon, children }: { active: boolean; onClick: () => void; icon?: React.ReactNode; children: React.ReactNode }) {
-  return (
-    <button onClick={onClick}
-      style={{ height: '100%', padding: '0 12px', border: 'none', borderBottom: active ? '2px solid var(--fe-black)' : '2px solid transparent', fontSize: 13, fontWeight: active ? 600 : 500, color: active ? 'var(--fe-black)' : 'var(--fe-text-soft)', background: 'none', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap' }}
-      onMouseEnter={(e) => { if (!active) e.currentTarget.style.color = 'var(--fe-text)' }}
-      onMouseLeave={(e) => { if (!active) e.currentTarget.style.color = 'var(--fe-text-soft)' }}>
-      {icon}{children}
-    </button>
   )
 }
 

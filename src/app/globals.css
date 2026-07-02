@@ -292,17 +292,6 @@ select:focus-visible,
   /* Breadcrumb: só o nome da List (os níveis do meio somem) */
   .fe-crumb-mid { display: none !important; }
 
-  /* Barra de breadcrumb some no celular — o título grande da List assume */
-  .fe-crumb-bar { display: none !important; }
-
-  /* Título da List compacto */
-  .fe-list-title { padding: 12px 16px 0 !important; }
-  .fe-list-title h1 { font-size: 17px !important; }
-
-  /* Quadro: colunas um pouco mais estreitas e gutter menor */
-  .fe-board { padding: 10px 12px 12px !important; gap: 10px !important; }
-  :root { --fe-kanban-col: 264px; }
-
   /* Lista vai de borda a borda (estilo app): sem card flutuando */
   .fe-list-pad { padding: 0 !important; }
   .fe-list-card { border-radius: 0 !important; border-left: none !important; border-right: none !important; box-shadow: none !important; }

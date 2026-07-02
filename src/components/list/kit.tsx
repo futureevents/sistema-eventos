@@ -128,14 +128,14 @@ export function Dash() { return <span style={{ color: 'var(--fe-icon)' }}>—</s
 
 export function Breadcrumb({ space, segments }: { space: Space; segments: string[] }) {
   return (
-    <div className="fe-bar-pad fe-crumb-bar" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 44, padding: '0 22px', borderBottom: '1px solid var(--fe-border-soft)', flexShrink: 0, background: 'var(--fe-surface)' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, minWidth: 0 }}>
-        <SpaceBadge space={space} size={18} />
+    <div className="fe-bar-pad" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 52, padding: '0 22px', borderBottom: '1px solid var(--fe-border-soft)', flexShrink: 0, background: 'var(--fe-surface)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13.5, minWidth: 0 }}>
+        <SpaceBadge space={space} size={20} />
         {segments.map((s, i) => {
           const last = i === segments.length - 1
           return (
             <span key={i} className={last ? undefined : 'fe-crumb-mid'} style={{ display: 'inline-flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
-              <span style={{ fontSize: 13, fontWeight: last ? 500 : 400, color: last ? 'var(--fe-text)' : 'var(--fe-text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s}</span>
+              <span style={{ fontSize: last ? 15 : 13.5, fontWeight: last ? 600 : 400, color: last ? 'var(--fe-text-strong)' : 'var(--fe-text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s}</span>
               {!last && <span style={{ color: 'var(--fe-icon)' }}>/</span>}
             </span>
           )
