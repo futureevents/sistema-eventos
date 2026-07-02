@@ -8,7 +8,7 @@ import { type ListConfig, type Row, type OptionsMap } from './types'
 import { type EmbedMap } from './load'
 import { SpaceBadge, dataLonga, useHiddenFields } from './kit'
 import { SelectMenu, OptionPill } from './inline'
-import { InlineField, optionOf } from './cells'
+import { InlineField, optionOf, rangeSpecFor } from './cells'
 import { RichTextEditor } from './RichText'
 import { TaskChecklists } from './TaskChecklists'
 import { TaskAttachments } from './TaskAttachments'
@@ -27,6 +27,11 @@ export function FullRecord({ config, row: rowProp, options, embeds, caps = CAPS_
   const [excluindo, setExcluindo] = useState(false)
   const [panelOpen, setPanelOpen] = useState(true)
   const savedTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  // No celular o painel de atividade vira overlay — começa fechado para não cobrir a task.
+  useEffect(() => {
+    if (window.matchMedia('(max-width: 768px)').matches) setPanelOpen(false)
+  }, []) // eslint-disable-line react-hooks/set-state-in-effect
 
   const statusField = config.statusField ? config.fields.find((f) => f.key === config.statusField) : null
   const detailFields = config.fields.filter((f) => (f.inPanel ?? (!f.column?.primary && f.type !== 'richtext')) && f.key !== config.titleField && f.key !== config.descriptionField)
@@ -100,7 +105,7 @@ export function FullRecord({ config, row: rowProp, options, embeds, caps = CAPS_
           <SpaceBadge space={config.space} />
           {config.breadcrumb.map((s, i) => {
             const last = i === config.breadcrumb.length - 1
-            return <span key={i} style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}><span style={{ color: last ? undefined : 'var(--fe-text-muted)' }}>{i === config.breadcrumb.length - 1 ? <Link href={config.basePath} style={{ color: 'var(--fe-text-muted)', textDecoration: 'none' }}>{s}</Link> : s}</span><span style={{ color: 'var(--fe-icon)' }}>/</span></span>
+            return <span key={i} className={last ? undefined : 'fe-crumb-mid'} style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}><span style={{ color: last ? undefined : 'var(--fe-text-muted)' }}>{i === config.breadcrumb.length - 1 ? <Link href={config.basePath} style={{ color: 'var(--fe-text-muted)', textDecoration: 'none' }}>{s}</Link> : s}</span><span style={{ color: 'var(--fe-icon)' }}>/</span></span>
           })}
           <span style={{ fontWeight: 600, color: 'var(--fe-text-strong)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{String(row[config.titleField] ?? '')}</span>
         </div>
@@ -120,7 +125,7 @@ export function FullRecord({ config, row: rowProp, options, embeds, caps = CAPS_
 
       <div style={{ flex: 1, display: 'flex', minHeight: 0 }}>
         <div style={{ flex: 1, minWidth: 0, overflowY: 'auto' }}>
-          <div style={{ maxWidth: 880, margin: '0 auto', padding: '46px 52px 100px' }}>
+          <div className="fe-record-main" style={{ maxWidth: 880, margin: '0 auto', padding: '46px 52px 100px' }}>
             {statusField && (
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 24 }}>
                 {caps.canEdit ? (
@@ -138,7 +143,7 @@ export function FullRecord({ config, row: rowProp, options, embeds, caps = CAPS_
               </div>
             )}
 
-            <textarea value={nome} onChange={(e) => onNome(e.target.value)} rows={1} placeholder={config.titlePlaceholder ?? 'Sem título'} readOnly={!caps.canEdit}
+            <textarea className="fe-record-title" value={nome} onChange={(e) => onNome(e.target.value)} rows={1} placeholder={config.titlePlaceholder ?? 'Sem título'} readOnly={!caps.canEdit}
               onInput={(e) => { const el = e.currentTarget; el.style.height = 'auto'; el.style.height = el.scrollHeight + 'px' }}
               style={{ width: '100%', resize: 'none', border: 'none', outline: 'none', background: 'transparent', fontFamily: 'var(--font-geist), sans-serif', fontWeight: 600, fontSize: 33, lineHeight: 1.18, letterSpacing: '-0.022em', color: 'var(--fe-text-strong)', margin: '0 0 30px', padding: 0, overflow: 'hidden', cursor: caps.canEdit ? 'text' : 'default' }} />
 
@@ -154,13 +159,13 @@ export function FullRecord({ config, row: rowProp, options, embeds, caps = CAPS_
                 {startField && (
                   <div style={{ display: 'grid', gridTemplateColumns: 'minmax(120px,164px) minmax(0,1fr)', alignItems: 'center', minHeight: 42 }}>
                     <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 'var(--fe-text-base)', color: 'var(--fe-text-muted)' }}><CalIcon />{startField.label}</span>
-                    <span style={{ minWidth: 0 }}><InlineField field={startField} row={row} options={options} patch={patch} variant="panel" /></span>
+                    <span style={{ minWidth: 0 }}><InlineField field={startField} row={row} options={options} patch={patch} variant="panel" range={rangeSpecFor(config, startField)} /></span>
                   </div>
                 )}
                 {endField && (
                   <div style={{ display: 'grid', gridTemplateColumns: 'minmax(120px,164px) minmax(0,1fr)', alignItems: 'center', minHeight: 42 }}>
                     <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 'var(--fe-text-base)', color: 'var(--fe-text-muted)' }}><CalIcon />{endField.label}</span>
-                    <span style={{ minWidth: 0 }}><InlineField field={endField} row={row} options={options} patch={patch} variant="panel" /></span>
+                    <span style={{ minWidth: 0 }}><InlineField field={endField} row={row} options={options} patch={patch} variant="panel" range={rangeSpecFor(config, endField)} /></span>
                   </div>
                 )}
               </div>

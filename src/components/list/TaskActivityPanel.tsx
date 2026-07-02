@@ -289,7 +289,7 @@ export function TaskActivityPanel({ taskId, taskTable, config, onClose }: {
   }
 
   return (
-    <aside style={{ width: 'var(--fe-activity-w, 380px)', flexShrink: 0, height: '100%', borderLeft: '1px solid var(--fe-border)', background: 'var(--fe-surface)', display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+    <aside className="fe-activity-panel" style={{ width: 'var(--fe-activity-w, 380px)', flexShrink: 0, height: '100%', borderLeft: '1px solid var(--fe-border)', background: 'var(--fe-surface)', display: 'flex', flexDirection: 'column', minHeight: 0 }}>
       {/* Cabeçalho */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 48, padding: '0 10px 0 18px', borderBottom: '1px solid var(--fe-border-soft)', flexShrink: 0 }}>
         <span style={{ fontSize: 'var(--fe-text-md)', fontWeight: 600, letterSpacing: '-0.01em', color: 'var(--fe-text-strong)' }}>Atividade</span>

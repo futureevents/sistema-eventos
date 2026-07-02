@@ -87,7 +87,7 @@ export function NewRecordForm({ config, options }: { config: ListConfig; options
           <Field label={primaryLabel(config)} required>
             <input type="text" value={String(form[config.titleField] ?? '')} onChange={(e) => set(config.titleField, e.target.value)} style={inputStyle} autoFocus />
           </Field>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+          <div className="fe-form-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
             {formFields.map((f) => <Field key={f.key} label={f.label}><FormInput field={f} value={form[f.key]} onChange={(v) => set(f.key, v)} options={options} /></Field>)}
           </div>
           {config.descriptionField && <Field label="Descrição"><RichTextEditor key={editorKey} value={String(form[config.descriptionField] ?? '')} onChange={(html) => set(config.descriptionField!, html)} /></Field>}

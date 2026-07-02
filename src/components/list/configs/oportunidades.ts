@@ -60,6 +60,19 @@ const REUNIAO_REALIZADA: SelectOption[] = [
   { value: 'sim', label: 'Sim', dot: '#2E9E62', bg: 'rgba(46,158,98,0.14)',  text: '#207A49' },
 ]
 
+// ── Cargo do contato (compartilhado pelas duas Lists) — termina sempre em "Outro".
+const CARGO: SelectOption[] = [
+  { value: 'socio_fundador', label: 'Sócio / Fundador',  dot: '#3E63DD', bg: 'rgba(62,99,221,0.12)',  text: '#3A4FC0' },
+  { value: 'ceo_presidente', label: 'CEO / Presidente',  dot: '#8E4EC6', bg: 'rgba(142,78,198,0.12)', text: '#7A3DAE' },
+  { value: 'diretor',        label: 'Diretor(a)',        dot: '#D5680B', bg: 'rgba(213,104,11,0.14)', text: '#9A4E0A' },
+  { value: 'gerente',        label: 'Gerente',           dot: '#2E9E62', bg: 'rgba(46,158,98,0.14)',  text: '#207A49' },
+  { value: 'coordenador',    label: 'Coordenador(a)',    dot: '#0E8FC4', bg: 'rgba(14,143,196,0.12)', text: '#0B6E97' },
+  { value: 'marketing',      label: 'Marketing',         dot: '#D6409F', bg: 'rgba(214,64,159,0.12)', text: '#B03088' },
+  { value: 'comercial',      label: 'Comercial / Vendas', dot: '#E8A23D', bg: 'rgba(232,162,61,0.16)', text: '#8A5D11' },
+  { value: 'assistente',     label: 'Assistente',        dot: '#62708A', bg: 'rgba(98,112,138,0.14)', text: '#465268' },
+  { value: 'outro',          label: 'Outro',             dot: '#8B8D98', bg: 'rgba(139,141,152,0.14)', text: '#52555F' },
+]
+
 const PRIORIDADE: SelectOption[] = [
   { value: 'urgente', label: 'Urgente', flag: 'var(--fe-prio-urgent)' },
   { value: 'alta',    label: 'Alta',    flag: 'var(--fe-prio-high)' },
@@ -159,6 +172,7 @@ export function oportunidadeConfig(tipo: TipoOportunidade): ListConfig {
     { key: 'reuniao_realizada', label: 'Reunião realizada',    type: 'select', options: REUNIAO_REALIZADA, groupable: true, filterable: true },
     { key: 'qualidade_reuniao', label: 'Qualidade da reunião', type: 'select', options: QUALIDADE_REUNIAO, groupable: true, filterable: true },
     { key: 'nome_contato', label: 'Nome do contato', type: 'text', filterable: true },
+    { key: 'cargo', label: 'Cargo', type: 'select', options: CARGO, groupable: true, filterable: true },
     { key: 'whatsapp',    label: 'WhatsApp',  type: 'tel' },
     { key: 'telefone',    label: 'Telefone',  type: 'tel' },
     { key: 'email',       label: 'E-mail',    type: 'email' },
