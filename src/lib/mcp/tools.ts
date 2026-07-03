@@ -63,6 +63,38 @@ const STATUS_VALIDOS: Record<TabelaTask, string[] | null> = {
   task_processo: ['para_fazer', 'desenhando', 'ativo', 'descartado'],
 }
 
+// Metadados por tabela para as tools GERAIS (criar_task_lista / atualizar_task).
+// `tipos`  = valores válidos do discriminador de List (qual List a task pertence).
+// `extras` = colunas opcionais aceitas além de nome/status/descricao (aplicadas só
+//            se existirem na tabela — é o que torna as tools "table-aware").
+// responsavel/designer = campos por e-mail resolvidos para *_id; evento idem.
+const META_TABELA: Record<
+  TabelaTask,
+  { tipos: string[]; extras: string[]; responsavel?: boolean; designer?: boolean; evento?: boolean }
+> = {
+  task_projeto: {
+    tipos: ['pre_evento', 'intra_evento', 'pos_evento', 'onboarding'],
+    extras: ['prioridade', 'data_fim'],
+    responsavel: true,
+    evento: true,
+  },
+  task_marketing: {
+    tipos: ['copy', 'design', 'publicacao', 'landing', 'formulario'],
+    extras: ['prioridade', 'tipo_conteudo', 'formato_conteudo', 'canais_publicacao', 'data_publicacao', 'data_inicio', 'data_fim'],
+    responsavel: true,
+    designer: true,
+  },
+  task_oportunidade: {
+    tipos: ['trafego_pago', 'prospeccao_ativa'],
+    extras: ['prioridade', 'nome_contato', 'whatsapp', 'telefone', 'email', 'data_inicio', 'data_fim'],
+    responsavel: true,
+  },
+  task_processo: {
+    tipos: ['entrada_cliente', 'projetos', 'cientifico', 'marketing', 'comercial', 'juridico'],
+    extras: [],
+  },
+}
+
 const BUCKET_ANEXOS = 'task-attachments'
 
 /** Resolve um membro da equipe por e-mail → id (= responsavel_id). */
@@ -273,12 +305,100 @@ export function registrarTools(server: McpServer, getMembro: () => Membro) {
   )
 
   server.tool(
+    'criar_task_lista',
+    'Cria uma task em QUALQUER List do sistema. Informe `task_table` (task_projeto/task_marketing/task_oportunidade/task_processo) + `tipo` (o discriminador da List dentro da tabela) + `nome`. Os campos opcionais só se aplicam se existirem na tabela (nas outras são ignorados). Tipos por tabela — projeto: pre_evento/intra_evento/pos_evento/onboarding · marketing: copy(="Processo de copy")/design/publicacao/landing/formulario · oportunidade: trafego_pago/prospeccao_ativa · processo: entrada_cliente/projetos/cientifico/marketing/comercial/juridico. NÃO passe status=finalizado no INSERT (é a automação de mover etapa).',
+    {
+      task_table: z.enum(TABELAS_TASK),
+      tipo: z.string().min(1),
+      nome: z.string().min(1),
+      status: z.string().optional(),
+      descricao: z.string().optional(),
+      prioridade: z.enum(['baixa', 'media', 'alta', 'urgente']).optional(),
+      responsavel: z.string().email().optional(),
+      designer: z.string().email().optional(),
+      evento: z.string().optional(),
+      tipo_conteudo: z.string().optional(),
+      formato_conteudo: z.array(z.string()).optional(),
+      canais_publicacao: z.array(z.string()).optional(),
+      data_publicacao: z.string().optional(), // YYYY-MM-DD
+      data_inicio: z.string().optional(),
+      data_fim: z.string().optional(),
+      nome_contato: z.string().optional(),
+      whatsapp: z.string().optional(),
+      telefone: z.string().optional(),
+      email: z.string().optional(),
+    },
+    async (args: {
+      task_table: TabelaTask
+      tipo: string
+      nome: string
+      status?: string
+      descricao?: string
+      prioridade?: string
+      responsavel?: string
+      designer?: string
+      evento?: string
+      tipo_conteudo?: string
+      formato_conteudo?: string[]
+      canais_publicacao?: string[]
+      data_publicacao?: string
+      data_inicio?: string
+      data_fim?: string
+      nome_contato?: string
+      whatsapp?: string
+      telefone?: string
+      email?: string
+    }) => {
+      const meta = META_TABELA[args.task_table]
+      if (!meta.tipos.includes(args.tipo))
+        return texto(`tipo "${args.tipo}" inválido para ${args.task_table}. Use: ${meta.tipos.join(', ')}.`)
+      const statusValidos = STATUS_VALIDOS[args.task_table]
+      if (args.status && statusValidos && !statusValidos.includes(args.status))
+        return texto(`status "${args.status}" inválido para ${args.task_table}. Use: ${statusValidos.join(', ')}.`)
+
+      const supabase = createAdminClient()
+      const payload: Record<string, unknown> = { nome: args.nome, tipo: args.tipo }
+      if (args.status) payload.status = args.status
+      if (args.descricao) payload.descricao = args.descricao
+      // campos opcionais válidos para ESTA tabela (ignora os que não existem nela)
+      for (const col of meta.extras) {
+        const v = (args as Record<string, unknown>)[col]
+        if (v !== undefined) payload[col] = v
+      }
+      // relacionais (por nome de evento / por e-mail)
+      if (meta.evento && args.evento) {
+        const ev = await resolverEvento(supabase, args.evento)
+        if ('erro' in ev) return texto(ev.erro)
+        payload.evento_id = ev.id
+      }
+      if (meta.responsavel && args.responsavel) {
+        const id = await resolverResponsavel(supabase, args.responsavel)
+        if (!id) return texto(`Não achei um membro com o e-mail ${args.responsavel}.`)
+        payload.responsavel_id = id
+      }
+      if (meta.designer && args.designer) {
+        const id = await resolverResponsavel(supabase, args.designer)
+        if (!id) return texto(`Não achei um membro com o e-mail ${args.designer}.`)
+        payload.designer_id = id
+      }
+
+      const { data, error } = await supabase
+        .from(args.task_table)
+        .insert(payload)
+        .select('id, nome')
+        .single()
+      if (error) return texto(`Erro ao criar task: ${error.message}`)
+      return texto(`✅ Task "${data.nome}" criada em ${args.task_table} / List ${args.tipo} (id ${data.id}).`)
+    }
+  )
+
+  server.tool(
     'buscar_tasks',
-    'Procura tasks pelo nome em projeto, marketing e oportunidades. Use para achar o id de uma task antes de comentar, anexar ou mudar status.',
+    'Procura tasks pelo nome em projeto, marketing, oportunidades e processos. Use para achar o id de uma task antes de comentar, anexar ou mudar status.',
     { busca: z.string().min(1), limite: z.number().int().min(1).max(50).optional() },
     async (args: { busca: string; limite?: number }) => {
       const supabase = createAdminClient()
-      const tabelas: TabelaTask[] = ['task_projeto', 'task_marketing', 'task_oportunidade']
+      const tabelas: TabelaTask[] = ['task_projeto', 'task_marketing', 'task_oportunidade', 'task_processo']
       const achados = await Promise.all(
         tabelas.map(async (tabela) => {
           const { data } = await supabase
@@ -343,6 +463,81 @@ export function registrarTools(server: McpServer, getMembro: () => Membro) {
         .eq('id', args.task_id)
       if (error) return texto(`Erro ao atualizar status: ${error.message}`)
       return texto(`✅ Status atualizado para "${args.status}".`)
+    }
+  )
+
+  server.tool(
+    'atualizar_task',
+    'Edita os campos de uma task em QUALQUER List. Informe task_table + task_id e só os campos que quer mudar (nome, status, descricao, prioridade, datas, responsavel/designer por e-mail, e campos específicos da tabela). Campos que não existem na tabela são ignorados. Para trocar de List (mover etapa) use mover_task/atualizar_status_task.',
+    {
+      task_table: z.enum(TABELAS_TASK),
+      task_id: z.string().uuid(),
+      nome: z.string().min(1).optional(),
+      status: z.string().optional(),
+      descricao: z.string().optional(),
+      prioridade: z.enum(['baixa', 'media', 'alta', 'urgente']).optional(),
+      responsavel: z.string().email().optional(),
+      designer: z.string().email().optional(),
+      tipo_conteudo: z.string().optional(),
+      formato_conteudo: z.array(z.string()).optional(),
+      canais_publicacao: z.array(z.string()).optional(),
+      data_publicacao: z.string().optional(),
+      data_inicio: z.string().optional(),
+      data_fim: z.string().optional(),
+      nome_contato: z.string().optional(),
+      whatsapp: z.string().optional(),
+      telefone: z.string().optional(),
+      email: z.string().optional(),
+    },
+    async (args: {
+      task_table: TabelaTask
+      task_id: string
+      nome?: string
+      status?: string
+      descricao?: string
+      prioridade?: string
+      responsavel?: string
+      designer?: string
+      tipo_conteudo?: string
+      formato_conteudo?: string[]
+      canais_publicacao?: string[]
+      data_publicacao?: string
+      data_inicio?: string
+      data_fim?: string
+      nome_contato?: string
+      whatsapp?: string
+      telefone?: string
+      email?: string
+    }) => {
+      const validos = STATUS_VALIDOS[args.task_table]
+      if (args.status && validos && !validos.includes(args.status))
+        return texto(`status "${args.status}" inválido para ${args.task_table}. Use: ${validos.join(', ')}.`)
+
+      const meta = META_TABELA[args.task_table]
+      const supabase = createAdminClient()
+      const patch: Record<string, unknown> = {}
+      if (args.nome !== undefined) patch.nome = args.nome
+      if (args.status !== undefined) patch.status = args.status
+      if (args.descricao !== undefined) patch.descricao = args.descricao
+      for (const col of meta.extras) {
+        const v = (args as Record<string, unknown>)[col]
+        if (v !== undefined) patch[col] = v
+      }
+      if (meta.responsavel && args.responsavel) {
+        const id = await resolverResponsavel(supabase, args.responsavel)
+        if (!id) return texto(`Não achei um membro com o e-mail ${args.responsavel}.`)
+        patch.responsavel_id = id
+      }
+      if (meta.designer && args.designer) {
+        const id = await resolverResponsavel(supabase, args.designer)
+        if (!id) return texto(`Não achei um membro com o e-mail ${args.designer}.`)
+        patch.designer_id = id
+      }
+
+      if (Object.keys(patch).length === 0) return texto('Nada para atualizar — informe ao menos um campo.')
+      const { error } = await supabase.from(args.task_table).update(patch).eq('id', args.task_id)
+      if (error) return texto(`Erro ao atualizar task: ${error.message}`)
+      return texto(`✅ Task atualizada (${Object.keys(patch).join(', ')}).`)
     }
   )
 
