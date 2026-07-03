@@ -92,3 +92,39 @@ export async function resolveEvento(texto: string): Promise<EventoRef | null> {
 export function ehUuid(s: string): boolean {
   return UUID.test(s.trim())
 }
+
+export type ClienteRef = { id: string; nome: string }
+
+/** Resolve um cliente por id (uuid) ou por nome/razão social (parcial). */
+export async function resolveCliente(txt: string): Promise<ClienteRef | null> {
+  const a = admin()
+  const alvo = txt.trim()
+  if (UUID.test(alvo)) {
+    const { data } = await a.from('cliente').select('id, nome').eq('id', alvo).maybeSingle()
+    return (data as ClienteRef | null) ?? null
+  }
+  const { data } = await a
+    .from('cliente')
+    .select('id, nome')
+    .or(`nome.ilike.%${alvo}%,razao_social.ilike.%${alvo}%`)
+    .limit(1)
+  return (data?.[0] as ClienteRef | undefined) ?? null
+}
+
+export type FornecedorRef = { id: string; nome: string }
+
+/** Resolve um fornecedor por id (uuid) ou por nome (parcial). */
+export async function resolveFornecedor(txt: string): Promise<FornecedorRef | null> {
+  const a = admin()
+  const alvo = txt.trim()
+  if (UUID.test(alvo)) {
+    const { data } = await a.from('fornecedor').select('id, nome').eq('id', alvo).maybeSingle()
+    return (data as FornecedorRef | null) ?? null
+  }
+  const { data } = await a.from('fornecedor').select('id, nome').ilike('nome', `%${alvo}%`).limit(1)
+  return (data?.[0] as FornecedorRef | undefined) ?? null
+}
+
+// Annotations padrão (reaproveitadas pelas tools da Onda 2).
+export const ANOT_READ = { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false }
+export const ANOT_WRITE = { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false }
