@@ -125,10 +125,28 @@ export function McpConnect({
       </div>
 
       <div style={card}>
-        <h2 style={stepTitle}>Pronto — é só perguntar</h2>
-        <p style={muted}>
-          Pergunte, por exemplo: <em>&ldquo;quais as principais urgências desta semana?&rdquo;</em>{' '}
-          ou <em>&ldquo;cadastre o cliente X e crie uma task de pré-evento&rdquo;</em>.
+        <h2 style={stepTitle}>Pronto — o que você pode pedir</h2>
+        <p style={{ ...muted, marginBottom: 12 }}>
+          O assistente enxerga e age no sistema por você. Fale naturalmente — ele encontra a task,
+          o evento ou o cliente pelo nome. Alguns exemplos:
+        </p>
+        <ul style={{ margin: 0, paddingLeft: 18, display: 'flex', flexDirection: 'column', gap: 7 }}>
+          {[
+            '“Me dá o resumo do dia” · “Quais as urgências da semana?”',
+            '“Liste os eventos em execução” · “Detalhe do evento Summit Focus”',
+            '“Cadastre o cliente Acme” · “Liste meus clientes e fornecedores”',
+            '“Crie uma task de pré-evento para o Summit, prazo sexta, responsável Rafaela”',
+            '“Cole este POP na descrição da task” — com títulos e tabelas, vira texto formatado',
+            '“Adicione um checklist de montagem na task” · “Anexe este arquivo”',
+            '“Liste as oportunidades de tráfego pago” · “Coloque o evento X em execução”',
+          ].map((ex, i) => (
+            <li key={i} style={{ ...muted, fontSize: 'var(--fe-text-sm)' }}>{ex}</li>
+          ))}
+        </ul>
+        <p style={{ ...muted, marginTop: 12, fontSize: 'var(--fe-text-sm)' }}>
+          São <strong>28 ações</strong> hoje (consultar urgências e eventos, cadastrar clientes e
+          fornecedores, criar e mover tasks, comentar, anexar, checklists e mais) — e o assistente
+          nunca apaga nada.
         </p>
       </div>
     </div>
