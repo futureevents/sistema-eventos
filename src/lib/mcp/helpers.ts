@@ -1,0 +1,94 @@
+import { createAdminClient } from '@/lib/supabase/admin'
+
+/** Client admin (service_role) — a autorização já foi feita pelo token. */
+export const admin = () => createAdminClient()
+
+// ── Respostas padrão das tools ──────────────────────────────────────────────
+
+type ToolResult = {
+  content: { type: 'text'; text: string }[]
+  isError?: boolean
+}
+
+export function texto(s: string): ToolResult {
+  return { content: [{ type: 'text', text: s }] }
+}
+
+/** Erro acionável: a mensagem + uma dica de como resolver. */
+export function erro(msg: string, dica?: string): ToolResult {
+  return {
+    content: [{ type: 'text', text: dica ? `❌ ${msg}\n\n💡 ${dica}` : `❌ ${msg}` }],
+    isError: true,
+  }
+}
+
+/** Embrulha o handler de uma tool: qualquer exceção vira erro acionável. */
+export function tool<A>(fn: (args: A) => Promise<ToolResult>) {
+  return async (args: A): Promise<ToolResult> => {
+    try {
+      return await fn(args)
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e)
+      return erro(`Falha ao executar: ${msg}`, 'Tente de novo; se persistir, avise o suporte do sistema.')
+    }
+  }
+}
+
+// ── Datas ───────────────────────────────────────────────────────────────────
+
+/**
+ * Normaliza data para o formato do banco (timestamp sem fuso).
+ * "2026-07-10" (só dia) → "2026-07-10T00:00:00" (meia-noite = sem hora).
+ */
+export function normalizarData(s?: string | null): string | null {
+  if (!s) return null
+  const t = s.trim()
+  if (!t) return null
+  if (/^\d{4}-\d{2}-\d{2}$/.test(t)) return `${t}T00:00:00`
+  return t
+}
+
+/** Formata ISO para exibição em pt-BR; meia-noite mostra só o dia. */
+export function fmtData(iso?: string | null): string {
+  if (!iso) return '—'
+  const [data, resto = ''] = iso.split('T')
+  const p = data.split('-')
+  if (p.length !== 3) return iso
+  const dia = `${p[2]}/${p[1]}/${p[0]}`
+  const hora = resto.slice(0, 5)
+  return hora && hora !== '00:00' ? `${dia} ${hora}` : dia
+}
+
+// ── Resolvers ────────────────────────────────────────────────────────────────
+
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
+export type MembroRef = { id: string; nome: string; email: string }
+
+/** Resolve um membro por e-mail exato ou por nome (parcial). */
+export async function resolveMembro(texto: string): Promise<MembroRef | null> {
+  const a = admin()
+  const alvo = texto.trim()
+  const porEmail = await a.from('membros').select('id, nome, email').ilike('email', alvo).limit(1)
+  if (porEmail.data?.[0]) return porEmail.data[0] as MembroRef
+  const porNome = await a.from('membros').select('id, nome, email').ilike('nome', `%${alvo}%`).limit(1)
+  return (porNome.data?.[0] as MembroRef | undefined) ?? null
+}
+
+export type EventoRef = { id: string; nome: string; status: string }
+
+/** Resolve um evento por id (uuid) ou por nome (parcial). */
+export async function resolveEvento(texto: string): Promise<EventoRef | null> {
+  const a = admin()
+  const alvo = texto.trim()
+  if (UUID.test(alvo)) {
+    const { data } = await a.from('evento').select('id, nome, status').eq('id', alvo).maybeSingle()
+    return (data as EventoRef | null) ?? null
+  }
+  const { data } = await a.from('evento').select('id, nome, status').ilike('nome', `%${alvo}%`).limit(1)
+  return (data?.[0] as EventoRef | undefined) ?? null
+}
+
+export function ehUuid(s: string): boolean {
+  return UUID.test(s.trim())
+}
