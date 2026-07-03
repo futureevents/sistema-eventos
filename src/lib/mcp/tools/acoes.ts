@@ -1,8 +1,26 @@
 import { z } from 'zod'
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import type { Membro } from '../auth'
-import { admin, texto, erro, tool, normalizarData, fmtData, resolveEvento, resolveMembro } from '../helpers'
+import { admin, texto, erro, tool, normalizarData, resolveEvento, resolveMembro } from '../helpers'
 import { LISTS_VALIDAS, resolveList } from '../lists'
+import { markdownToHtml } from '@/lib/richtext'
+
+/**
+ * Campos rich text (descrição, comentário) são guardados como HTML e
+ * renderizados no app. O agente escreve em markdown (títulos, tabelas, listas)
+ * e aqui convertemos para o MESMO HTML que o editor gera ao colar markdown —
+ * assim POPs e textos longos aparecem com hierarquia de títulos, não crus.
+ */
+function richText(md?: string | null): string | undefined {
+  if (md == null) return undefined
+  const t = md.trim()
+  return t ? markdownToHtml(t) : undefined
+}
+
+/** Dica reutilizável para os campos de descrição em markdown. */
+const DICA_MD =
+  'Aceita markdown e vira rich text: use # / ## / ### para hierarquia de títulos, ' +
+  '| tabelas |, listas com - e 1., > citações e ``` código. Estruture POPs e textos longos com títulos.'
 
 const escreve = { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false }
 
@@ -22,13 +40,14 @@ export function registrarAcoes(server: McpServer, getMembro: () => Membro) {
         telefone: z.string().optional(),
         cidade: z.string().optional(),
         uf: z.string().optional(),
-        descricao: z.string().optional(),
+        descricao: z.string().optional().describe(`Notas sobre o cliente. ${DICA_MD}`),
       },
       annotations: escreve,
     },
     tool(async (args: Record<string, string | undefined>) => {
       const a = admin()
       const payload = Object.fromEntries(Object.entries(args).filter(([, v]) => v != null && v !== ''))
+      if (typeof payload.descricao === 'string') payload.descricao = markdownToHtml(payload.descricao)
       const { data, error } = await a.from('cliente').insert(payload).select('id, nome').single()
       if (error) return erro(`Não consegui cadastrar o cliente: ${error.message}`)
       return texto(`✅ Cliente **${data.nome}** cadastrado.\nid: ${data.id}`)
@@ -50,7 +69,7 @@ export function registrarAcoes(server: McpServer, getMembro: () => Membro) {
         data_realizacao_fim: z.string().optional().describe('Fim da realização.'),
         data_montagem: z.string().optional(),
         data_inicio_organizacao: z.string().optional(),
-        descricao: z.string().optional(),
+        descricao: z.string().optional().describe(`Briefing do evento. ${DICA_MD}`),
       },
       annotations: escreve,
     },
@@ -58,7 +77,8 @@ export function registrarAcoes(server: McpServer, getMembro: () => Membro) {
       const a = admin()
       const payload: Record<string, unknown> = { nome: args.nome }
       if (args.local) payload.local = args.local
-      if (args.descricao) payload.descricao = args.descricao
+      const descEvento = richText(args.descricao)
+      if (descEvento) payload.descricao = descEvento
       for (const campo of ['data_realizacao_inicio', 'data_realizacao_fim', 'data_montagem', 'data_inicio_organizacao']) {
         const v = normalizarData(args[campo])
         if (v) payload[campo] = v
@@ -123,7 +143,7 @@ export function registrarAcoes(server: McpServer, getMembro: () => Membro) {
         prioridade: z.enum(['baixa', 'media', 'alta', 'urgente']).optional().describe('Default: media.'),
         data_inicio: z.string().optional(),
         data_fim: z.string().optional().describe('Prazo.'),
-        descricao: z.string().optional(),
+        descricao: z.string().optional().describe(`Detalhes da task / POP. ${DICA_MD}`),
       },
       annotations: escreve,
     },
@@ -134,7 +154,8 @@ export function registrarAcoes(server: McpServer, getMembro: () => Membro) {
       const a = admin()
       const payload: Record<string, unknown> = { nome: args.nome, tipo: args.tipo }
       if (args.prioridade) payload.prioridade = args.prioridade
-      if (args.descricao) payload.descricao = args.descricao
+      const descTask = richText(args.descricao)
+      if (descTask) payload.descricao = descTask
       const di = normalizarData(args.data_inicio); if (di) payload.data_inicio = di
       const df = normalizarData(args.data_fim); if (df) payload.data_fim = df
       if (args.evento) {
@@ -191,7 +212,7 @@ export function registrarAcoes(server: McpServer, getMembro: () => Membro) {
       inputSchema: {
         list: z.enum(['projeto', 'marketing', 'oportunidade', 'processo']).describe('A List da task.'),
         id: z.string().describe('id (uuid) da task.'),
-        texto: z.string().min(1).describe('O comentário.'),
+        texto: z.string().min(1).describe(`O comentário. ${DICA_MD}`),
       },
       annotations: escreve,
     },
@@ -205,7 +226,7 @@ export function registrarAcoes(server: McpServer, getMembro: () => Membro) {
         task_id: id,
         task_table: l.table,
         author: autor,
-        body: corpo,
+        body: richText(corpo) ?? corpo,
       })
       if (error) return erro(`Não consegui comentar: ${error.message}`)
       return texto(`💬 Comentário adicionado por ${autor} na task ${id}.`)

@@ -1,8 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import MarkdownIt from 'markdown-it'
-import taskLists from 'markdown-it-task-lists'
+import { markdownToHtml } from '@/lib/richtext'
 
 export const RICHTEXT_CORES = ['var(--fe-text-strong)', 'var(--fe-prio-urgent)', 'var(--fe-prio-high)', 'var(--fe-status-done-text)', 'var(--fe-status-prog-text)', 'var(--fe-accent)', '#D6409F', 'var(--fe-text-muted)']
 
@@ -12,13 +11,10 @@ function normalize(s: string) {
   return s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
 }
 
-// ── Markdown completo via markdown-it (GFM: tabelas, código, citações, task lists…)
-const md = new MarkdownIt({ html: false, linkify: true, breaks: true })
-  .use(taskLists, { enabled: true, label: false })
-
-export function markdownToHtml(src: string): string {
-  return md.render(src || '')
-}
+// markdownToHtml (GFM: tabelas, código, citações, task lists) vive em
+// src/lib/richtext.ts — a MESMA conversão usada pelo servidor MCP. Reexporta
+// para os componentes que já a importam daqui (ex.: TaskComments).
+export { markdownToHtml }
 
 type SlashAction =
   | { kind: 'block'; tag: string }
