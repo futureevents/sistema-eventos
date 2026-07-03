@@ -26,10 +26,7 @@ export async function proxy(request: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser()
 
   const isAuthPage = request.nextUrl.pathname.startsWith('/login')
-  // O servidor MCP (/api/mcp) tem sua própria auth por token (Bearer) — não passa
-  // pelo login por cookie; precisa ficar fora do redirect do middleware.
-  const isMcp = request.nextUrl.pathname.startsWith('/api/mcp')
-  const isPublicPath = isAuthPage || isMcp || request.nextUrl.pathname === '/'
+  const isPublicPath = isAuthPage || request.nextUrl.pathname === '/'
 
   if (!user && !isPublicPath) {
     return NextResponse.redirect(new URL('/login', request.url))
