@@ -139,14 +139,16 @@ export function McpConnect({
             '“Cole este POP na descrição da task” — com títulos e tabelas, vira texto formatado',
             '“Adicione um checklist de montagem na task” · “Anexe este arquivo”',
             '“Liste as oportunidades de tráfego pago” · “Coloque o evento X em execução”',
+            '“Crie o processo de Entrada de cliente com este POP” · “Liste os processos ativos”',
+            '“Edite a descrição desta task” · “Apague o processo X” (ele confirma antes)',
           ].map((ex, i) => (
             <li key={i} style={{ ...muted, fontSize: 'var(--fe-text-sm)' }}>{ex}</li>
           ))}
         </ul>
         <p style={{ ...muted, marginTop: 12, fontSize: 'var(--fe-text-sm)' }}>
-          São <strong>28 ações</strong> hoje (consultar urgências e eventos, cadastrar clientes e
-          fornecedores, criar e mover tasks, comentar, anexar, checklists e mais) — e o assistente
-          nunca apaga nada.
+          São <strong>33 ações</strong> hoje (consultar urgências e eventos, cadastrar e atualizar
+          clientes e fornecedores, criar/editar/mover tasks e processos, comentar, anexar, checklists
+          e mais). As ações que apagam algo são sempre confirmadas antes — nada some sem você aprovar.
         </p>
       </div>
     </div>

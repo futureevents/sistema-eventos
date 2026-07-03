@@ -8,6 +8,8 @@ import { registrarCrmEquipe } from './tools/crm_equipe'
 import { registrarMarketing } from './tools/marketing'
 import { registrarEventos } from './tools/eventos'
 import { registrarAnatomia } from './tools/anatomia'
+import { registrarProcessos } from './tools/processos'
+import { registrarGenerico } from './tools/generico'
 
 /**
  * Registra TODAS as tools do MCP do Sistema Eventos.
@@ -24,4 +26,6 @@ export function registrarTools(server: McpServer, getMembro: () => Membro) {
   registrarMarketing(server)
   registrarEventos(server)
   registrarAnatomia(server)
+  registrarProcessos(server)
+  registrarGenerico(server)
 }

@@ -125,6 +125,31 @@ export async function resolveFornecedor(txt: string): Promise<FornecedorRef | nu
   return (data?.[0] as FornecedorRef | undefined) ?? null
 }
 
+export type TaskRef = { id: string; nome: string }
+
+/**
+ * Resolve uma task de QUALQUER List (tabela) por id (uuid) ou por nome (parcial).
+ * Devolve TODAS as que casam pelo nome — quem chama decide o que fazer com
+ * ambiguidade (ex.: apagar exige match único). Toda List tem coluna `nome`.
+ */
+export async function resolveTasks(table: string, txt: string): Promise<TaskRef[]> {
+  const a = admin()
+  const alvo = txt.trim()
+  if (UUID.test(alvo)) {
+    const { data } = await a.from(table).select('id, nome').eq('id', alvo).maybeSingle()
+    return data ? [data as TaskRef] : []
+  }
+  const { data } = await a
+    .from(table)
+    .select('id, nome')
+    .ilike('nome', `%${alvo}%`)
+    .order('nome', { ascending: true })
+    .limit(10)
+  return (data as TaskRef[] | null) ?? []
+}
+
 // Annotations padrão (reaproveitadas pelas tools da Onda 2).
 export const ANOT_READ = { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false }
 export const ANOT_WRITE = { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false }
+/** Ações que apagam dados de verdade — o cliente MCP deve pedir confirmação. */
+export const ANOT_DESTRUCTIVE = { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false }

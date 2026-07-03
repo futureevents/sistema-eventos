@@ -65,6 +65,42 @@ export function registrarFornecedores(server: McpServer) {
     })
   )
 
+  // ── atualizar_fornecedor ──────────────────────────────────────────────────
+  server.registerTool(
+    'atualizar_fornecedor',
+    {
+      title: 'Atualizar fornecedor',
+      description: 'Altera campos de um fornecedor existente. Só os campos informados são alterados. Aceita id ou nome.',
+      inputSchema: {
+        fornecedor: z.string().describe('id ou nome do fornecedor a atualizar.'),
+        nome: z.string().optional(),
+        responsavel: z.string().optional().describe('Nome do contato no fornecedor.'),
+        categorias: z.array(z.string()).optional().describe('Substitui a lista de categorias.'),
+        whatsapp: z.string().optional(),
+        telefone: z.string().optional(),
+        email: z.string().optional(),
+        cnpj_cpf: z.string().optional(),
+        cidade_sede: z.string().optional(),
+        abrangencia: z.string().optional(),
+        descricao: z.string().optional().describe('Aceita markdown (vira rich text).'),
+      },
+      annotations: { ...ANOT_WRITE, idempotentHint: true },
+    },
+    tool(async ({ fornecedor, ...campos }: Record<string, unknown>) => {
+      const ref = await resolveFornecedor(fornecedor as string)
+      if (!ref) return erro(`Não encontrei o fornecedor "${fornecedor}".`, 'Use `listar_fornecedores` para conferir.')
+      const payload = Object.fromEntries(
+        Object.entries(campos).filter(([, v]) => v != null && v !== '' && !(Array.isArray(v) && v.length === 0))
+      )
+      if (Object.keys(payload).length === 0) return erro('Nada para atualizar.', 'Informe ao menos um campo.')
+      if (typeof payload.descricao === 'string') payload.descricao = markdownToHtml(payload.descricao)
+      const a = admin()
+      const { error } = await a.from('fornecedor').update(payload).eq('id', ref.id)
+      if (error) return erro(`Não consegui atualizar o fornecedor: ${error.message}`)
+      return texto(`✅ Fornecedor **${ref.nome}** atualizado (${Object.keys(payload).join(', ')}).`)
+    })
+  )
+
   // ── vincular_fornecedor_evento ────────────────────────────────────────────
   server.registerTool(
     'vincular_fornecedor_evento',
