@@ -65,7 +65,10 @@ export function McpConnect({
     )
   }
 
-  const command = `claude mcp add --transport http sistema-eventos ${url} --header "Authorization: Bearer ${token}"`
+  // Idempotente de propósito: remove uma conexão anterior de mesmo nome (se
+  // houver) antes de adicionar. Assim dá para colar de novo a qualquer momento
+  // para reconectar, sem o erro "already exists".
+  const command = `claude mcp remove sistema-eventos 2>/dev/null; claude mcp add --transport http sistema-eventos ${url} --header "Authorization: Bearer ${token}"`
   const connectorUrl = `${url}?token=${token}`
 
   const codeBox: React.CSSProperties = {
@@ -116,7 +119,8 @@ export function McpConnect({
           >
             docs.claude.com/claude-code
           </a>
-          ). Cole este comando no terminal:
+          ). Cole este comando no terminal — pode rodar de novo sempre que quiser
+          reconectar, que não dá erro:
         </p>
         <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
           <code style={codeBox}>{command}</code>
