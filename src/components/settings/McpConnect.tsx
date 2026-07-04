@@ -141,14 +141,16 @@ export function McpConnect({
             '“Liste as oportunidades de tráfego pago” · “Coloque o evento X em execução”',
             '“Crie o processo de Entrada de cliente com este POP” · “Liste os processos ativos”',
             '“Edite a descrição desta task” · “Apague o processo X” (ele confirma antes)',
+            '“Quais modelos de pré-evento existem?” · “Gere o pré-evento todo para o Summit a partir dos modelos”',
           ].map((ex, i) => (
             <li key={i} style={{ ...muted, fontSize: 'var(--fe-text-sm)' }}>{ex}</li>
           ))}
         </ul>
         <p style={{ ...muted, marginTop: 12, fontSize: 'var(--fe-text-sm)' }}>
-          São <strong>33 ações</strong> hoje (consultar urgências e eventos, cadastrar e atualizar
-          clientes e fornecedores, criar/editar/mover tasks e processos, comentar, anexar, checklists
-          e mais). As ações que apagam algo são sempre confirmadas antes — nada some sem você aprovar.
+          São <strong>35 ações</strong> hoje (consultar urgências e eventos, cadastrar e atualizar
+          clientes e fornecedores, criar/editar/mover tasks e processos, gerar tasks a partir dos
+          modelos do playbook, comentar, anexar, checklists e mais). As ações que apagam algo são
+          sempre confirmadas antes — nada some sem você aprovar.
         </p>
       </div>
     </div>
