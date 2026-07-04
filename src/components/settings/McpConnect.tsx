@@ -65,10 +65,11 @@ export function McpConnect({
     )
   }
 
-  // Idempotente de propósito: remove uma conexão anterior de mesmo nome (se
-  // houver) antes de adicionar. Assim dá para colar de novo a qualquer momento
-  // para reconectar, sem o erro "already exists".
-  const command = `claude mcp remove sistema-eventos 2>/dev/null; claude mcp add --transport http sistema-eventos ${url} --header "Authorization: Bearer ${token}"`
+  // O servidor já vem configurado no projeto (.mcp.json, compartilhado no repo).
+  // Cada pessoa só precisa salvar o próprio token numa variável de ambiente —
+  // o .mcp.json a expande. Sem `claude mcp add`, sem erro de "já existe", e o
+  // enableAllProjectMcpServers aprova sozinho (nada de "pending approval").
+  const command = `echo 'export SISTEMA_EVENTOS_TOKEN="${token}"' >> ~/.zshrc && source ~/.zshrc`
   const connectorUrl = `${url}?token=${token}`
 
   const codeBox: React.CSSProperties = {
@@ -119,8 +120,9 @@ export function McpConnect({
           >
             docs.claude.com/claude-code
           </a>
-          ). Cole este comando no terminal — pode rodar de novo sempre que quiser
-          reconectar, que não dá erro:
+          ). O servidor já vem configurado no projeto — você só salva o seu token
+          uma vez com este comando. Depois abra o <code style={{ fontFamily: 'var(--font-geist-mono, monospace)', fontSize: 12 }}>claude</code> na
+          pasta do projeto e ele conecta sozinho, sem pedir aprovação:
         </p>
         <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
           <code style={codeBox}>{command}</code>
