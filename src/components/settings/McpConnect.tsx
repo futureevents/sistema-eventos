@@ -142,15 +142,18 @@ export function McpConnect({
             '“Crie o processo de Entrada de cliente com este POP” · “Liste os processos ativos”',
             '“Edite a descrição desta task” · “Apague o processo X” (ele confirma antes)',
             '“Quais modelos de pré-evento existem?” · “Gere o pré-evento todo para o Summit a partir dos modelos”',
+            '“Mude a prioridade dessa task para Alta” · “Ponha os canais Instagram e WhatsApp” (qualquer campo)',
+            '“Crie uma task pelo template Post em Processo de copy” — já vem com o briefing pronto',
           ].map((ex, i) => (
             <li key={i} style={{ ...muted, fontSize: 'var(--fe-text-sm)' }}>{ex}</li>
           ))}
         </ul>
         <p style={{ ...muted, marginTop: 12, fontSize: 'var(--fe-text-sm)' }}>
-          São <strong>35 ações</strong> hoje (consultar urgências e eventos, cadastrar e atualizar
-          clientes e fornecedores, criar/editar/mover tasks e processos, gerar tasks a partir dos
-          modelos do playbook, comentar, anexar, checklists e mais). As ações que apagam algo são
-          sempre confirmadas antes — nada some sem você aprovar.
+          São <strong>39 ações</strong> hoje (consultar urgências e eventos, cadastrar e atualizar
+          clientes e fornecedores, criar/editar/mover tasks e processos, alterar qualquer campo
+          personalizado, gerar tasks a partir dos modelos do playbook ou dos templates da List,
+          comentar, anexar, checklists e mais). As ações que apagam algo são sempre confirmadas
+          antes — nada some sem você aprovar.
         </p>
       </div>
     </div>

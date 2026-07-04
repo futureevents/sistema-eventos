@@ -11,6 +11,8 @@ import { registrarAnatomia } from './tools/anatomia'
 import { registrarProcessos } from './tools/processos'
 import { registrarGenerico } from './tools/generico'
 import { registrarModelos } from './tools/modelos'
+import { registrarCampos } from './tools/campos'
+import { registrarTemplates } from './tools/templates'
 
 /**
  * Registra TODAS as tools do MCP do Sistema Eventos.
@@ -30,4 +32,6 @@ export function registrarTools(server: McpServer, getMembro: () => Membro) {
   registrarProcessos(server)
   registrarGenerico(server)
   registrarModelos(server)
+  registrarCampos(server)
+  registrarTemplates(server)
 }
