@@ -65,7 +65,11 @@ export function McpConnect({
     )
   }
 
-  const command = `claude mcp add --transport http sistema-eventos ${url} --header "Authorization: Bearer ${token}"`
+  // O servidor já vem configurado no projeto (.mcp.json, compartilhado no repo).
+  // Cada pessoa só precisa salvar o próprio token numa variável de ambiente —
+  // o .mcp.json a expande. Sem `claude mcp add`, sem erro de "já existe", e o
+  // enableAllProjectMcpServers aprova sozinho (nada de "pending approval").
+  const command = `echo 'export SISTEMA_EVENTOS_TOKEN="${token}"' >> ~/.zshrc && source ~/.zshrc`
   const connectorUrl = `${url}?token=${token}`
 
   const codeBox: React.CSSProperties = {
@@ -116,7 +120,9 @@ export function McpConnect({
           >
             docs.claude.com/claude-code
           </a>
-          ). Cole este comando no terminal:
+          ). O servidor já vem configurado no projeto — você só salva o seu token
+          uma vez com este comando. Depois abra o <code style={{ fontFamily: 'var(--font-geist-mono, monospace)', fontSize: 12 }}>claude</code> na
+          pasta do projeto e ele conecta sozinho, sem pedir aprovação:
         </p>
         <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
           <code style={codeBox}>{command}</code>
@@ -125,10 +131,35 @@ export function McpConnect({
       </div>
 
       <div style={card}>
-        <h2 style={stepTitle}>Pronto — é só perguntar</h2>
-        <p style={muted}>
-          Pergunte, por exemplo: <em>&ldquo;quais as principais urgências desta semana?&rdquo;</em>{' '}
-          ou <em>&ldquo;cadastre o cliente X e crie uma task de pré-evento&rdquo;</em>.
+        <h2 style={stepTitle}>Pronto — o que você pode pedir</h2>
+        <p style={{ ...muted, marginBottom: 12 }}>
+          O assistente enxerga e age no sistema por você. Fale naturalmente — ele encontra a task,
+          o evento ou o cliente pelo nome. Alguns exemplos:
+        </p>
+        <ul style={{ margin: 0, paddingLeft: 18, display: 'flex', flexDirection: 'column', gap: 7 }}>
+          {[
+            '“Me dá o resumo do dia” · “Quais as urgências da semana?”',
+            '“Liste os eventos em execução” · “Detalhe do evento Summit Focus”',
+            '“Cadastre o cliente Acme” · “Liste meus clientes e fornecedores”',
+            '“Crie uma task de pré-evento para o Summit, prazo sexta, responsável Rafaela”',
+            '“Cole este POP na descrição da task” — com títulos e tabelas, vira texto formatado',
+            '“Adicione um checklist de montagem na task” · “Anexe este arquivo”',
+            '“Liste as oportunidades de tráfego pago” · “Coloque o evento X em execução”',
+            '“Crie o processo de Entrada de cliente com este POP” · “Liste os processos ativos”',
+            '“Edite a descrição desta task” · “Apague o processo X” (ele confirma antes)',
+            '“Quais modelos de pré-evento existem?” · “Gere o pré-evento todo para o Summit a partir dos modelos”',
+            '“Mude a prioridade dessa task para Alta” · “Ponha os canais Instagram e WhatsApp” (qualquer campo)',
+            '“Crie uma task pelo template Post em Processo de copy” — já vem com o briefing pronto',
+          ].map((ex, i) => (
+            <li key={i} style={{ ...muted, fontSize: 'var(--fe-text-sm)' }}>{ex}</li>
+          ))}
+        </ul>
+        <p style={{ ...muted, marginTop: 12, fontSize: 'var(--fe-text-sm)' }}>
+          São <strong>39 ações</strong> hoje (consultar urgências e eventos, cadastrar e atualizar
+          clientes e fornecedores, criar/editar/mover tasks e processos, alterar qualquer campo
+          personalizado, gerar tasks a partir dos modelos do playbook ou dos templates da List,
+          comentar, anexar, checklists e mais). As ações que apagam algo são sempre confirmadas
+          antes — nada some sem você aprovar.
         </p>
       </div>
     </div>

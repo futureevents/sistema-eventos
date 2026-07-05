@@ -21,7 +21,7 @@ export function AppShell({ children, nav }: { children: React.ReactNode; nav?: N
   useEffect(() => { setMobileOpen(false) }, [pathname]) // eslint-disable-line react-hooks/set-state-in-effect
 
   return (
-    <div style={{ display: 'flex', height: '100vh', overflow: 'hidden', background: 'var(--fe-surface)' }}>
+    <div className="fe-vh-full" style={{ display: 'flex', height: '100vh', overflow: 'hidden', background: 'var(--fe-surface)' }}>
       <Sidebar nav={nav} mobileOpen={mobileOpen} onClose={() => setMobileOpen(false)} collapsed={collapsed} onToggleCollapse={() => setCollapsed(c => !c)} />
       {mobileOpen && <div className="fe-sidebar-backdrop" onClick={() => setMobileOpen(false)} />}
 

@@ -66,7 +66,7 @@ export const SETTINGS_SECTIONS: SettingsSection[] = [
     slug: 'mcp',
     href: '/configuracoes/mcp',
     label: 'Assistente (Claude Code)',
-    summary: 'Conecte o Claude Code ao sistema e converse com o assistente de IA.',
+    summary: 'Conecte o Claude Code ou o app do Claude e converse com o assistente de IA.',
     group: 'Sistema',
     icon: 'terminal',
     planned: [],

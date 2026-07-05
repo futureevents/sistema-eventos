@@ -6,8 +6,8 @@ import { createClient } from '@supabase/supabase-js'
  * Use SOMENTE no servidor (Route Handlers / código server-side). NUNCA importe
  * isto em componentes de cliente: a service role dá acesso total ao banco.
  *
- * O MCP usa este client porque a autorização passa a ser o token pessoal do
- * membro (ver src/lib/mcp/auth.ts), não o cookie de sessão do Supabase.
+ * Usado pelo sistema de permissões (src/lib/permissions) para ler/gravar
+ * ignorando o RLS quando a autorização já foi resolvida na camada da aplicação.
  */
 export function createAdminClient() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL
