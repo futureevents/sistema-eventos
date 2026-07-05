@@ -259,7 +259,7 @@ export function registrarLeitura(server: McpServer, getMembro: () => Membro) {
         a.from('task_comment').select('author, body, criado_em').eq('task_table', l.table).eq('task_id', id).order('criado_em'),
         a.from('task_checklist').select('id, title').eq('task_table', l.table).eq('task_id', id),
         a.from('task_activity').select('actor, type, criado_em').eq('task_table', l.table).eq('task_id', id).order('criado_em', { ascending: false }).limit(10),
-        a.from('task_attachment').select('name, mime_type').eq('task_table', l.table).eq('task_id', id),
+        a.from('task_attachment').select('id, name, mime_type, criado_em').eq('task_table', l.table).eq('task_id', id).order('criado_em', { ascending: false }),
       ])
       const t = row.data as Record<string, unknown> | null
       if (!t) return erro(`Task ${id} não encontrada em ${l.label}.`)
@@ -292,8 +292,8 @@ export function registrarLeitura(server: McpServer, getMembro: () => Membro) {
           .join('\n')
       }
 
-      const anexoLinhas = (anexos.data as { name: string; mime_type: string }[] | null ?? [])
-        .map((x) => `  - ${x.name}`)
+      const anexoLinhas = (anexos.data as { id: string; name: string; mime_type: string; criado_em: string }[] | null ?? [])
+        .map((x) => `  - ${x.name} (${fmtData(x.criado_em)}) — id: ${x.id}`)
         .join('\n') || '  (sem anexos)'
       const ativLinhas = (ativ.data as { actor: string; type: string; criado_em: string }[] | null ?? [])
         .map((x) => `  - ${fmtData(x.criado_em)}: ${x.type} (${x.actor})`)

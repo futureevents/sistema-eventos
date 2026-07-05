@@ -1,6 +1,6 @@
 import { z } from 'zod'
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
-import { admin, texto, erro, tool, normalizarData, resolveMembro, ANOT_WRITE } from '../helpers'
+import { admin, texto, erro, tool, normalizarData, resolveMembro, ANOT_WRITE, ANOT_DESTRUCTIVE } from '../helpers'
 import { LISTS_VALIDAS, resolveList } from '../lists'
 
 const LIST_ENUM = z.enum(['projeto', 'marketing', 'oportunidade', 'processo'])
@@ -211,6 +211,78 @@ export function registrarAnatomia(server: McpServer) {
       })
       if (error) return erro(`O arquivo subiu, mas não registrei o anexo: ${error.message}`)
       return texto(`📎 Anexo **${nome}** (${(size / 1024).toFixed(0)} KB) adicionado à task ${id}.`)
+    })
+  )
+
+  // ── apagar_anexo ──────────────────────────────────────────────────────────
+  server.registerTool(
+    'apagar_anexo',
+    {
+      title: 'Apagar anexo da task',
+      description:
+        'Apaga permanentemente um anexo de uma task (remove o registro E o arquivo do armazenamento). ' +
+        'Identifique o anexo pelo `anexo` — pode ser o id (uuid) do anexo (mais seguro) ou o nome do arquivo. ' +
+        'Se o nome casar com mais de um anexo (ex.: duas versões de kickoff_slide_01.png), nada é apagado e os ' +
+        'candidatos são listados com id e data. Nesse caso, passe `manter_mais_recente: true` para apagar as ' +
+        'versões antigas e ficar só com a última, ou repita informando o id exato. Ação irreversível.',
+      inputSchema: {
+        list: LIST_ENUM.describe('A List da task.'),
+        id: z.string().describe('id (uuid) da task.'),
+        anexo: z.string().describe('id (uuid) do anexo (mais seguro) ou nome do arquivo (ex.: kickoff_slide_01.png).'),
+        manter_mais_recente: z.boolean().optional().describe('Se o nome casar com vários, apaga os antigos e mantém só o mais recente.'),
+      },
+      annotations: ANOT_DESTRUCTIVE,
+    },
+    tool(async ({ list, id, anexo, manter_mais_recente }: {
+      list: string; id: string; anexo: string; manter_mais_recente?: boolean
+    }) => {
+      const l = resolveList(list)
+      if (!l) return erro(`List inválida: "${list}".`, `Use uma de: ${LISTS_VALIDAS.join(', ')}.`)
+
+      const a = admin()
+      const { data: anexos, error: listErr } = await a
+        .from('task_attachment')
+        .select('id, name, storage_path, criado_em')
+        .eq('task_table', l.table)
+        .eq('task_id', id)
+        .order('criado_em', { ascending: false })
+      if (listErr) return erro(`Não consegui listar os anexos: ${listErr.message}`)
+
+      type Anexo = { id: string; name: string; storage_path: string; criado_em: string }
+      const todos = (anexos as Anexo[] | null) ?? []
+      if (todos.length === 0) return erro(`A task ${id} não tem anexos.`)
+
+      // Casa por id do anexo (exato) ou por nome (todos com o mesmo nome, já ordenados do mais novo ao mais antigo).
+      const porId = todos.find((x) => x.id === anexo)
+      let alvos: Anexo[] = porId ? [porId] : todos.filter((x) => x.name === anexo)
+
+      if (alvos.length === 0) {
+        const linhas = todos.map((x) => `• ${x.name} — id: ${x.id}`)
+        return erro(
+          `Não encontrei o anexo "${anexo}" na task ${id}.`,
+          `Anexos existentes:\n${linhas.join('\n')}`
+        )
+      }
+
+      if (alvos.length > 1) {
+        if (manter_mais_recente) {
+          alvos = alvos.slice(1) // todos já vêm do mais novo ao mais antigo → tira o mais novo, apaga o resto
+        } else {
+          const linhas = alvos.map((x) => `• ${x.name} — id: ${x.id} — enviado em ${x.criado_em}`)
+          return erro(
+            `"${anexo}" casou com ${alvos.length} anexos na task ${id} — não apaguei nada por segurança.`,
+            `Repita com \`manter_mais_recente: true\` para ficar só com o mais recente, ou informe o id exato:\n${linhas.join('\n')}`
+          )
+        }
+      }
+
+      const { error: rmErr } = await a.storage.from(BUCKET).remove(alvos.map((x) => x.storage_path))
+      if (rmErr) return erro(`Não consegui remover o arquivo do armazenamento: ${rmErr.message}`)
+      const { error: delErr } = await a.from('task_attachment').delete().in('id', alvos.map((x) => x.id))
+      if (delErr) return erro(`Removi o arquivo, mas falhei ao apagar o registro: ${delErr.message}`)
+
+      const nomes = alvos.map((x) => x.name).join(', ')
+      return texto(`🗑️ ${alvos.length} anexo(s) apagado(s) da task ${id}: **${nomes}**.`)
     })
   )
 
