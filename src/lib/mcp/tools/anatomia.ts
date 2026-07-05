@@ -6,6 +6,14 @@ import { LISTS_VALIDAS, resolveList } from '../lists'
 const LIST_ENUM = z.enum(['projeto', 'marketing', 'oportunidade', 'processo'])
 const BUCKET = 'task-attachments'
 
+/** MIME por extensão — usado para inferir o content-type de anexos locais. */
+const MIME_POR_EXT: Record<string, string> = {
+  png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg', webp: 'image/webp',
+  gif: 'image/gif', svg: 'image/svg+xml', heic: 'image/heic',
+  pdf: 'application/pdf', mp4: 'video/mp4', mov: 'video/quicktime',
+  csv: 'text/csv', txt: 'text/plain', zip: 'application/zip',
+}
+
 export function registrarAnatomia(server: McpServer) {
   // ── atribuir_responsavel ──────────────────────────────────────────────────
   server.registerTool(
@@ -71,7 +79,9 @@ export function registrarAnatomia(server: McpServer) {
     {
       title: 'Anexar arquivo em task',
       description:
-        'Anexa um arquivo a uma task de qualquer List. Passe `url` (o arquivo é baixado) OU `conteudo_base64`. O anexo aparece na tela da task.',
+        'Anexa um arquivo a uma task de qualquer List. Passe `url` (o arquivo é baixado) OU `conteudo_base64`. ' +
+        'IMPORTANTE: `conteudo_base64` só serve para arquivos PEQUENOS (< ~3 MB) — acima disso o upload é cortado no meio do caminho. ' +
+        'Para arquivos locais maiores (PNG/JPG em alta, PDF pesado), use `preparar_anexo` + `confirmar_anexo`, que sobem o arquivo direto ao armazenamento sem esse limite.',
       inputSchema: {
         list: LIST_ENUM.describe('A List da task.'),
         id: z.string().describe('id (uuid) da task.'),
@@ -110,6 +120,97 @@ export function registrarAnatomia(server: McpServer) {
       })
       if (error) return erro(`Arquivo subiu, mas não registrei o anexo: ${error.message}`)
       return texto(`📎 Anexo **${nome}** (${(buffer.length / 1024).toFixed(0)} KB) adicionado à task ${id}.`)
+    })
+  )
+
+  // ── preparar_anexo ────────────────────────────────────────────────────────
+  server.registerTool(
+    'preparar_anexo',
+    {
+      title: 'Preparar anexo (arquivo local grande)',
+      description:
+        'Passo 1 de 2 para anexar um arquivo LOCAL grande (PNG/JPG em alta, PDF pesado) sem o limite de tamanho do base64. ' +
+        'Gera uma URL de upload assinada e o comando `curl` pronto. Depois de rodar o `curl`, chame `confirmar_anexo` com o `storage_path` retornado aqui.',
+      inputSchema: {
+        list: LIST_ENUM.describe('A List da task.'),
+        id: z.string().describe('id (uuid) da task.'),
+        nome: z.string().describe('Nome do arquivo com extensão (ex.: arte-final.png).'),
+        caminho_local: z.string().optional().describe('Caminho do arquivo na máquina (ex.: /Users/voce/arte.png), só para montar o comando curl.'),
+        mime: z.string().optional().describe('Tipo MIME (ex.: image/png). Inferido da extensão se ausente.'),
+      },
+      annotations: ANOT_WRITE,
+    },
+    tool(async ({ list, id, nome, caminho_local, mime }: {
+      list: string; id: string; nome: string; caminho_local?: string; mime?: string
+    }) => {
+      const l = resolveList(list)
+      if (!l) return erro(`List inválida: "${list}".`, `Use uma de: ${LISTS_VALIDAS.join(', ')}.`)
+
+      const ext = nome.includes('.') ? nome.split('.').pop()!.toLowerCase() : ''
+      const mimeType = mime ?? MIME_POR_EXT[ext] ?? 'application/octet-stream'
+      const path = `${l.table}/${id}/${crypto.randomUUID()}${ext ? '.' + ext : ''}`
+
+      const a = admin()
+      const { data, error } = await a.storage.from(BUCKET).createSignedUploadUrl(path)
+      if (error) return erro(`Não consegui preparar o upload: ${error.message}`)
+
+      const base = process.env.NEXT_PUBLIC_SUPABASE_URL ?? ''
+      const uploadUrl = data.signedUrl.startsWith('http') ? data.signedUrl : `${base}${data.signedUrl}`
+      const arquivo = caminho_local ?? `/caminho/para/${nome}`
+
+      return texto(
+        `📤 **Upload preparado.** Faça os 2 passos abaixo:\n\n` +
+        `**1) Suba o arquivo** (roda na máquina, sem limite de tamanho):\n` +
+        '```bash\n' +
+        `curl -X PUT -H "content-type: ${mimeType}" --data-binary @"${arquivo}" \\\n  "${uploadUrl}"\n` +
+        '```\n\n' +
+        `**2) Registre o anexo no card** chamando \`confirmar_anexo\` com:\n` +
+        `- list: \`${list}\`\n- id: \`${id}\`\n- nome: \`${nome}\`\n- storage_path: \`${path}\`\n- mime: \`${mimeType}\``
+      )
+    })
+  )
+
+  // ── confirmar_anexo ───────────────────────────────────────────────────────
+  server.registerTool(
+    'confirmar_anexo',
+    {
+      title: 'Confirmar anexo (arquivo local grande)',
+      description:
+        'Passo 2 de 2: depois de rodar o `curl` do `preparar_anexo`, registra o arquivo já enviado como anexo da task. ' +
+        'Confere se os bytes chegaram ao armazenamento antes de registrar.',
+      inputSchema: {
+        list: LIST_ENUM.describe('A List da task.'),
+        id: z.string().describe('id (uuid) da task.'),
+        nome: z.string().describe('Nome do arquivo (o mesmo do preparar_anexo).'),
+        storage_path: z.string().describe('storage_path devolvido pelo preparar_anexo.'),
+        mime: z.string().optional().describe('Tipo MIME (o mesmo do preparar_anexo).'),
+      },
+      annotations: ANOT_WRITE,
+    },
+    tool(async ({ list, id, nome, storage_path, mime }: {
+      list: string; id: string; nome: string; storage_path: string; mime?: string
+    }) => {
+      const l = resolveList(list)
+      if (!l) return erro(`List inválida: "${list}".`, `Use uma de: ${LISTS_VALIDAS.join(', ')}.`)
+
+      // Confere que o objeto realmente subiu e pega o tamanho real.
+      const barra = storage_path.lastIndexOf('/')
+      const dir = barra >= 0 ? storage_path.slice(0, barra) : ''
+      const file = barra >= 0 ? storage_path.slice(barra + 1) : storage_path
+      const a = admin()
+      const { data: objs, error: listErr } = await a.storage.from(BUCKET).list(dir, { search: file })
+      if (listErr) return erro(`Não consegui verificar o upload: ${listErr.message}`)
+      const obj = objs?.find((o) => o.name === file)
+      if (!obj) return erro('O arquivo ainda não chegou ao armazenamento.', 'Rode o comando `curl` do preparar_anexo e tente de novo.')
+
+      const size = (obj.metadata?.size as number | undefined) ?? 0
+      const mimeType = mime ?? (obj.metadata?.mimetype as string | undefined) ?? MIME_POR_EXT[storage_path.split('.').pop()?.toLowerCase() ?? ''] ?? 'application/octet-stream'
+
+      const { error } = await a.from('task_attachment').insert({
+        task_id: id, task_table: l.table, name: nome, size, mime_type: mimeType, storage_path,
+      })
+      if (error) return erro(`O arquivo subiu, mas não registrei o anexo: ${error.message}`)
+      return texto(`📎 Anexo **${nome}** (${(size / 1024).toFixed(0)} KB) adicionado à task ${id}.`)
     })
   )
 
