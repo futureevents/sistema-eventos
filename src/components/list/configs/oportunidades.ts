@@ -30,6 +30,7 @@ const STATUS_TRAFEGO: SelectOption[] = [
 // Mesmo funil do Tráfego Pago; único delta: 'lead' → 'a_prospectar'.
 const STATUS_PROSPECCAO: SelectOption[] = [
   { value: 'a_prospectar',       label: 'A prospectar',          dot: 'var(--fe-status-todo)', bg: 'var(--fe-status-todo-tint)', text: 'var(--fe-status-todo-text)' },
+  { value: 'aprovado',           label: 'Aprovado',              dot: '#2E9E62', bg: 'rgba(46,158,98,0.14)',  text: '#207A49' },
   { value: 'qualificacao',       label: 'Qualificação',          dot: '#E8A23D', bg: 'rgba(232,162,61,0.16)', text: '#8A5D11' },
   { value: 'reuniao_agendada',   label: 'Reunião agendada',      dot: '#D5680B', bg: 'rgba(213,104,11,0.14)', text: '#9A4E0A' },
   { value: 'reuniao_realizada',  label: 'Reunião realizada',     dot: '#2E9E62', bg: 'rgba(46,158,98,0.14)',  text: '#207A49' },
