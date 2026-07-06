@@ -960,6 +960,8 @@ function SlideOver({ row, config, options, patch, remove, onFechar, caps = CAPS_
   const statusField = config.statusField ? config.fields.find((f) => f.key === config.statusField) : null
   const allPanelFields = config.fields.filter((f) => (f.inPanel ?? (!f.column?.primary && f.type !== 'richtext')) && f.key !== config.titleField && f.key !== config.descriptionField && f.key !== config.statusField)
   const descField = config.descriptionField ? config.fields.find((f) => f.key === config.descriptionField) : null
+  // Bloco dedicado "Briefing do lead" — só nas Lists que declaram o campo (prospecção ativa).
+  const briefingField = config.fields.find((f) => f.key === 'briefing_lead') ?? null
 
   const { hidden, toggle: toggleField, reset: showAllFields } = useHiddenFields(config.table)
   const [hoveredField, setHoveredField] = useState<string | null>(null)
@@ -979,6 +981,8 @@ function SlideOver({ row, config, options, patch, remove, onFechar, caps = CAPS_
   }
   const descTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   function onDesc(html: string) { if (descTimer.current) clearTimeout(descTimer.current); descTimer.current = setTimeout(() => patch(row.id, { [config.descriptionField!]: html }), 600) }
+  const briefingTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  function onBriefing(html: string) { if (briefingTimer.current) clearTimeout(briefingTimer.current); briefingTimer.current = setTimeout(() => patch(row.id, { briefing_lead: html }), 600) }
 
   const doneOpt = statusField?.options?.find((o) => o.done)
   const openOpt = statusField?.options?.find((o) => !o.done)
@@ -1070,11 +1074,30 @@ function SlideOver({ row, config, options, patch, remove, onFechar, caps = CAPS_
             </div>
           )}
 
+          {briefingField && (
+            <div style={{ marginBottom: 30 }}>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 'var(--fe-text-base)', color: 'var(--fe-text-muted)', marginBottom: 10 }}>
+                <svg width="15" height="15" viewBox="0 0 14 14" fill="none"><path d="M2.5 3.5H11.5M2.5 7H11.5M2.5 10.5H8" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" /></svg>
+                Briefing do lead
+              </span>
+              {caps.canEdit ? (
+                <RichTextEditor key={`brief-${row.id}`} value={(row['briefing_lead'] as string) ?? null} onChange={onBriefing} />
+              ) : (
+                (() => {
+                  const html = (row['briefing_lead'] as string) ?? ''
+                  return html.trim()
+                    ? <div className="fe-rich-content" style={{ fontSize: 14, color: 'var(--fe-text)', lineHeight: 1.6 }} dangerouslySetInnerHTML={{ __html: html }} />
+                    : <span style={{ fontSize: 14, color: 'var(--fe-text-faint)' }}>Sem briefing ainda.</span>
+                })()
+              )}
+            </div>
+          )}
+
           {descField && (
             <div style={{ marginBottom: 30 }}>
               <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 'var(--fe-text-base)', color: 'var(--fe-text-muted)', marginBottom: 10 }}>
                 <svg width="15" height="15" viewBox="0 0 14 14" fill="none"><path d="M2.5 3.5H11.5M2.5 7H11.5M2.5 10.5H8" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" /></svg>
-                Descrição
+                {briefingField ? 'Descrição / Notas' : 'Descrição'}
               </span>
               {caps.canEdit ? (
                 <RichTextEditor key={row.id} value={(row[config.descriptionField!] as string) ?? null} onChange={onDesc} />
