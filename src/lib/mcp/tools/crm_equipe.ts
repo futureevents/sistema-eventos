@@ -47,13 +47,17 @@ export function registrarCrmEquipe(server: McpServer) {
     {
       title: 'Criar oportunidade (lead) no CRM',
       description:
-        'Cria um lead na List de Oportunidades. Por padrão entra como prospecção ativa no status "A prospectar". Só `nome` (empresa) é obrigatório. Use `descricao` para a ficha do lead (motivo de entrada, nicho, gatilho, nota ICP).',
+        'Cria um lead na List de Oportunidades. Por padrão entra como prospecção ativa no status "A prospectar". Só `nome` (empresa) é obrigatório. Use `briefing` para a ficha do lead (motivo de entrada, nicho, gatilho, nota ICP) — vai para o bloco "Briefing do lead". A `descricao` fica reservada para notas de reunião.',
       inputSchema: {
         nome: z.string().min(1).describe('Nome da empresa (obrigatório).'),
+        briefing: z
+          .string()
+          .optional()
+          .describe('Briefing do lead (por que entrou, nicho, gatilho, nota ICP). Vai para o bloco "Briefing do lead". Aceita markdown (vira rich text): ## títulos, listas com -, | tabelas |.'),
         descricao: z
           .string()
           .optional()
-          .describe('Ficha do lead. Aceita markdown (vira rich text): use ## títulos, listas com -, | tabelas |.'),
+          .describe('Notas gerais / de reunião. Aceita markdown. Normalmente vazio ao criar o lead — o conteúdo de prospecção vai em `briefing`.'),
         prioridade: z.enum(['urgente', 'alta', 'media', 'baixa']).optional().describe('Default: media.'),
         responsavel: z.string().optional().describe('E-mail ou nome do responsável (membro da equipe).'),
         tipo: z
@@ -66,6 +70,7 @@ export function registrarCrmEquipe(server: McpServer) {
     tool(
       async (args: {
         nome: string
+        briefing?: string
         descricao?: string
         prioridade?: string
         responsavel?: string
@@ -78,6 +83,7 @@ export function registrarCrmEquipe(server: McpServer) {
           status: 'a_prospectar',
           prioridade: args.prioridade ?? 'media',
         }
+        if (args.briefing) payload.briefing_lead = markdownToHtml(args.briefing)
         if (args.descricao) payload.descricao = markdownToHtml(args.descricao)
         if (args.responsavel) {
           const m = await resolveMembro(args.responsavel)
