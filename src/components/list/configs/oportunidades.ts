@@ -179,6 +179,9 @@ export function oportunidadeConfig(tipo: TipoOportunidade): ListConfig {
     { key: 'email',       label: 'E-mail',    type: 'email' },
     ...origemOuUtmFields,
     { key: 'prioridade', label: 'Prioridade', type: 'select', options: PRIORIDADE, groupOrder: ['urgente', 'alta', 'media', 'baixa'], groupable: true, filterable: true },
+    // Briefing do lead: bloco próprio, só na Prospecção Ativa (não no Tráfego Pago).
+    // A Descrição fica livre para as notas da reunião de fechamento.
+    ...(!isTrafego ? [{ key: 'briefing_lead', label: 'Briefing do lead', type: 'richtext' } as FieldDef] : []),
     { key: 'descricao', label: 'Descrição', type: 'richtext' },
   ]
 

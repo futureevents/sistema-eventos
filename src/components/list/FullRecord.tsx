@@ -36,6 +36,8 @@ export function FullRecord({ config, row: rowProp, options, embeds, caps = CAPS_
   const statusField = config.statusField ? config.fields.find((f) => f.key === config.statusField) : null
   const detailFields = config.fields.filter((f) => (f.inPanel ?? (!f.column?.primary && f.type !== 'richtext')) && f.key !== config.titleField && f.key !== config.descriptionField)
   const descField = config.descriptionField ? config.fields.find((f) => f.key === config.descriptionField) : null
+  // Bloco dedicado "Briefing do lead" — só existe nas Lists que declaram o campo (prospecção ativa).
+  const briefingField = config.fields.find((f) => f.key === 'briefing_lead') ?? null
 
   const { hidden, toggle: toggleField, reset: showAllFields } = useHiddenFields(config.table)
 
@@ -84,6 +86,8 @@ export function FullRecord({ config, row: rowProp, options, embeds, caps = CAPS_
   function onNome(v: string) { setNome(v); if (nomeTimer.current) clearTimeout(nomeTimer.current); nomeTimer.current = setTimeout(() => { if (v.trim() !== String(row[config.titleField] ?? '')) patch({ [config.titleField]: v.trim() }) }, 600) }
   const descTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   function onDesc(html: string) { if (descTimer.current) clearTimeout(descTimer.current); descTimer.current = setTimeout(() => patch({ [config.descriptionField!]: html }), 600) }
+  const briefingTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  function onBriefing(html: string) { if (briefingTimer.current) clearTimeout(briefingTimer.current); briefingTimer.current = setTimeout(() => patch({ briefing_lead: html }), 600) }
 
   const doneOpt = statusField?.options?.find((o) => o.done)
   const openOpt = statusField?.options?.find((o) => !o.done)
@@ -173,12 +177,26 @@ export function FullRecord({ config, row: rowProp, options, embeds, caps = CAPS_
 
             <div style={{ height: 1, background: 'var(--fe-divider)', margin: '4px 0 30px' }} />
 
+            {briefingField && (
+              <div style={{ marginBottom: 34 }}>
+                <div style={{ fontSize: 'var(--fe-text-xs)', fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--fe-text-muted)', marginBottom: 8 }}>Briefing do lead</div>
+                {caps.canEdit
+                  ? <RichTextEditor key={`brief-${row.id}`} value={(row['briefing_lead'] as string) ?? null} onChange={onBriefing} minHeight={160} />
+                  : ((row['briefing_lead'] as string) ?? '').trim()
+                    ? <div className="fe-rich-content" style={{ fontSize: 15, color: 'var(--fe-text)', lineHeight: 1.6 }} dangerouslySetInnerHTML={{ __html: (row['briefing_lead'] as string) ?? '' }} />
+                    : <span style={{ fontSize: 15, color: 'var(--fe-text-faint)' }}>Sem briefing ainda.</span>}
+              </div>
+            )}
+
             {descField ? (
-              caps.canEdit
-                ? <RichTextEditor key={row.id} value={(row[config.descriptionField!] as string) ?? null} onChange={onDesc} minHeight={240} />
-                : ((row[config.descriptionField!] as string) ?? '').trim()
-                  ? <div className="fe-rich-content" style={{ fontSize: 15, color: 'var(--fe-text)', lineHeight: 1.6 }} dangerouslySetInnerHTML={{ __html: (row[config.descriptionField!] as string) ?? '' }} />
-                  : <span style={{ fontSize: 15, color: 'var(--fe-text-faint)' }}>Sem descrição.</span>
+              <>
+                {briefingField && <div style={{ fontSize: 'var(--fe-text-xs)', fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--fe-text-muted)', marginBottom: 8 }}>Descrição / Notas</div>}
+                {caps.canEdit
+                  ? <RichTextEditor key={row.id} value={(row[config.descriptionField!] as string) ?? null} onChange={onDesc} minHeight={240} />
+                  : ((row[config.descriptionField!] as string) ?? '').trim()
+                    ? <div className="fe-rich-content" style={{ fontSize: 15, color: 'var(--fe-text)', lineHeight: 1.6 }} dangerouslySetInnerHTML={{ __html: (row[config.descriptionField!] as string) ?? '' }} />
+                    : <span style={{ fontSize: 15, color: 'var(--fe-text-faint)' }}>Sem descrição.</span>}
+              </>
             ) : null}
 
             {/* Custom fields — abaixo da descrição (estilo ClickUp) */}
