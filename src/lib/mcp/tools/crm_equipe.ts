@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
-import { admin, texto, erro, tool, fmtData, ANOT_READ } from '../helpers'
+import { admin, texto, erro, tool, fmtData, ANOT_READ, ANOT_WRITE, resolveMembro } from '../helpers'
+import { markdownToHtml } from '@/lib/richtext'
 
 export function registrarCrmEquipe(server: McpServer) {
   // ── listar_oportunidades ──────────────────────────────────────────────────
@@ -38,6 +39,65 @@ export function registrarCrmEquipe(server: McpServer) {
       })
       return texto(`💼 **Oportunidades** (${data.length})\n\n${linhas.join('\n')}`)
     })
+  )
+
+  // ── criar_oportunidade ─────────────────────────────────────────────────────
+  server.registerTool(
+    'criar_oportunidade',
+    {
+      title: 'Criar oportunidade (lead) no CRM',
+      description:
+        'Cria um lead na List de Oportunidades. Por padrão entra como prospecção ativa no status "A prospectar". Só `nome` (empresa) é obrigatório. Use `descricao` para a ficha do lead (motivo de entrada, nicho, gatilho, nota ICP).',
+      inputSchema: {
+        nome: z.string().min(1).describe('Nome da empresa (obrigatório).'),
+        descricao: z
+          .string()
+          .optional()
+          .describe('Ficha do lead. Aceita markdown (vira rich text): use ## títulos, listas com -, | tabelas |.'),
+        prioridade: z.enum(['urgente', 'alta', 'media', 'baixa']).optional().describe('Default: media.'),
+        responsavel: z.string().optional().describe('E-mail ou nome do responsável (membro da equipe).'),
+        tipo: z
+          .enum(['trafego_pago', 'prospeccao_ativa'])
+          .optional()
+          .describe('Default: prospeccao_ativa.'),
+      },
+      annotations: ANOT_WRITE,
+    },
+    tool(
+      async (args: {
+        nome: string
+        descricao?: string
+        prioridade?: string
+        responsavel?: string
+        tipo?: string
+      }) => {
+        const a = admin()
+        const payload: Record<string, unknown> = {
+          nome: args.nome,
+          tipo: args.tipo ?? 'prospeccao_ativa',
+          status: 'a_prospectar',
+          prioridade: args.prioridade ?? 'media',
+        }
+        if (args.descricao) payload.descricao = markdownToHtml(args.descricao)
+        if (args.responsavel) {
+          const m = await resolveMembro(args.responsavel)
+          if (!m)
+            return erro(
+              `Não encontrei o responsável "${args.responsavel}".`,
+              'Use o e-mail exato ou parte do nome. Veja `listar_membros`.'
+            )
+          payload.responsavel_id = m.id
+        }
+        const { data, error } = await a
+          .from('task_oportunidade')
+          .insert(payload)
+          .select('id, nome')
+          .single()
+        if (error) return erro(`Não consegui criar a oportunidade: ${error.message}`)
+        const o = data as { id: string; nome: string }
+        return texto(`✅ Lead criado: **${o.nome}** (status: A prospectar)\n  id: ${o.id}`)
+      }
+    )
   )
 
   // ── listar_membros ────────────────────────────────────────────────────────
