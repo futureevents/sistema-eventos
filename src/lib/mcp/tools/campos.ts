@@ -54,6 +54,13 @@ function unir(...configs: ListConfig[]): Campo[] {
       const ex = map.get(f.key)
       if (!ex) map.set(f.key, novo)
       else if (!ex.options && novo.options) map.set(f.key, novo) // fica com a variante mais rica
+      else if (ex.options && novo.options) {
+        // Mesmo campo (mesma chave) definido em configs diferentes — ex.: o `status`
+        // do funil Tráfego Pago vs. Prospecção Ativa. Une as opções sem duplicar por
+        // value, para a validação aceitar os status dos dois funis (ex.: a_prospectar, aprovado).
+        const vistos = new Set(ex.options.map((o) => o.value))
+        ex.options = [...ex.options, ...novo.options.filter((o) => !vistos.has(o.value))]
+      }
     }
   }
   return [...map.values()]
