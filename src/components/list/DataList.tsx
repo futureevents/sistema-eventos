@@ -8,6 +8,7 @@ import {
   type ListConfig, type FieldDef, type Row, type OptionsMap, type SelectOption, type ViewPreset, parseISO,
 } from './types'
 import { type EmbedMap } from './load'
+import { sortRows, nextSort, type SortState } from './sort'
 import { Breadcrumb, SpaceBadge, Avatar, EmptyState, dataCurta, dataLonga, useHiddenFields, useIsMobile } from './kit'
 import { Dropdown, StatusDot, SelectMenu, RelationMenu, OptionPill, RowMenu } from './inline'
 import { InlineField, displayLabel, groupKey, optionOf, isDerived, rangeSpecFor, dueTone } from './cells'
@@ -42,6 +43,8 @@ export function DataList({ config, rows: rowsProp, options, embeds, caps = CAPS_
   const [activeViewKey, setActiveViewKey] = useState<string | null>(firstPreset?.key ?? null)
   const [groupBy, setGroupBy] = useState<string | null>(firstPreset?.groupBy !== undefined ? (firstPreset.groupBy ?? null) : (config.defaultGroupBy ?? config.statusField ?? null))
   const [filtros, setFiltros] = useState<FilterState>(firstPreset?.filter ?? {})
+  // Ordenação por coluna (clique no cabeçalho). null = ordem padrão do servidor.
+  const [sort, setSort] = useState<SortState | null>(null)
   const [salvando, setSalvando] = useState<'idle' | 'saving' | 'saved'>('idle')
   const savedTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const tmpSeq = useRef(0)
@@ -184,12 +187,16 @@ export function DataList({ config, rows: rowsProp, options, embeds, caps = CAPS_
   }).join(' ') + ' 30px', [columns])
 
   const filtradas = useMemo(() => aplicarFiltros(rows, busca, filtros, config), [rows, busca, filtros, config])
+  // Ordena antes de agrupar: como agrupar() preserva a ordem de entrada, isso já
+  // ordena as linhas dentro de cada grupo, sem lógica extra.
+  const ordenadas = useMemo(() => sortRows(filtradas, sort, config.fields, options), [filtradas, sort, config, options])
   const groupByField = useMemo(() => (groupBy ? config.fields.find((f) => f.key === groupBy) ?? null : null), [groupBy, config])
-  const grupos = useMemo(() => agrupar(filtradas, groupByField, options), [filtradas, groupByField, options])
+  const grupos = useMemo(() => agrupar(ordenadas, groupByField, options), [ordenadas, groupByField, options])
   // Ordem visível achatada (todos os grupos em sequência) p/ o range do shift+clique.
   const orderedIds = useMemo(() => grupos.flatMap((g) => g.itens.map((r) => r.id)), [grupos])
   const nFiltros = contarFiltros(filtros)
-  const visibleIds = useMemo(() => filtradas.map((r) => r.id), [filtradas])
+  const visibleIds = useMemo(() => ordenadas.map((r) => r.id), [ordenadas])
+  const onSort = (key: string) => setSort((cur) => nextSort(cur, key))
   const allVisibleSelected = visibleIds.length > 0 && visibleIds.every((id) => selectedIds.has(id))
   const someSelected = visibleIds.some((id) => selectedIds.has(id))
 
@@ -198,6 +205,7 @@ export function DataList({ config, rows: rowsProp, options, embeds, caps = CAPS_
     setFiltros(preset.filter ?? {})
     if (preset.groupBy !== undefined) setGroupBy(preset.groupBy ?? null)
     setBusca('')
+    setSort(null)
   }
 
   const aberto = sel ? rows.find((r) => r.id === sel) ?? null : null
@@ -225,9 +233,9 @@ export function DataList({ config, rows: rowsProp, options, embeds, caps = CAPS_
               <EmptyState icon={config.emptyIcon ?? <DefaultEmptyIcon />} titulo={`Nenhum registro em ${config.plural}`} descricao={`Crie o primeiro ${config.singular.toLowerCase()} para começar.`} addHref={addHref} addLabel={config.addLabel ?? `Adicionar ${config.singular}`} />
             ) : (
               <div style={{ minWidth: mobile ? 0 : 'var(--fe-list-min-w)' }}>
-                {!groupBy && !mobile && <Header columns={columns} grid={grid} config={config} allSelected={allVisibleSelected} someSelected={someSelected} onToggleAll={() => toggleSelectAll(visibleIds)} />}
+                {!groupBy && !mobile && <Header columns={columns} grid={grid} config={config} allSelected={allVisibleSelected} someSelected={someSelected} onToggleAll={() => toggleSelectAll(visibleIds)} sort={sort} onSort={onSort} />}
                 {grupos.map((g, i) => (
-                  <Grupo key={g.key} grupo={g} grid={grid} columns={columns} config={config} options={options} patch={patch} remove={remove} add={add} groupByField={groupByField} onAbrir={setSel} grouped={!!groupBy} first={i === 0} selectedIds={selectedIds} onToggle={toggleSelect} onToggleMany={toggleSelectAll} canEdit={caps.canEdit} canDelete={caps.canDelete} mobile={mobile} />
+                  <Grupo key={g.key} grupo={g} grid={grid} columns={columns} config={config} options={options} patch={patch} remove={remove} add={add} groupByField={groupByField} onAbrir={setSel} grouped={!!groupBy} first={i === 0} selectedIds={selectedIds} onToggle={toggleSelect} onToggleMany={toggleSelectAll} canEdit={caps.canEdit} canDelete={caps.canDelete} mobile={mobile} sort={sort} onSort={onSort} />
                 ))}
                 {rows.length > 0 && (busca.trim() !== '' || nFiltros > 0) && grupos.every((g) => g.itens.length === 0) && (
                   <div style={{ padding: '40px 24px', textAlign: 'center', fontSize: 13, color: 'var(--fe-text-muted)' }}>Nenhum registro corresponde aos filtros.</div>
@@ -549,9 +557,10 @@ function Chip({ children, ativo, onClick }: { children: React.ReactNode; ativo: 
 
 // ─── Cabeçalho de colunas ─────────────────────────────────────────────────────
 
-function Header({ columns, grid, config, allSelected, someSelected, onToggleAll }: {
+function Header({ columns, grid, config, allSelected, someSelected, onToggleAll, sort, onSort }: {
   columns: FieldDef[]; grid: string; config: ListConfig
   allSelected: boolean; someSelected: boolean; onToggleAll: () => void
+  sort: SortState | null; onSort: (key: string) => void
 }) {
   return (
     <div style={{ position: 'sticky', top: 0, zIndex: 2, display: 'grid', gridTemplateColumns: grid, gap: 12, padding: '0 24px', height: 36, alignItems: 'center', background: 'var(--fe-surface)', borderBottom: '1px solid var(--fe-border)' }}>
@@ -559,9 +568,53 @@ function Header({ columns, grid, config, allSelected, someSelected, onToggleAll 
       <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
         <Checkbox checked={allSelected} indeterminate={someSelected && !allSelected} onChange={onToggleAll} />
       </span>
-      {columns.map((c) => <span key={c.key} style={{ fontSize: 12, fontWeight: 600, color: 'var(--fe-text-muted)' }}>{c.column!.header ?? (c.column!.primary ? `Nome (${config.singular.toLowerCase()})` : c.label)}</span>)}
+      <HeaderCells columns={columns} config={config} sort={sort} onSort={onSort} />
       <span />
     </div>
+  )
+}
+
+/** Células de cabeçalho clicáveis (ordenação). Usadas no cabeçalho da tabela e
+ *  no cabeçalho de cada grupo. */
+function HeaderCells({ columns, config, sort, onSort }: {
+  columns: FieldDef[]; config: ListConfig; sort: SortState | null; onSort: (key: string) => void
+}) {
+  return (
+    <>
+      {columns.map((c) => {
+        const label = c.column!.header ?? (c.column!.primary ? `Nome (${config.singular.toLowerCase()})` : c.label)
+        const ativo = sort?.key === c.key
+        return (
+          <button
+            key={c.key}
+            type="button"
+            className="fe-col-head"
+            onClick={(e) => { e.stopPropagation(); onSort(c.key) }}
+            title={`Ordenar por ${label.toLowerCase()}`}
+            aria-label={`Ordenar por ${label.toLowerCase()}`}
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: 4, minWidth: 0,
+              padding: 0, border: 'none', background: 'transparent', cursor: 'pointer',
+              textAlign: 'left', fontSize: 12, fontWeight: 600,
+              color: ativo ? 'var(--fe-text-strong)' : 'var(--fe-text-muted)',
+            }}>
+            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{label}</span>
+            <SortArrow dir={ativo ? sort!.dir : null} />
+          </button>
+        )
+      })}
+    </>
+  )
+}
+
+function SortArrow({ dir }: { dir: 'asc' | 'desc' | null }) {
+  return (
+    <svg
+      className="fe-sort-arrow" data-active={dir ? '1' : '0'} aria-hidden
+      width="10" height="10" viewBox="0 0 10 10" fill="none"
+      style={{ flexShrink: 0, color: dir ? 'var(--fe-accent)' : 'currentColor', transform: dir === 'desc' ? 'rotate(180deg)' : undefined }}>
+      <path d="M5 8.5V1.5M5 1.5L2.2 4.3M5 1.5L7.8 4.3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
   )
 }
 
@@ -595,7 +648,7 @@ function Checkbox({ checked, indeterminate = false, onChange, visible = true, in
 
 // ─── Grupo ─────────────────────────────────────────────────────────────────────
 
-function Grupo({ grupo, grid, columns, config, options, patch, remove, add, groupByField, onAbrir, grouped, first, selectedIds, onToggle, onToggleMany, canEdit = true, canDelete = true, mobile = false }: {
+function Grupo({ grupo, grid, columns, config, options, patch, remove, add, groupByField, onAbrir, grouped, first, selectedIds, onToggle, onToggleMany, canEdit = true, canDelete = true, mobile = false, sort, onSort }: {
   grupo: GrupoView; grid: string; columns: FieldDef[]; config: ListConfig; options: OptionsMap
   patch: (id: string, p: Record<string, unknown>) => void; remove: (id: string) => void
   add: (p: Record<string, unknown>) => Promise<boolean>; groupByField: FieldDef | null
@@ -603,6 +656,7 @@ function Grupo({ grupo, grid, columns, config, options, patch, remove, add, grou
   selectedIds: Set<string>; onToggle: (id: string, shift?: boolean) => void
   onToggleMany: (ids: string[]) => void
   canEdit?: boolean; canDelete?: boolean; mobile?: boolean
+  sort: SortState | null; onSort: (key: string) => void
 }) {
   const [aberto, setAberto] = useState(true)
   const [adicionando, setAdicionando] = useState(false)
@@ -636,7 +690,7 @@ function Grupo({ grupo, grid, columns, config, options, patch, remove, add, grou
           <span onClick={(e) => e.stopPropagation()} style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
             <Checkbox checked={allGroupSel} indeterminate={someGroupSel && !allGroupSel} onChange={() => onToggleMany(groupIds)} />
           </span>
-          {columns.map((c) => <span key={c.key} style={{ fontSize: 12, fontWeight: 600, color: 'var(--fe-text-muted)' }}>{c.column!.header ?? (c.column!.primary ? `Nome (${config.singular.toLowerCase()})` : c.label)}</span>)}
+          <HeaderCells columns={columns} config={config} sort={sort} onSort={onSort} />
           <span />
         </div>
       )}

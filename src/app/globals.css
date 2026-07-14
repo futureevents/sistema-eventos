@@ -204,6 +204,13 @@
 .fe-row .fe-row-actions { opacity: 0; transition: opacity var(--fe-dur-fast); }
 .fe-row:hover .fe-row-actions { opacity: 1; }
 
+/* Cabeçalho de coluna ordenável: a seta só aparece no hover; na coluna ativa
+   (data-active) fica sempre visível, na cor de destaque. */
+.fe-col-head:hover { color: var(--fe-text-strong); }
+.fe-col-head .fe-sort-arrow { opacity: 0; transition: opacity var(--fe-dur-fast); }
+.fe-col-head:hover .fe-sort-arrow { opacity: 0.5; }
+.fe-col-head .fe-sort-arrow[data-active="1"] { opacity: 1; }
+
 /* ── Acessibilidade — foco visível por teclado (Parte 5 /clarify) ──────── */
 /* :focus-visible só dispara em navegação por teclado — o mouse não vê o anel.
    !important sobrepõe os `outline: none` inline dos inputs e células editáveis
