@@ -91,7 +91,6 @@ function RichCommentInput({
   const [empty, setEmpty] = useState(true)
   const [floatPos, setFloatPos] = useState<{ x: number; y: number } | null>(null)
   const [mentionQuery, setMentionQuery] = useState<string | null>(null)
-  const [mentionPos, setMentionPos]     = useState<{ x: number; y: number } | null>(null)
 
   useEffect(() => {
     function onSelChange() {
@@ -118,16 +117,6 @@ function RichCommentInput({
     return ''
   }
 
-  function getCursorBottomLeft(): { x: number; y: number } | null {
-    const sel = window.getSelection()
-    if (!sel || !sel.rangeCount) return null
-    const range = sel.getRangeAt(0).cloneRange()
-    range.collapse(true)
-    const rect = range.getBoundingClientRect()
-    if (!rect.height) return null
-    return { x: rect.left, y: rect.bottom + 4 }
-  }
-
   function exec(cmd: string, val?: string) { document.execCommand(cmd, false, val) }
 
   function applyFmt(cmd: string, val?: string) {
@@ -147,7 +136,6 @@ function RichCommentInput({
     const match = textBefore.match(/@(\S*)$/)
     if (match) {
       setMentionQuery(match[1])
-      setMentionPos(getCursorBottomLeft())
     } else {
       setMentionQuery(null)
     }
@@ -243,54 +231,59 @@ function RichCommentInput({
         </div>
       )}
 
-      {/* Dropdown de @menção */}
-      {mentionQuery !== null && mentionFiltered.length > 0 && mentionPos && (
-        <div style={{ position: 'fixed', top: mentionPos.y, left: mentionPos.x, background: 'var(--fe-surface)', border: '1px solid var(--fe-border)', borderRadius: 'var(--fe-radius-md)', boxShadow: '0 4px 16px rgba(0,0,0,0.12)', zIndex: 9999, overflow: 'hidden', minWidth: 200 }}>
-          {mentionFiltered.map((m) => (
-            <button key={m.id} onMouseDown={(e) => { e.preventDefault(); handleSelectMention(m) }}
-              style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%', padding: '8px 12px', border: 'none', background: 'transparent', cursor: 'pointer', textAlign: 'left' }}
-              onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.background = 'var(--fe-hover)')}
-              onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.background = 'transparent')}
-            >
-              <div style={{ width: 26, height: 26, borderRadius: '50%', background: 'var(--fe-accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700, color: 'var(--fe-accent-fg)', flexShrink: 0 }}>
-                {initials(m.nome)}
-              </div>
-              <div style={{ minWidth: 0 }}>
-                <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--fe-text-strong)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{m.nome}</div>
-                <div style={{ fontSize: 11.5, color: 'var(--fe-text-faint)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{m.email}</div>
-              </div>
-            </button>
-          ))}
-        </div>
-      )}
-
-      {/* Wrapper do input */}
-      <div
-        style={{ flex: 1, border: '1px solid var(--fe-border)', borderRadius: 'var(--fe-radius-md)', background: 'var(--fe-surface)', overflow: 'hidden', transition: 'border-color 150ms' }}
-        onFocusCapture={(e) => (e.currentTarget.style.borderColor = 'var(--fe-accent)')}
-        onBlurCapture={(e) => { e.currentTarget.style.borderColor = 'var(--fe-border)'; setTimeout(() => setMentionQuery(null), 150) }}
-      >
-        <div
-          ref={editorRef}
-          contentEditable
-          suppressContentEditableWarning
-          onInput={handleInput}
-          onKeyDown={handleKeyDown}
-          onPaste={handlePaste}
-          data-placeholder="Escreva um comentário… use @ para mencionar alguém (⌘↵ para enviar)"
-          className="fe-richtext fe-comment-input"
-          style={{ outline: 'none', padding: '10px 12px', fontSize: 13.5, color: 'var(--fe-text)', lineHeight: 1.55, minHeight: 40, boxSizing: 'border-box' as const }}
-        />
-        {!empty && (
-          <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '6px 10px', borderTop: '1px solid var(--fe-divider)' }}>
-            <button
-              onMouseDown={(e) => { e.preventDefault(); send() }}
-              style={{ height: 28, padding: '0 14px', borderRadius: 'var(--fe-radius-md)', border: 'none', background: 'var(--fe-accent)', color: 'var(--fe-accent-fg)', fontSize: 12.5, fontWeight: 600, cursor: 'pointer' }}
-            >
-              Comentar
-            </button>
+      {/* Container do input — âncora do dropdown de @menção (position: relative
+          garante que o dropdown funcione tanto no FullRecord quanto no SlideOver,
+          sem depender de coordenadas fixed que quebram dentro do painel animado). */}
+      <div style={{ flex: 1, position: 'relative' }}>
+        {/* Dropdown de @menção — ancorado logo acima do input */}
+        {mentionQuery !== null && mentionFiltered.length > 0 && (
+          <div style={{ position: 'absolute', bottom: 'calc(100% + 6px)', left: 0, width: '100%', background: 'var(--fe-surface)', border: '1px solid var(--fe-border)', borderRadius: 'var(--fe-radius-md)', boxShadow: '0 4px 16px rgba(0,0,0,0.12)', zIndex: 9999, overflow: 'hidden' }}>
+            {mentionFiltered.map((m) => (
+              <button key={m.id} onMouseDown={(e) => { e.preventDefault(); handleSelectMention(m) }}
+                style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%', padding: '8px 12px', border: 'none', background: 'transparent', cursor: 'pointer', textAlign: 'left' }}
+                onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.background = 'var(--fe-hover)')}
+                onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.background = 'transparent')}
+              >
+                <div style={{ width: 26, height: 26, borderRadius: '50%', background: 'var(--fe-accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700, color: 'var(--fe-accent-fg)', flexShrink: 0 }}>
+                  {initials(m.nome)}
+                </div>
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--fe-text-strong)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{m.nome}</div>
+                  <div style={{ fontSize: 11.5, color: 'var(--fe-text-faint)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{m.email}</div>
+                </div>
+              </button>
+            ))}
           </div>
         )}
+
+        {/* Wrapper do input */}
+        <div
+          style={{ border: '1px solid var(--fe-border)', borderRadius: 'var(--fe-radius-md)', background: 'var(--fe-surface)', overflow: 'hidden', transition: 'border-color 150ms' }}
+          onFocusCapture={(e) => (e.currentTarget.style.borderColor = 'var(--fe-accent)')}
+          onBlurCapture={(e) => { e.currentTarget.style.borderColor = 'var(--fe-border)'; setTimeout(() => setMentionQuery(null), 150) }}
+        >
+          <div
+            ref={editorRef}
+            contentEditable
+            suppressContentEditableWarning
+            onInput={handleInput}
+            onKeyDown={handleKeyDown}
+            onPaste={handlePaste}
+            data-placeholder="Escreva um comentário… use @ para mencionar alguém (⌘↵ para enviar)"
+            className="fe-richtext fe-comment-input"
+            style={{ outline: 'none', padding: '10px 12px', fontSize: 13.5, color: 'var(--fe-text)', lineHeight: 1.55, minHeight: 40, boxSizing: 'border-box' as const }}
+          />
+          {!empty && (
+            <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '6px 10px', borderTop: '1px solid var(--fe-divider)' }}>
+              <button
+                onMouseDown={(e) => { e.preventDefault(); send() }}
+                style={{ height: 28, padding: '0 14px', borderRadius: 'var(--fe-radius-md)', border: 'none', background: 'var(--fe-accent)', color: 'var(--fe-accent-fg)', fontSize: 12.5, fontWeight: 600, cursor: 'pointer' }}
+              >
+                Comentar
+              </button>
+            </div>
+          )}
+        </div>
       </div>
     </>
   )

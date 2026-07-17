@@ -10,27 +10,8 @@ type Comment = {
   body: string
   criado_em: string
   mentions: string[]
-}
-
-function taskHref(taskTable: string, taskId: string) {
-  const map: Record<string, string> = {
-    task_projeto: '/entregas/projetos/pre-evento',
-    evento: '/entregas/base-de-dados/eventos',
-    cliente: '/comercial/gestao-de-clientes/clientes',
-    fornecedor: '/entregas/base-de-dados/fornecedores',
-  }
-  const base = map[taskTable] ?? '#'
-  return `${base}/${taskId}`
-}
-
-function tableLabel(taskTable: string) {
-  const map: Record<string, string> = {
-    task_projeto: 'Projetos',
-    evento: 'Eventos',
-    cliente: 'Clientes',
-    fornecedor: 'Fornecedores',
-  }
-  return map[taskTable] ?? taskTable
+  href: string | null
+  listLabel: string
 }
 
 function timeAgo(iso: string) {
@@ -69,47 +50,63 @@ export function InboxClient({ mentions }: { mentions: Comment[]; currentUserId: 
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-          {mentions.map((c) => (
-            <Link
-              key={c.id}
-              href={taskHref(c.task_table, c.task_id)}
-              style={{
-                display: 'block',
-                padding: '12px 16px',
-                borderRadius: 'var(--fe-radius-md)',
-                border: '1px solid var(--fe-border)',
-                background: 'var(--fe-surface)',
-                textDecoration: 'none',
-                transition: 'background var(--fe-dur-fast)',
-              }}
-              onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.background = 'var(--fe-hover)')}
-              onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.background = 'var(--fe-surface)')}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <div style={{
-                    width: 24, height: 24, borderRadius: '50%', background: 'var(--fe-accent)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: 10, fontWeight: 700, color: 'var(--fe-accent-fg)', flexShrink: 0,
-                  }}>
-                    {c.author.charAt(0).toUpperCase()}
+          {mentions.map((c) => {
+            const clickable = Boolean(c.href)
+            const cardStyle = {
+              display: 'block',
+              padding: '12px 16px',
+              borderRadius: 'var(--fe-radius-md)',
+              border: '1px solid var(--fe-border)',
+              background: 'var(--fe-surface)',
+              textDecoration: 'none',
+              transition: 'background var(--fe-dur-fast)',
+              cursor: clickable ? 'pointer' : 'default',
+            } as const
+
+            const content = (
+              <>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <div style={{
+                      width: 24, height: 24, borderRadius: '50%', background: 'var(--fe-accent)',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      fontSize: 10, fontWeight: 700, color: 'var(--fe-accent-fg)', flexShrink: 0,
+                    }}>
+                      {c.author.charAt(0).toUpperCase()}
+                    </div>
+                    <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--fe-text-strong)' }}>{c.author}</span>
+                    <span style={{ fontSize: 12, color: 'var(--fe-text-faint)', padding: '1px 7px', borderRadius: 20, background: 'var(--fe-track)' }}>
+                      {c.listLabel}
+                    </span>
                   </div>
-                  <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--fe-text-strong)' }}>{c.author}</span>
-                  <span style={{ fontSize: 12, color: 'var(--fe-text-faint)', padding: '1px 7px', borderRadius: 20, background: 'var(--fe-track)' }}>
-                    {tableLabel(c.task_table)}
-                  </span>
+                  <span style={{ fontSize: 11.5, color: 'var(--fe-text-faint)' }}>{timeAgo(c.criado_em)}</span>
                 </div>
-                <span style={{ fontSize: 11.5, color: 'var(--fe-text-faint)' }}>{timeAgo(c.criado_em)}</span>
+                <p style={{
+                  margin: 0, fontSize: 13.5, color: 'var(--fe-text)',
+                  display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
+                  lineHeight: 1.5,
+                }}>
+                  {c.body}
+                </p>
+              </>
+            )
+
+            return clickable ? (
+              <Link
+                key={c.id}
+                href={c.href!}
+                style={cardStyle}
+                onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.background = 'var(--fe-hover)')}
+                onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.background = 'var(--fe-surface)')}
+              >
+                {content}
+              </Link>
+            ) : (
+              <div key={c.id} style={cardStyle}>
+                {content}
               </div>
-              <p style={{
-                margin: 0, fontSize: 13.5, color: 'var(--fe-text)',
-                display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
-                lineHeight: 1.5,
-              }}>
-                {c.body}
-              </p>
-            </Link>
-          ))}
+            )
+          })}
         </div>
       )}
     </div>
