@@ -21,6 +21,18 @@ export default async function InboxPage() {
 
   const mentions = data ?? []
 
+  // Estado por-usuário: quais dessas menções já foram fechadas (resolvidas).
+  const resolvedIds = new Set<string>()
+  const commentIds = mentions.map((c) => c.id)
+  if (commentIds.length > 0) {
+    const { data: statusRows } = await supabase
+      .from('mention_status')
+      .select('comment_id')
+      .eq('user_id', userId)
+      .in('comment_id', commentIds)
+    for (const r of statusRows ?? []) resolvedIds.add(r.comment_id as string)
+  }
+
   // Tabelas cujo destino depende de um discriminador (ex.: task_projeto.tipo
   // separa pré/intra/pós-evento). Buscamos esse campo em lote, por tabela.
   const discCols = discriminatorColumns()
@@ -47,6 +59,7 @@ export default async function InboxPage() {
       ...c,
       href: taskHref(c.task_table, c.task_id, disc),
       listLabel: taskListLabel(c.task_table, disc),
+      resolved: resolvedIds.has(c.id),
     }
   })
 
