@@ -65,11 +65,10 @@ export function McpConnect({
     )
   }
 
-  // O servidor já vem configurado no projeto (.mcp.json, compartilhado no repo).
-  // Cada pessoa só precisa salvar o próprio token numa variável de ambiente —
-  // o .mcp.json a expande. Sem `claude mcp add`, sem erro de "já existe", e o
-  // enableAllProjectMcpServers aprova sozinho (nada de "pending approval").
-  const command = `echo 'export SISTEMA_EVENTOS_TOKEN="${token}"' >> ~/.zshrc && source ~/.zshrc`
+  // Escopo de usuário: registra o servidor na conta da pessoa, não no projeto.
+  // Funciona de QUALQUER pasta, sem precisar clonar o repo. O token vai no
+  // header, então o Claude nunca cai no fluxo de login OAuth (que dá erro).
+  const command = `claude mcp add --scope user --transport http sistema-eventos ${url} --header "Authorization: Bearer ${token}"`
   const connectorUrl = `${url}?token=${token}`
 
   const codeBox: React.CSSProperties = {
@@ -120,9 +119,9 @@ export function McpConnect({
           >
             docs.claude.com/claude-code
           </a>
-          ). O servidor já vem configurado no projeto — você só salva o seu token
-          uma vez com este comando. Depois abra o <code style={{ fontFamily: 'var(--font-geist-mono, monospace)', fontSize: 12 }}>claude</code> na
-          pasta do projeto e ele conecta sozinho, sem pedir aprovação:
+          ). Rode este comando <strong>uma vez</strong> — ele registra o servidor na
+          sua conta do Claude Code. Depois é só abrir o <code style={{ fontFamily: 'var(--font-geist-mono, monospace)', fontSize: 12 }}>claude</code> em
+          qualquer pasta e ele conecta sozinho — sem clonar repositório, sem pedir aprovação:
         </p>
         <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
           <code style={codeBox}>{command}</code>
