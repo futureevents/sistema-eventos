@@ -46,7 +46,7 @@ const FORMATO_CONTEUDO: SelectOption[] = [
   { value: 'formulario', label: 'Formulário', dot: '#D9730D', bg: 'rgba(217,115,13,0.13)',  text: '#9A4E0A' },
 ]
 
-const CANAIS = ['Instagram', 'WhatsApp', 'Web', 'YouTube', 'Formy'] as const
+const CANAIS = ['Instagram', 'LinkedIn', 'WhatsApp', 'Web', 'YouTube', 'Formy'] as const
 
 const PRIORIDADE: SelectOption[] = [
   { value: 'urgente', label: 'Urgente', flag: 'var(--fe-prio-urgent)' },
@@ -55,13 +55,25 @@ const PRIORIDADE: SelectOption[] = [
   { value: 'baixa',   label: 'Baixa',   flag: 'var(--fe-prio-low)' },
 ]
 
-const TEMPLATES_COPY: TaskTemplate[] = [
+// Modelos de task da pasta Criação (copy / design / publicações). Digitar `/`
+// no "+ Adicionar" abre o menu de Modelos.
+const TEMPLATES_CRIACAO: TaskTemplate[] = [
   {
     label: 'Post',
     defaults: {
       nome: 'Post | ',
       tipo_conteudo: 'post',
       descricao: '<h2>Briefing</h2><ul><li><br></li><li><br></li><li><br></li></ul><h2>Copy</h2><h3>Headline</h3><p><br></p><h3>Corpo/Script</h3><p><br></p><h3>Legenda</h3><p><br></p>',
+    },
+  },
+  {
+    label: 'LinkedIn',
+    defaults: {
+      nome: 'Linkedin | ',
+      tipo_conteudo: 'post',
+      formato_conteudo: ['texto'],
+      canais_publicacao: ['LinkedIn'],
+      descricao: '<h2>Briefing</h2><ul><li><br></li><li><br></li><li><br></li></ul><h2>Copy</h2><p><br></p><h2>Material Notion</h2><p><br></p>',
     },
   },
 ]
@@ -131,7 +143,7 @@ export function marketingConfig(tipo: TipoListaMkt): ListConfig {
     assigneeField: 'responsavel_id',
     defaultGroupBy: 'status',
     baseFilter: { col: 'tipo', value: tipo },
-    templates: tipo === 'copy' ? TEMPLATES_COPY : undefined,
+    templates: isCriacao ? TEMPLATES_CRIACAO : undefined,
     fields,
   }
 }
