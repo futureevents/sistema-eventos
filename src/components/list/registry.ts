@@ -6,6 +6,7 @@ import { tasksConfig } from './configs/tasks'
 import { marketingConfig } from './configs/marketing-criacao'
 import { processoConfig } from './configs/gestao-processos'
 import { oportunidadeConfig } from './configs/oportunidades'
+import { acessoConfig } from './configs/acessos'
 
 /**
  * Registro de Lists. As páginas (servidor) e os wrappers (cliente) resolvem a
@@ -34,6 +35,8 @@ export const LIST_CONFIGS: Record<string, ListConfig> = {
   'proc:comercial': processoConfig('comercial'),
   'proc:juridico': processoConfig('juridico'),
   'proc:ia': processoConfig('ia'),
+  'acesso:emails_redes': acessoConfig('emails_redes'),
+  'acesso:ferramentas': acessoConfig('ferramentas'),
 }
 
 export type ListKey = keyof typeof LIST_CONFIGS
